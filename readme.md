@@ -90,7 +90,7 @@ This project is licensed under the **MIT License**.
 - Open for collaboration! Feel free to fork and contribute. 🚀
 
 ## 📬 Contact
-For questions or contributions, reach out via [nhousnahishaq@gmail.com/0763634264].
+For questions or contributions, reach out via [nhousnahishaq@gmail.com].
 
 ---
 🔥 *AITS – Making academic issue tracking seamless!*
