@@ -25,7 +25,7 @@ The **Academic Issue Tracking System (AITS)** is a web application designed to s
 ## 🛠️ Installation & Setup
 ### 1️⃣ Clone the Repository
 ```sh
-git clone <repository-url>
+git clone [(https://github.com/nhbi05/ACADEMIC_TRACKING_SYSTEM)]
 cd aits-project
 ```
 ### 2️⃣ Backend Setup (Django)
@@ -42,7 +42,7 @@ python manage.py runserver
 ```sh
 cd frontend
 npm install
-npm run dev
+npm start
 ```
 
 ## 🎯 Usage
@@ -57,7 +57,7 @@ We welcome contributions! Follow these steps to submit a pull request:
 1. **Fork the Repository**: Click the fork button on GitHub.
 2. **Clone Your Fork**: 
    ```sh
-   git clone <your-fork-url>
+   git clone https://github.com/nhbi05/ACADEMIC_TRACKING_SYSTEM
    cd aits-project
    ```
 3. **Create a New Branch**: 
@@ -90,7 +90,7 @@ This project is licensed under the **MIT License**.
 - Open for collaboration! Feel free to fork and contribute. 🚀
 
 ## 📬 Contact
-For questions or contributions, reach out via [email/contact info].
+For questions or contributions, reach out via [nhousnahishaq@gmail.com/0763634264].
 
 ---
 🔥 *AITS – Making academic issue tracking seamless!*
