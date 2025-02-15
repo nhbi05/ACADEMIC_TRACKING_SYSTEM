@@ -1,4 +1,3 @@
-// src/components/auth/Register.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,14 +8,24 @@ const Register = () => {
     password: '',
     password2: '',
     role: 'student',
-    department: '',
+    college: '', // For student
+    department: '', // For lecturer
     student_id: '',
   });
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Password confirmation check
+    if (formData.password !== formData.password2) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:8000/api/register/', {
         method: 'POST',
@@ -41,6 +50,8 @@ const Register = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900">Register</h2>
         {error && <div className="text-red-500 text-center">{error}</div>}
+        {passwordError && <div className="text-red-500 text-center">{passwordError}</div>}
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <input
@@ -49,7 +60,7 @@ const Register = () => {
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
               placeholder="Username"
               value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             />
             <input
               type="email"
@@ -57,7 +68,7 @@ const Register = () => {
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
               placeholder="Email"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
             <input
               type="password"
@@ -65,7 +76,7 @@ const Register = () => {
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
               placeholder="Password"
               value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
             <input
               type="password"
@@ -73,31 +84,48 @@ const Register = () => {
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
               placeholder="Confirm Password"
               value={formData.password2}
-              onChange={(e) => setFormData({...formData, password2: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
             />
             <select
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
               value={formData.role}
-              onChange={(e) => setFormData({...formData, role: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
             >
               <option value="student">Student</option>
               <option value="lecturer">Lecturer</option>
               <option value="registrar">Registrar</option>
             </select>
-            <input
-              type="text"
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-              placeholder="Department"
-              value={formData.department}
-              onChange={(e) => setFormData({...formData, department: e.target.value})}
-            />
+
+            {/* Conditionally render college field for students */}
             {formData.role === 'student' && (
               <input
                 type="text"
                 className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                placeholder="Student ID"
+                placeholder="College"
+                value={formData.college}
+                onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+              />
+            )}
+
+            {/* Conditionally render department field for lecturers */}
+            {formData.role === 'lecturer' && (
+              <input
+                type="text"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                placeholder="Department"
+                value={formData.department}
+                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              />
+            )}
+
+            {/* Conditionally render student ID for students */}
+            {formData.role === 'student' && (
+              <input
+                type="text"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                placeholder="Student Number"
                 value={formData.student_id}
-                onChange={(e) => setFormData({...formData, student_id: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
               />
             )}
           </div>
