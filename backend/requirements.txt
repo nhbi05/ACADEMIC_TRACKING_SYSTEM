@@ -5,7 +5,7 @@ django-cors-headers==4.3.1
 python-dotenv==1.0.0
 
 # Database
-psycopg2-binary==2.9.9
+
 
 # Authentication & Security
 djangorestframework-simplejwt==5.3.1
@@ -13,7 +13,7 @@ django-allauth==0.60.1
 django-rest-auth==0.9.5
 
 # File Handling
-Pillow==10.2.0
+#Pillow==10.2.0
 django-storages==1.14.2
 
 # API Documentation

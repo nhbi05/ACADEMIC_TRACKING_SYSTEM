@@ -1,39 +1,43 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
+#User = get_user_model()
 
 # Create your models here.
-class User(models.Model):
+class User(AbstractUser):
     ROLE_CHOICES=[
         ('student','Student'),
         ('lecturer','Lecture'),
         ('registar','Registar'),
     ]
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
     role = models.CharField(max_length=10,choices=ROLE_CHOICES)
 
-    def __str__(self):
-        return self.name
-
-class Student(User):
     def submit_issue(self,category,description):
+        if self.role != 'student':
+            raise PermissionError("Only students can submit issues")
         return Issue.objects.create(
             category = category,
-            #status='open',
+            status = 'open',
             description = description,
             submitted_by = self
-
         )
 
-class Lecturer(User):
-    def resolve_issue(self,issue,lecturer):
+    def assign_issue(self,issue,lecturer):
+        if role != 'lecturer':
+            raise PermissionError("Only Registrar can assign issues to lectures")
+        issue.assigned_to = lecturer
+        issue.save()
+    
+            
+    def resolve_issue(self,issue):
+        if self.role != 'lecturer':
+            raise PermissionError("Only lecturers can resolve issues")
         issue.status = 'resolved'
         issue.save()
 
-class Registrar(User):
-    def assign_issue(self,issue,lecturer):
-        issue.assigned_to = lecturer
-        issue.save()
+
 
 class Issue(models.Model):
     STATUS_CHOICES = [
@@ -45,8 +49,8 @@ class Issue(models.Model):
     category = models.CharField(max_length=100)
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='open')
     description = models.TextField()
-    submitted_by = models.ForeignKey(Student,null=True,on_delete=models.CASCADE)
-    assigned_to = models.ForeignKey(Lecturer,null=True,blank=True,on_delete=models.SET_NULL)
+    submitted_by = models.ForeignKey(User,null=True,on_delete=models.CASCADE,related_name="submitted_issues")
+    assigned_to = models.ForeignKey(User,null=True,blank=True,on_delete=models.SET_NULL,related_name="assigned_issues")
 
     def __str__(self):
         return f"Issue {self.id} - {self.category} ({self.status})"
@@ -62,7 +66,8 @@ class Issue(models.Model):
 class Notification(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User,on_delete=models.CASCADE)
-    message = models.TextField
+    message = models.TextField()
+    created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Notification for {self.user.name}: {self.message} "
