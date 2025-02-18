@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Alert, AlertDescription } from '../ui/alert';
+import { authService } from '../../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -7,53 +9,139 @@ const Register = () => {
     email: '',
     password: '',
     password2: '',
+    first_name: '',
+    last_name: '',
     role: 'student',
-    college: '', // For student
-    department: '', // For lecturer
+    college: '',
+    department: '',
     student_id: '',
+    office_number: '',
+    specialization: '',
+    office_location: '',
+    year_level: 1
   });
+
   const [error, setError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setPasswordError('');
+    setIsLoading(true);
     
-    // Password confirmation check
     if (formData.password !== formData.password2) {
       setPasswordError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
+  
+    // Create the appropriate profile data based on role
+    let profileData = {};
+    if (formData.role === 'student') {
+      profileData = {
+        student_profile: {
+          student_id: formData.student_id,
+          college: formData.college,
+          department: formData.department,
+          year_level: formData.year_level
+        }
+      };
+    } else if (formData.role === 'lecturer') {
+      profileData = {
+        lecturer_profile: {
+          department: formData.department,
+          office_number: formData.office_number,
+          specialization: formData.specialization
+        }
+      };
+    } else if (formData.role === 'registrar') {
+      profileData = {
+        registrar_profile: {
+          office_location: formData.office_location,
+          department: formData.department
+        }
+      };
+    }
+
+    // Prepare the registration data
+    const registrationData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      password2: formData.password2,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      role: formData.role,
+      ...profileData
+    };
 
     try {
-      const response = await fetch('http://localhost:8000/api/register/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        navigate('/login');
-      } else {
-        const data = await response.json();
-        setError(Object.values(data).join(' '));
-      }
+      await authService.register(registrationData);
+      navigate('/login');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      if (err.response?.data) {
+        const errorMessages = Object.entries(err.response.data)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(' ');
+        setError(errorMessages);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-center text-3xl font-extrabold text-gray-900">Register</h2>
-        {error && <div className="text-red-500 text-center">{error}</div>}
-        {passwordError && <div className="text-red-500 text-center">{passwordError}</div>}
+        <div className="text-center">
+          <h2 className="text-3xl font-extrabold text-gray-900">Register</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link to="/login" className="text-green-600 hover:text-green-500 font-medium">
+              Sign in
+            </Link>
+          </p>
+        </div>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        {passwordError && (
+          <Alert variant="destructive">
+            <AlertDescription>{passwordError}</AlertDescription>
+          </Alert>
+        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
+            {/* Basic Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="text"
+                required
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                placeholder="First Name"
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+              />
+              <input
+                type="text"
+                required
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                placeholder="Last Name"
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+              />
+            </div>
+
             <input
               type="text"
               required
@@ -62,6 +150,7 @@ const Register = () => {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             />
+
             <input
               type="email"
               required
@@ -70,22 +159,26 @@ const Register = () => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
-            <input
-              type="password"
-              required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-              placeholder="Password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            />
-            <input
-              type="password"
-              required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-              placeholder="Confirm Password"
-              value={formData.password2}
-              onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
-            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <input
+                type="password"
+                required
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+              <input
+                type="password"
+                required
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                placeholder="Confirm Password"
+                value={formData.password2}
+                onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
+              />
+            </div>
+
             <select
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
               value={formData.role}
@@ -96,44 +189,101 @@ const Register = () => {
               <option value="registrar">Registrar</option>
             </select>
 
-            {/* Conditionally render college field for students */}
+            {/* Role-specific fields */}
             {formData.role === 'student' && (
-              <input
-                type="text"
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                placeholder="College"
-                value={formData.college}
-                onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-              />
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Student Number"
+                  value={formData.student_id}
+                  onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
+                />
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="College"
+                  value={formData.college}
+                  onChange={(e) => setFormData({ ...formData, college: e.target.value })}
+                />
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Department"
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                />
+              </div>
             )}
 
-            {/* Conditionally render department field for lecturers */}
             {formData.role === 'lecturer' && (
-              <input
-                type="text"
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                placeholder="Department"
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              />
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Department"
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                />
+                <input
+                  type="text"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Office Number"
+                  value={formData.office_number}
+                  onChange={(e) => setFormData({ ...formData, office_number: e.target.value })}
+                />
+                <input
+                  type="text"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Specialization"
+                  value={formData.specialization}
+                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                />
+              </div>
             )}
 
-            {/* Conditionally render student ID for students */}
-            {formData.role === 'student' && (
-              <input
-                type="text"
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                placeholder="Student Number"
-                value={formData.student_id}
-                onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
-              />
+            {formData.role === 'registrar' && (
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Department"
+                  value={formData.department}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                />
+                <input
+                  type="text"
+                  required
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  placeholder="Office Location"
+                  value={formData.office_location}
+                  onChange={(e) => setFormData({ ...formData, office_location: e.target.value })}
+                />
+              </div>
             )}
           </div>
+
           <button
             type="submit"
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+            disabled={isLoading}
+            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Register
+            {isLoading ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Registering...
+              </span>
+            ) : (
+              'Register'
+            )}
           </button>
         </form>
       </div>

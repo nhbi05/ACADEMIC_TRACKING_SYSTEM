@@ -1,6 +1,9 @@
 // src/components/auth/Login.js
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { Alert, AlertDescription } from "../ui/alert";
+import { authService } from '../../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -8,63 +11,82 @@ const Login = () => {
   const [loginType, setLoginType] = useState("student");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const validateForm = () => {
+    if (!email.trim()) {
+      setError("Email is required");
+      return false;
+    }
+    if (!email.includes("@")) {
+      setError("Invalid email address");
+      return false;
+    }
+    if (!password) {
+      setError("Password is required");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    return true;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    setError('');
+    setSuccessMessage('');
 
-    if (!email.includes("@")) {
-      setError("Invalid email address.");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, loginType }),
-      });
+      const data = await authService.login({ email, password, loginType });
+      login(data.user, data.token); // Your context login function
 
-      if (response.ok) {
-        // Redirect based on login type
-        if (loginType === "student") {
-          navigate("/student-dashboard");
-        } else if (loginType === "lecturer") {
-          navigate("/lecturer-dashboard");
-        } else if (loginType === "registrar") {
-          navigate("/registrar-dashboard");
+      setSuccessMessage('Login successful! Redirecting...');
+
+      setTimeout(() => {
+        switch (loginType) {
+          case 'student':
+            navigate('/student-dashboard');
+            break;
+          case 'lecturer':
+            navigate('/lecturer-dashboard');
+            break;
+          case 'registrar':
+            navigate('/registrar-dashboard');
+            break;
+          default:
+            navigate('/');
         }
-      } else {
-        const data = await response.json();
-        setError(data.message || "Login failed. Please check your credentials.");
-      }
+      }, 1000);
     } catch (err) {
-      setError("Login failed. Please check your credentials.");
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-green-50">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-center text-3xl font-bold text-green-700">AITS</h1>
-        <h2 className="text-center text-sm text-gray-600 mb-6">
-          Academic Issue Tracking System
-        </h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-green-50 px-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+        <div className="mb-8">
+          <h1 className="text-center text-3xl font-bold text-green-700">AITS</h1>
+          <h2 className="text-center text-sm text-gray-600">
+            Academic Issue Tracking System
+          </h2>
+        </div>
 
-        {/* Login Type Toggle */}
-        <div className="flex mb-4 border rounded-lg overflow-hidden">
+        {/* Login Type Selector */}
+        <div className="flex mb-6 border rounded-lg overflow-hidden">
           {["student", "lecturer", "registrar"].map((type) => (
             <button
               key={type}
@@ -81,50 +103,101 @@ const Login = () => {
           ))}
         </div>
 
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Success Alert */}
+        {successMessage && (
+          <Alert className="mb-6 bg-green-50 text-green-700 border-green-200">
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
+
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Email
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Email Address
             </label>
             <input
+              id="email"
               type="email"
               required
-              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-green-600 focus:border-green-600 sm:text-sm"
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Password
             </label>
             <input
+              id="password"
               type="password"
               required
-              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-green-600 focus:border-green-600 sm:text-sm"
+              className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition"
+            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              "Sign in"
+            )}
           </button>
 
-          <p className="text-center text-sm text-gray-600">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-green-600 hover:text-green-500">
+          <div className="text-center text-sm text-gray-600">
+            <span>Don't have an account? </span>
+            <Link
+              to="/register"
+              className="text-green-600 hover:text-green-500 font-medium"
+            >
               Register here
             </Link>
-          </p>
+          </div>
         </form>
       </div>
     </div>
