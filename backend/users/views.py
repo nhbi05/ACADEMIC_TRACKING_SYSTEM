@@ -8,36 +8,55 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Issue
 from .serializers import RegisterSerializer,LoginSerializer,IssueSerializer
 from django.contrib.auth import get_user_model
+User = get_user_model()
 
-
-# Create your views here.
 class RegisterView(APIView):
-    def post(self,request):
-        serializer =RegisterSerializer(data=request.data)
-        if serializer .is_valid():
-            serializer.save()
-            return Response(serializer.data,status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
-    def post(self,request):
+    def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        if serializer .is_valid():
-            username=serializer.validated_data['username']
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            user=authenticate(username=username,password=password)
-            if user:
-                refresh=RefreshToken.for_user(user)
-                return Response({
-                    'refresh':str(refresh),
-                    'access':str(refresh.access_token),
-                    'user':{
-                        'id':user.id,
-                        'username':user.username,
-                        'email':user.email,
-                        'role':user.role,
-                    }
-                })
-                return Response({'error':'Invalid Credentials'},status=status.HTTP_400_BAD_REQUEST)
+            login_type = serializer.validated_data['loginType']
+            
+            try:
+                user = User.objects.get(email=email)
+                if user.role != login_type:
+                    return Response(
+                        {'message': 'Please use the correct login type for your account'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                if user.check_password(password):
+                    refresh = RefreshToken.for_user(user)
+                    return Response({
+                        'token': str(refresh.access_token),
+                        'user': {
+                            'id': user.id,
+                            'username': user.username,
+                            'email': user.email,
+                            'role': user.role,
+                            'first_name': user.first_name,
+                            'last_name': user.last_name
+                        }
+                    })
+                
+            except User.DoesNotExist:
+                pass
+            
+            return Response(
+                {'message': 'Invalid credentials'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SubmitIssueView(APIView):
     permission_classes=[IsAuthenticated]

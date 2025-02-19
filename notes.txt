@@ -1,0 +1,2 @@
+so for the registration page i plan to provide the staff id for lectirer and the registrar and i need to connect the api 
+from the backend to the frontend
