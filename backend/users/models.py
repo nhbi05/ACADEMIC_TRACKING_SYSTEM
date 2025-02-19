@@ -46,7 +46,7 @@ class StudentProfile(models.Model):
     student_id = models.CharField(max_length=50)
     college = models.CharField(max_length=100)
     department = models.CharField(max_length=100)
-    year_level = models.IntegerField()
+    #year_level = models.IntegerField()
 
 class LecturerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lecturer_profile')
