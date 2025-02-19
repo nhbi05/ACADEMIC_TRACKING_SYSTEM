@@ -1,13 +1,7 @@
+# users/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.contrib.auth import get_user_model
 from django.utils import timezone
-
-#User = get_user_model()
-
-# Create your models here.
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     ROLE_CHOICES = [
@@ -19,7 +13,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
-def submit_issue(self, category, description):
+    def submit_issue(self, category, description):
         if self.role != 'student':
             raise PermissionError("Only students can submit issues")
         return Issue.objects.create(
@@ -29,7 +23,7 @@ def submit_issue(self, category, description):
             submitted_by=self
         )
 
-def assign_issue(self, issue, lecturer):
+    def assign_issue(self, issue, lecturer):
         if self.role != 'registrar':
             raise PermissionError("Only Registrar can assign issues to lecturers")
         if lecturer.role != 'lecturer':
@@ -38,7 +32,7 @@ def assign_issue(self, issue, lecturer):
         issue.status = 'in_progress'
         issue.save()
 
-def resolve_issue(self, issue):
+    def resolve_issue(self, issue):
         if self.role != 'lecturer':
             raise PermissionError("Only lecturers can resolve issues")
         if issue.assigned_to != self:
@@ -46,7 +40,6 @@ def resolve_issue(self, issue):
         issue.status = 'resolved'
         issue.resolved_at = timezone.now()
         issue.save()
-
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
@@ -66,8 +59,6 @@ class RegistrarProfile(models.Model):
     department = models.CharField(max_length=100)
     office_location = models.CharField(max_length=100)
 
-
-
 class Issue(models.Model):
     STATUS_CHOICES = [
         ('open', 'Open'),
@@ -78,32 +69,18 @@ class Issue(models.Model):
     category = models.CharField(max_length=100)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
     description = models.TextField()
-    submitted_by = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="submitted_issues"
-    )
-    assigned_to = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="assigned_issues"
-    )
+    submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")
+    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues")
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Issue {self.id} - {self.category} ({self.status})"
 
-
 class Notification(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     message = models.TextField()
-    created_at=models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Notification for {self.user.name}: {self.message} "
-
-
+        return f"Notification for {self.user.username}: {self.message}"
