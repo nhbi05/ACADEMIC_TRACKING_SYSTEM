@@ -2,23 +2,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import StudentProfile, LecturerProfile, RegistrarProfile
+from .serializers import StudentProfileSerializer, LecturerProfileSerializer, RegistrarProfileSerializer
 
-User = get_user_model()
-
-class StudentProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StudentProfile
-        fields = ['student_id', 'college', 'department', 'year_level']
-
-class LecturerProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LecturerProfile
-        fields = ['department', 'office_number', 'specialization']
-
-class RegistrarProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegistrarProfile
-        fields = ['department', 'office_location']
+User =get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
