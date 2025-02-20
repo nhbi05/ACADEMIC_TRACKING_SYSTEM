@@ -18,7 +18,7 @@ The **Academic Issue Tracking System (AITS)** is a web application designed to s
 |---------------|------------|
 | Backend       | Django REST Framework |
 | Frontend      | React, Tailwind CSS |
-| Database      | PostgreSQL |
+| Database      | SQLite |
 | Authentication | Django Authentication, JWT |
 | Deployment    | Docker, Cloud services |
 
