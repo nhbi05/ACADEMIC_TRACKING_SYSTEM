@@ -34,23 +34,35 @@ class LoginView(APIView):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
-            # Changed username to email in authenticate
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
-                refresh = RefreshToken.for_user(user)
-                return Response({
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    'user': {
-                        'id': user.id,
-                        'username': user.username,
-                        'email': user.email,
-                        'role': user.role,
-                    }
-                })
-            return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+            login_type = serializer.validated_data.get('loginType')  # Use get() for optional field
+            
+            # Find user by email
+            try:
+                user = User.objects.get(email=email)
+                # Authenticate with username and password
+                authenticated_user = authenticate(request, username=user.username, password=password)
+                
+                if authenticated_user is not None:
+                    # Optional role check
+                    if login_type and authenticated_user.role != login_type:
+                        return Response({'error': 'Invalid role for this login type'}, 
+                                       status=status.HTTP_403_FORBIDDEN)
+                    
+                    refresh = RefreshToken.for_user(authenticated_user)
+                    return Response({
+                        'refresh': str(refresh),
+                        'access': str(refresh.access_token),
+                        'user': {
+                            'id': authenticated_user.id,
+                            'username': authenticated_user.username,
+                            'email': authenticated_user.email,
+                            'role': authenticated_user.role,
+                        }
+                    })
+                return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
     

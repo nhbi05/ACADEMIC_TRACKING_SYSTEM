@@ -40,19 +40,22 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
-
+  
     if (!validateForm()) {
       return;
     }
-
+  
     setIsLoading(true);
-
+  
     try {
-      const data = await authService.login({ email, password, loginType });
-      login(data.user, data.token); // Your context login function
-
+      const response = await authService.login({ email, password, loginType });
+      login(response.user, {
+        access: response.access,
+        refresh: response.refresh
+      });
+  
       setSuccessMessage('Login successful! Redirecting...');
-
+  
       setTimeout(() => {
         switch (loginType) {
           case 'student':
