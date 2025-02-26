@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+// src/components/auth/Register.js
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
-import { authService } from '../../services/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,26 +17,42 @@ const Register = () => {
     college: '',
     department: '',
     student_id: '',
-    office_number: '',
-    specialization: '',
-    office_location: '',
     year_level: 1
   });
 
-  const [error, setError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  // Get values from Redux store
+  const { isLoading, error, successMessage } = useSelector(state => state.auth);
+
+  // Clear messages when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearMessages());
+    };
+  }, [dispatch]);
+
+  // Redirect on successful registration
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setPasswordError('');
-    setIsLoading(true);
     
+    // Validate passwords match
     if (formData.password !== formData.password2) {
       setPasswordError('Passwords do not match');
-      setIsLoading(false);
       return;
     }
   
@@ -46,22 +64,18 @@ const Register = () => {
           student_id: formData.student_id,
           college: formData.college,
           department: formData.department,
-          year_level: formData.year_level
         }
       };
     } else if (formData.role === 'lecturer') {
       profileData = {
         lecturer_profile: {
           department: formData.department,
-          office_number: formData.office_number,
-          specialization: formData.specialization
         }
       };
     } else if (formData.role === 'registrar') {
       profileData = {
         registrar_profile: {
-          office_location: formData.office_location,
-          department: formData.department
+          college: formData.college,
         }
       };
     }
@@ -78,21 +92,7 @@ const Register = () => {
       ...profileData
     };
 
-    try {
-      await authService.register(registrationData);
-      navigate('/login');
-    } catch (err) {
-      if (err.response?.data) {
-        const errorMessages = Object.entries(err.response.data)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(' ');
-        setError(errorMessages);
-      } else {
-        setError('Registration failed. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    dispatch(registerUser(registrationData));
   };
 
   return (
@@ -117,6 +117,12 @@ const Register = () => {
         {passwordError && (
           <Alert variant="destructive">
             <AlertDescription>{passwordError}</AlertDescription>
+          </Alert>
+        )}
+        
+        {successMessage && (
+          <Alert className="bg-green-50 text-green-700 border-green-200">
+            <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
 
@@ -229,20 +235,6 @@ const Register = () => {
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 />
-                <input
-                  type="text"
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Office Number"
-                  value={formData.office_number}
-                  onChange={(e) => setFormData({ ...formData, office_number: e.target.value })}
-                />
-                <input
-                  type="text"
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Specialization"
-                  value={formData.specialization}
-                  onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-                />
               </div>
             )}
 
@@ -252,17 +244,9 @@ const Register = () => {
                   type="text"
                   required
                   className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Department"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                />
-                <input
-                  type="text"
-                  required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Office Location"
-                  value={formData.office_location}
-                  onChange={(e) => setFormData({ ...formData, office_location: e.target.value })}
+                  placeholder="College"
+                  value={formData.college}
+                  onChange={(e) => setFormData({ ...formData, college: e.target.value })}
                 />
               </div>
             )}

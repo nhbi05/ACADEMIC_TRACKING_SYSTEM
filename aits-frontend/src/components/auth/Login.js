@@ -1,62 +1,34 @@
 // src/components/auth/Login.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, clearMessages } from "../../redux/actions/authActions";
 import { Alert, AlertDescription } from "../ui/alert";
-import { authService } from '../../services/api';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginType, setLoginType] = useState("student");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
+  
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
+  
+  // Get state from Redux store
+  const { isLoading, error, successMessage, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
 
-  const validateForm = () => {
-    if (!email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-    if (!email.includes("@")) {
-      setError("Invalid email address");
-      return false;
-    }
-    if (!password) {
-      setError("Password is required");
-      return false;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-    return true;
-  };
+  // Clear messages when component unmounts or when navigating away
+  useEffect(() => {
+    return () => {
+      dispatch(clearMessages());
+    };
+  }, [dispatch]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMessage('');
-  
-    if (!validateForm()) {
-      return;
-    }
-  
-    setIsLoading(true);
-  
-    try {
-      const response = await authService.login({ email, password, loginType });
-      login(response.user, {
-        access: response.access,
-        refresh: response.refresh
-      });
-  
-      setSuccessMessage('Login successful! Redirecting...');
-  
-      setTimeout(() => {
+  // Redirect if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
         switch (loginType) {
           case 'student':
             navigate('/student-dashboard');
@@ -71,11 +43,35 @@ const Login = () => {
             navigate('/');
         }
       }, 1000);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setIsLoading(false);
+      
+      return () => clearTimeout(timer);
     }
+  }, [isAuthenticated, loginType, navigate]);
+
+  const validateForm = () => {
+    if (!username.trim()) {
+      dispatch({ type: 'AUTH_FAILURE', payload: "Username is required" });
+      return false;
+    }
+    if (!password) {
+      dispatch({ type: 'AUTH_FAILURE', payload: "Password is required" });
+      return false;
+    }
+    if (password.length < 6) {
+      dispatch({ type: 'AUTH_FAILURE', payload: "Password must be at least 6 characters" });
+      return false;
+    }
+    return true;
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+  
+    dispatch(loginUser({ username, password }, loginType));
   };
 
   return (
@@ -124,18 +120,18 @@ const Login = () => {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address
+              Username
             </label>
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="text"
               required
               className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               disabled={isLoading}
             />
           </div>

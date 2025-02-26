@@ -32,13 +32,13 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
+            username = serializer.validated_data['username']  # Use username instead of email
             password = serializer.validated_data['password']
             login_type = serializer.validated_data.get('loginType')  # Use get() for optional field
             
-            # Find user by email
+            # Find user by username
             try:
-                user = User.objects.get(email=email)
+                user = User.objects.get(username=username)  # Find user by username instead of email
                 # Authenticate with username and password
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
@@ -63,6 +63,7 @@ class LoginView(APIView):
             except User.DoesNotExist:
                 return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
