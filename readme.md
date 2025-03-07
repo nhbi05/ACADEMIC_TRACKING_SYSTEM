@@ -48,7 +48,7 @@ npm start
 ## 🎯 Usage
 - **Students**: Report academic issues and track progress.
 - **Lecturers**: Review and verify student issues.
-- **Administrators**: Manage and resolve reported academic issues.
+- **Registrar**: Manage and resolve reported academic issues.
 
 ## 🔄 Pull Requests
 ### How to Contribute
