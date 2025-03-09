@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';  // Remove BrowserRouter import
 import Register from './components/auth/Register';
 import Login from './components/auth/Login';
+//import StudentDashboard from './components/dashboard/StudentDashboard';
 import { AuthProvider } from './context/AuthContext';
 
 
