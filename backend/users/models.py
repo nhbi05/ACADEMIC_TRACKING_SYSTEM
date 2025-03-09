@@ -53,16 +53,29 @@ class User(AbstractUser):
 
 # Profile model for students, linked to the User model
 class StudentProfile(models.Model):
+    PROGRAMME_CHOICES =[
+        ('BSCS','Bachelor of Science in Computer Science'),
+        ('BSSE','Bachelor of Science in Software Engineering'),
+        ('BIT','Bachelor of Information Systems & Technology'),
+        ('BLIS','Bachelor of Library & Information Systems'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     student_id = models.CharField(max_length=50)  # Unique student identifier
-    college = models.CharField(max_length=100)  # College name
-    department = models.CharField(max_length=100)  # Department name
+    student_no =models.CharField(max_length=50,unique=True) 
+    programme = models.CharField(max_length=100,choices=PROGRAMME_CHOICES)  # Programme name
+    #department = models.CharField(max_length=100)  # Department name
     # year_level = models.IntegerField()  
+
+
+class Department(models.Model):
+    department_id=models.IntegerField(primary_key=True)
+    name= models.CharField(max_length=100)
+
 
 # Profile model for lecturers, linked to the User model
 class LecturerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lecturer_profile')
-    department = models.CharField(max_length=100)  # Department name
+    department = models.ForeignKey(Department,on_delete=models.SET_NULL,null=True,blank=True,related_name='lecturers')  # Department name
 
 """Changes made here commented out office number and specialisation"""
     # office_number = models.CharField(max_length=50)  
