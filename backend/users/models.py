@@ -63,6 +63,7 @@ class StudentProfile(models.Model):
     student_id = models.CharField(max_length=50)  # Unique student identifier
     student_no =models.CharField(max_length=50,unique=True) 
     programme = models.CharField(max_length=100,choices=PROGRAMME_CHOICES)  # Programme name
+    regristration_no=models.CharField(max_length=15,unique=True)
     #department = models.CharField(max_length=100)  # Department name
     # year_level = models.IntegerField()  
 
@@ -96,8 +97,14 @@ class Issue(models.Model):
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
     ]
-    
-    category = models.CharField(max_length=100)  
+    #the choices for the issue category
+    CATEGORY_CHOICES=[
+        ('missing_marks','Missing Marks'),
+        ('appeal','Appeal'),
+        ('correction','Correction'),
+        ('others','Others'),
+    ]
+    category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField()  
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  
