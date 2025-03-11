@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
             name='Issue',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(max_length=100)),
+                ('category', models.CharField(choices=[('missing_marks', 'Missing Marks'), ('appeal', 'Appeal'), ('correction', 'Correction'), ('others', 'Others')], max_length=100)),
                 ('status', models.CharField(choices=[('pending', 'pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')], default='pending', max_length=20)),
                 ('description', models.TextField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
@@ -96,6 +96,7 @@ class Migration(migrations.Migration):
                 ('registration_no', models.CharField(max_length=50, unique=True)),
                 ('student_no', models.CharField(max_length=50, unique=True)),
                 ('programme', models.CharField(choices=[('BSCS', 'Bachelor of Science in Computer Science'), ('BSSE', 'Bachelor of Science in Software Engineering'), ('BIT', 'Bachelor of Information Systems & Technology'), ('BLIS', 'Bachelor of Library & Information Systems')], max_length=100)),
+                ('regristration_no', models.CharField(max_length=15, unique=True)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL)),
             ],
         ),

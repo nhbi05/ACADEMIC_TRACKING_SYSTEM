@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 #from django.views.decorators.csrf import ensure_csrf_cookie
@@ -11,7 +11,7 @@ from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-"""hEY GUYS SO I JUST DELETED THE CSRF TOKEN THING """
+"""changes made:I JUST DELETED THE CSRF TOKEN THING """
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -133,3 +133,30 @@ class AssignIssueView(APIView):
                 {'error': 'Lecturer not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+#functionality of the students dashboard
+class StudentIssueView(generics.ListAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(student=self.request.user).order_by('created_at')
+
+class ResolvedIssuesView(generics.ListAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(student=self.request.user,status='resolved')
+
+class CreateIssueView(generics.CreateAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def perform_create(self,serializer):
+        serializer.save(student=self.request.user)
+
+class IssueDetailView(generics.RetrieveAPIView):
+    queryset = Issue.objects.all()
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
