@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';  // No need for BrowserRouter here
 import Register from './components/auth/Register';
 import Login from './components/auth/Login';
+import './styles/style_login.css';
 //import StudentDashboard from './components/dashboard/StudentDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';  // Import Navigate for redirection

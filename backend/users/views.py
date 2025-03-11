@@ -4,19 +4,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.views.decorators.csrf import ensure_csrf_cookie
+#from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from .models import Issue
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class CSRFTokenView(APIView):
-    def get(self, request, format=None):
-        return Response({'detail': 'CSRF cookie set'})
-
+"""hEY GUYS SO I JUST DELETED THE CSRF TOKEN THING """
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)

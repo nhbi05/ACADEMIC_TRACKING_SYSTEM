@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView,LoginView,SubmitIssueView,AssignIssueView,ResolveIssueView,CSRFTokenView
+from .views import RegisterView,LoginView,SubmitIssueView,AssignIssueView,ResolveIssueView
 
 
 urlpatterns = [
@@ -8,5 +8,5 @@ urlpatterns = [
     path('submit-issue/', SubmitIssueView.as_view(), name='submit_issue'),
     path('resolve-issue/', ResolveIssueView.as_view(), name='resolve_issue'),
     path('assign-issue/<int:issue_id>/', AssignIssueView.as_view(), name='assign_issue'),
-    path('api/csrf/', CSRFTokenView.as_view(), name='csrf-token'),
+   # path('api/csrf/', CSRFTokenView.as_view(), name='csrf-token'),
 ]

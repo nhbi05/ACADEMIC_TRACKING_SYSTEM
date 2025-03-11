@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
+//import './styles/style_login.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -16,8 +17,10 @@ const Register = () => {
     role: 'student',
     college: '',
     department: '',
-    student_id: '',
-    year_level: 1
+    student_no: '',        
+    registration_no: '', // 
+    year_level: 1,
+    programme: ''           
   });
 
   const [passwordError, setPasswordError] = useState('');
@@ -61,9 +64,10 @@ const Register = () => {
     if (formData.role === 'student') {
       profileData = {
         student_profile: {
-          student_id: formData.student_id,
+          student_no: formData.student_no,
+          registration_no: formData.registration_no, // Added registration number
           college: formData.college,
-          department: formData.department,
+          programme: formData.programme,
         }
       };
     } else if (formData.role === 'lecturer') {
@@ -190,23 +194,15 @@ const Register = () => {
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
             >
-              <option value="student">Student</option>
-              <option value="lecturer">Lecturer</option>
-              <option value="registrar">Registrar</option>
+              <option className="hover:bg-green-500 hover:text-white" value="student">Student</option>
+              <option className="hover:bg-green-500 hover:text-white" value="lecturer">Lecturer</option>
+              <option className="hover:bg-green-500 hover:text-white" value="registrar">Registrar</option>
             </select>
 
             {/* Role-specific fields */}
             {formData.role === 'student' && (
               <div className="space-y-4">
-                <input
-                  type="text"
-                  required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Student Number"
-                  value={formData.student_id}
-                  onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
-                />
-                <input
+                  <input
                   type="text"
                   required
                   className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
@@ -214,14 +210,54 @@ const Register = () => {
                   value={formData.college}
                   onChange={(e) => setFormData({ ...formData, college: e.target.value })}
                 />
-                <input
-                  type="text"
+                
+                <select
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Department"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                />
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                  value={formData.programme}
+                  onChange={(e) => setFormData({ ...formData, programme: e.target.value })}
+                >
+                  <option value="">Select a programme</option>
+                  <option value="BSCS">Bachelor of Science in Computer Science</option>
+                  <option value="BSSE">Bachelor of Science in Software Engineering</option>
+                  <option value="BIT">Bachelor of Information Systems & Technology</option>
+                  <option value="BLIS">Bachelor of Library & Information Systems</option>
+                </select>
+                {/*<div className="border border-gray-200 rounded-md p-4">*/}
+                  <h3 className="text-lg font-medium text-green-700 mb-3">Student Info</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="student_no" className="block text-sm font-medium text-gray-700 mb-1">
+                        Student Number
+                      </label>
+                      <input
+                        id="student_no"
+                        type="text"
+                        required
+                        className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="Student number"
+                        value={formData.student_no}
+                        onChange={(e) => setFormData({ ...formData, student_no: e.target.value })}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="registration_no" className="block text-sm font-medium text-gray-700 mb-1">
+                        Registration Number
+                      </label>
+                      <input
+                        id="registration_no"
+                        type="text"
+                        required
+                        className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                        placeholder="Registration number"
+                        value={formData.registration_no}
+                        onChange={(e) => setFormData({ ...formData, registration_no: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                {/*</div>*/}
+                
               </div>
             )}
 
