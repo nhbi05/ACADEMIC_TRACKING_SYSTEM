@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';  // Using Routes for React Rou
 import Register from './components/auth/Register';
 import Login from './components/auth/Login';
 import { AuthProvider } from './context/AuthContext';
+import { Navigate } from 'react-router-dom';  // Import Navigate for redirection
 import IssueSubmissionForm from './components/IssueSubmissionForm';
 import StudentDashboard from './components/StudentDashboard';
 
@@ -29,20 +30,22 @@ function App() {
     <AuthProvider>
       <div className="App">
         <Routes>
-          {/* Route for Home (/) */}
-          <Route path="/" element={<HomePage />} />
+          {/* Redirect / to /login */}
+          <Route path="/" element={<Navigate to="/login" />} />
 
-          {/* Existing Routes */}
+          {/* Login and Register Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Add your new routes */}
+          {/* Dashboard Routes */}
           <Route path="/student-dashboard" element={<StudentDashboardPage />} />
           <Route path="/lecturer-dashboard" element={<LecturerDashboard />} />
           <Route path="/registrar-dashboard" element={<RegistrarDashboard />} />
 
-          {/* New Routes for Issue Submission */}
+          {/* Issue Submission Route */}
           <Route path="/submit-issue" element={<IssueSubmissionForm />} />
+
+          {/* Student Dashboard or Issues */}
           <Route path="/student-issues" element={<StudentDashboard />} />
         </Routes>
       </div>
