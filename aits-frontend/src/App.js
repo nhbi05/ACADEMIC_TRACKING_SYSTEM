@@ -4,11 +4,11 @@ import { Routes, Route } from 'react-router-dom';  // No need for BrowserRouter 
 import Register from './components/auth/Register';
 import Login from './components/auth/Login';
 import './styles/style_login.css';
-//import StudentDashboard from './components/dashboard/StudentDashboard';
+import StudentDashboard from './components/dashboards/StudentDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';  // Import Navigate for redirection
 
-const StudentDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Student Dashboard</h1>;
+//const StudentDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Student Dashboard</h1>;
 const LecturerDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Lecturer Dashboard</h1>;
 const RegistrarDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Registrar Dashboard</h1>;
 

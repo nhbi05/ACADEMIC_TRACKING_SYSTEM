@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 #from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from .models import Issue
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -58,6 +58,29 @@ class LoginView(APIView):
             except User.DoesNotExist:
                 return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class StudentProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = StudentProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.student_profile
+
+# View for retrieving the lecturer profile
+class LecturerProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = LecturerProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.lecturer_profile
+
+# View for retrieving the registrar profile
+class RegistrarProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = RegistrarProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.registrar_profile
 
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
