@@ -1,22 +1,17 @@
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.views.decorators.csrf import ensure_csrf_cookie
+#from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from .models import Issue
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-
-@method_decorator(ensure_csrf_cookie, name='dispatch')
-class CSRFTokenView(APIView):
-    def get(self, request, format=None):
-        return Response({'detail': 'CSRF cookie set'})
-
+"""changes made:I JUST DELETED THE CSRF TOKEN THING """
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -65,6 +60,29 @@ class LoginView(APIView):
             except User.DoesNotExist:
                 return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class StudentProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = StudentProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.student_profile
+
+# View for retrieving the lecturer profile
+class LecturerProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = LecturerProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.lecturer_profile
+
+# View for retrieving the registrar profile
+class RegistrarProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = RegistrarProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.registrar_profile
 
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -140,3 +158,30 @@ class AssignIssueView(APIView):
                 {'error': 'Lecturer not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+#functionality of the students dashboard
+class StudentIssueView(generics.ListAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(student=self.request.user).order_by('created_at')
+
+class ResolvedIssuesView(generics.ListAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(student=self.request.user,status='resolved')
+
+class CreateIssueView(generics.CreateAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def perform_create(self,serializer):
+        serializer.save(student=self.request.user)
+
+class IssueDetailView(generics.RetrieveAPIView):
+    queryset = Issue.objects.all()
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
