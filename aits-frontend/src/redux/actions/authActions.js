@@ -72,11 +72,13 @@ export const registerUser = (userData) => async (dispatch) => {
     return { success: true };
   } catch (err) {
     let errorMessage = 'Registration failed. Please try again.';
+    // console.log(err)
     
     if (err.response?.data) {
       errorMessage = Object.entries(err.response.data)
         .map(([key, value]) => `${key}: ${value}`)
         .join(' ');
+        
     }
     
     dispatch(authFailure(errorMessage));

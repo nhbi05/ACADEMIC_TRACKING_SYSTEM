@@ -6,7 +6,7 @@ import StudentDashboard from './components/dashboards/StudentDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import React from 'react';
-import IssueSubmissionForm from './components/IssueSubmissionForm';
+import IssueSubmissionForm from './components/IssueSubmissionForm';  // Keep IssueSubmissionForm
 import ProtectedRoute from './components/ProtectedRoute';
 
 const LecturerDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Lecturer Dashboard</h1>;

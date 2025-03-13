@@ -52,6 +52,7 @@ class User(AbstractUser):
         issue.save()
 
 # Profile model for students, linked to the User model
+"""SO HERE I JUST CHANGED STUDENT_ID TO NO N THEN ALSO REGISTRATION NO"""
 class StudentProfile(models.Model):
     PROGRAMME_CHOICES =[
         ('BSCS','Bachelor of Science in Computer Science'),
@@ -60,11 +61,10 @@ class StudentProfile(models.Model):
         ('BLIS','Bachelor of Library & Information Systems'),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
-    student_id = models.CharField(max_length=50)  # Unique student identifier
+    registration_no = models.CharField(max_length=50,unique=True)  # Unique student identifier
     student_no =models.CharField(max_length=50,unique=True) 
     programme = models.CharField(max_length=100,choices=PROGRAMME_CHOICES)  # Programme name
-    #department = models.CharField(max_length=100)  # Department name
-    # year_level = models.IntegerField()  
+    
 
 
 class Department(models.Model):
@@ -77,16 +77,11 @@ class LecturerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lecturer_profile')
     department = models.ForeignKey(Department,on_delete=models.SET_NULL,null=True,blank=True,related_name='lecturers')  # Department name
 
-"""Changes made here commented out office number and specialisation"""
-    # office_number = models.CharField(max_length=50)  
-    # specialization = models.CharField(max_length=100) 
 
-"""Changes made here commented out office location"""
 # Profile model for registrars, linked to the User model
 class RegistrarProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registrar_profile')
     college = models.CharField(max_length=100)  # College name
-    # office_location = models.CharField(max_length=100) 
      
 # Model for issues submitted by users
 class Issue(models.Model):
@@ -96,8 +91,14 @@ class Issue(models.Model):
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
     ]
-    
-    category = models.CharField(max_length=100)  
+    #the choices for the issue category
+    CATEGORY_CHOICES=[
+        ('missing_marks','Missing Marks'),
+        ('appeal','Appeal'),
+        ('correction','Correction'),
+        ('others','Others'),
+    ]
+    category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField()  
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  

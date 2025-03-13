@@ -1,4 +1,4 @@
-// src/services/api.js - Enhanced API service
+// src/services/api.js - Enhanced API service with studentService added
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
@@ -93,6 +93,9 @@ export const authService = {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
+    console.log("this is the response")
+    console.log(response)
+    console.log(response.data)
     return response.data;
   },
 
@@ -112,12 +115,30 @@ export const authService = {
     const response = await api.get('/users/me/');
     return response.data;
   },
+
+  refresh: async (refreshToken) => {
+    const response = await api.post('/token/refresh/', { refresh: refreshToken });
+    return response.data;
+  }
+};
+
+// Student services - Added missing studentService
+export const studentService = {
+  getProfile: async () => {
+    const response = await api.get('/students/profile/');
+    return response.data;
+  },
+  // Add this new function
+  getIssues: async () => {
+    const response = await api.get('/my-issues/');
+    return response.data;
+  }
 };
 
 // Issue services
 export const issueService = {
   getAll: async () => {
-    const response = await api.get('/issues/');
+    const response = await api.get('/my-issues/');
     return response.data;
   },
 
@@ -127,21 +148,22 @@ export const issueService = {
   },
 
   create: async (issueData) => {
-    const response = await api.post('/issues/', issueData);
+    const response = await api.post('/submit-issue/', issueData);
     return response.data;
   },
-
+  
   assign: async (issueId, lecturerId) => {
-    const response = await api.post(`/issues/${issueId}/assign/`, {
+    const response = await api.post(`/assign-issue/${issueId}/`, {
       lecturer_id: lecturerId,
     });
     return response.data;
   },
-
+  
   resolve: async (issueId) => {
-    const response = await api.post(`/issues/${issueId}/resolve/`);
+    const response = await api.post('/resolve-issue/', { issueId });
     return response.data;
   },
+  
 };
 
 // Notification services
