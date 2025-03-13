@@ -93,6 +93,9 @@ export const authService = {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
+    console.log("this is the response")
+    console.log(response)
+    console.log(response.data)
     return response.data;
   },
 

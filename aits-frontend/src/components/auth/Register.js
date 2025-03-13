@@ -61,9 +61,9 @@ const Register = () => {
     if (formData.role === 'student') {
       profileData = {
         student_profile: {
-          student_id: formData.student_id,
+          student_no: formData.student_id,
           college: formData.college,
-          department: formData.department,
+          programme: formData.department,
         }
       };
     } else if (formData.role === 'lecturer') {

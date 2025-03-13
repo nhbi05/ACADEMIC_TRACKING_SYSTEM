@@ -85,6 +85,7 @@ This project is licensed under the **MIT License**.
 - **Suuna Raymond**
 - **Tamale denis Valelian**
 - **Kewoda Joanitah**
+- **Kukunda Stacy**
 
 
 - Open for collaboration! Feel free to fork and contribute. 🚀
