@@ -1,11 +1,25 @@
 from django.urls import path
-from .views import RegisterView,LoginView,SubmitIssueView,AssignIssueView,ResolveIssueView,StudentIssueView,ResolvedIssuesView,CreateIssueView,IssueDetailView
+from .views import( RegisterView,
+                   LoginView,
+                   SubmitIssueView,
+                   AssignIssueView,
+                   ResolveIssueView,
+                   StudentIssueView,
+                   ResolvedIssuesView,
+                   CreateIssueView,
+                   IssueDetailView,
+                   LecturerProfileView,
+                   RegistrarProfileView,
+                   StudentProfileView)
 
 
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
+    path('student/profile/', StudentProfileView.as_view(), name='student_profile'),
+    path('lecturer/profile/', LecturerProfileView.as_view(), name='lecturer_profile'),
+    path('registrar/profile/', RegistrarProfileView.as_view(), name='registrar_profile'),
     path('submit-issue/', SubmitIssueView.as_view(), name='submit_issue'),
     path('resolve-issue/', ResolveIssueView.as_view(), name='resolve_issue'),
     path('assign-issue/<int:issue_id>/', AssignIssueView.as_view(), name='assign_issue'),

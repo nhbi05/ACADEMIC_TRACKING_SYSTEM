@@ -1,5 +1,5 @@
 // src/redux/actions/studentActions.js
-import { studentService } from '../../services/api'; 
+import { studentService } from '../../services/api';
 
 // Action Types
 export const STUDENT_DATA_REQUEST = 'STUDENT_DATA_REQUEST';
@@ -16,92 +16,85 @@ export const FETCH_ANNOUNCEMENTS_FAILURE = 'FETCH_ANNOUNCEMENTS_FAILURE';
 
 // Action Creators
 export const fetchStudentDataRequest = () => ({
-  type: STUDENT_DATA_REQUEST
+  type: STUDENT_DATA_REQUEST,
 });
 
 export const fetchStudentDataSuccess = (data) => ({
   type: STUDENT_DATA_SUCCESS,
-  payload: data
+  payload: data,
 });
 
 export const fetchStudentDataFailure = (error) => ({
   type: STUDENT_DATA_FAILURE,
-  payload: error
+  payload: error,
 });
 
 export const fetchIssuesRequest = () => ({
-  type: FETCH_ISSUES_REQUEST
+  type: FETCH_ISSUES_REQUEST,
 });
 
 export const fetchIssuesSuccess = (issues) => ({
   type: FETCH_ISSUES_SUCCESS,
-  payload: issues
+  payload: issues,
 });
 
 export const fetchIssuesFailure = (error) => ({
   type: FETCH_ISSUES_FAILURE,
-  payload: error
+  payload: error,
 });
 
 export const fetchAnnouncementsRequest = () => ({
-  type: FETCH_ANNOUNCEMENTS_REQUEST
+  type: FETCH_ANNOUNCEMENTS_REQUEST,
 });
 
 export const fetchAnnouncementsSuccess = (announcements) => ({
   type: FETCH_ANNOUNCEMENTS_SUCCESS,
-  payload: announcements
+  payload: announcements,
 });
 
 export const fetchAnnouncementsFailure = (error) => ({
   type: FETCH_ANNOUNCEMENTS_FAILURE,
-  payload: error
+  payload: error,
 });
 
-// Thunk action creators
-export const fetchStudentData = () => async (dispatch, getState) => {
+// Thunk Action Creators
+export const fetchStudentData = () => async (dispatch) => {
   dispatch(fetchStudentDataRequest());
   
   try {
-    const { auth } = getState();
-    const response = await studentService.getProfile(auth.tokens.access);
-    
-    dispatch(fetchStudentDataSuccess(response));
-    return { success: true };
-  } catch (err) {
-    const errorMessage = err.response?.data?.message || 'Failed to fetch student data';
-    dispatch(fetchStudentDataFailure(errorMessage));
-    return { success: false };
+    const data = await studentService.getProfile();
+    dispatch(fetchStudentDataSuccess(data));
+    return data;
+  } catch (error) {
+    dispatch(fetchStudentDataFailure(error.message || 'Failed to fetch student data'));
+    throw error;
   }
 };
 
-export const fetchIssues = () => async (dispatch, getState) => {
+export const fetchIssues = () => async (dispatch) => {
   dispatch(fetchIssuesRequest());
   
   try {
-    const { auth } = getState();
-    const response = await studentService.getIssues(auth.tokens.access);
-    
+    // This should use the issueService to get student-specific issues
+    const response = await studentService.getIssues();
     dispatch(fetchIssuesSuccess(response));
-    return { success: true };
-  } catch (err) {
-    const errorMessage = err.response?.data?.message || 'Failed to fetch issues';
-    dispatch(fetchIssuesFailure(errorMessage));
-    return { success: false };
+    return response;
+  } catch (error) {
+    dispatch(fetchIssuesFailure(error.message || 'Failed to fetch issues'));
+    throw error;
   }
 };
 
-export const fetchAnnouncements = () => async (dispatch, getState) => {
+export const fetchAnnouncements = () => async (dispatch) => {
   dispatch(fetchAnnouncementsRequest());
   
   try {
-    const { auth } = getState();
-    const response = await studentService.getAnnouncements(auth.tokens.access);
-    
+    // This should use a service to get announcements
+    const response = await studentService.getAnnouncements();
     dispatch(fetchAnnouncementsSuccess(response));
-    return { success: true };
-  } catch (err) {
-    const errorMessage = err.response?.data?.message || 'Failed to fetch announcements';
-    dispatch(fetchAnnouncementsFailure(errorMessage));
-    return { success: false };
+    return response;
+  } catch (error) {
+    dispatch(fetchAnnouncementsFailure(error.message || 'Failed to fetch announcements'));
+    throw error;
   }
 };
