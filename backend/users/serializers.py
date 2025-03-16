@@ -8,26 +8,31 @@ User = get_user_model()
 
 # Serializer for the StudentProfile model
 class StudentProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+
     class Meta:
-        model = StudentProfile  # Specify the model to serialize
-<<<<<<< HEAD
-        fields = ['programme',"student_no"]  # Fields to include in the serialized output
-=======
-        fields = ['registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
->>>>>>> cd63143c01921c098c5abd3de1fdd2420d8507b3
+        model = StudentProfile  # Specify the model to serializers
+
+        fields = ["first_name","last_name",'registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
+
         #changed college and department to programme and student_no
 
 # Serializer for the LecturerProfile model
 class LecturerProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
     class Meta:
         model = LecturerProfile  # Specify the model to serialize
-        fields = ['department']  # Fields to include in the serialized output
+        fields = ["first_name","last_name",'department']  # Fields to include in the serialized output
 
 # Serializer for the RegistrarProfile model
 class RegistrarProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)#his should appear in the profile as read only
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
     class Meta:
         model = RegistrarProfile  # Specify the model to serialize
-        fields = ['college']  # Fields to include in the serialized output, removed the unnecessary fields like department
+        fields = ["first_name","last_name",'college']  # Fields to include in the serialized output, removed the unnecessary fields like department
 
 # Serializer for user registration, including profiles
 class RegisterSerializer(serializers.ModelSerializer):
@@ -52,6 +57,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Check if passwords match
         if data['password'] != data['password2']:
             raise serializers.ValidationError({'password': 'Passwords do not match'})
+        
+    #the profiles have to be made during registering if not an error should be raised
+        role = data.get('role')
+
+        if role == 'student' and 'student_profile' not in data:
+            raise serializers.ValidationError({'student_profile': 'Student profile data is required for students'})
+        
+        if role == 'lecturer' and 'lecturer_profile' not in data:
+            raise serializers.ValidationError({'lecturer_profile': 'Lecturer profile data is required for lecturers'})
+        
+        if role == 'registrar' and 'registrar_profile' not in data:
+            raise serializers.ValidationError({'registrar_profile': 'Registrar profile data is required for registrars'})   
         return data
 
     # Create a new user and associated profile
@@ -71,11 +88,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         
         # Create associated profile based on user role
-        if user.role == 'student' and student_profile_data:
+        if user.role == 'student':
             StudentProfile.objects.create(user=user, **student_profile_data)
-        elif user.role == 'lecturer' and lecturer_profile_data:
+        elif user.role == 'lecturer':
             LecturerProfile.objects.create(user=user, **lecturer_profile_data)
-        elif user.role == 'registrar' and registrar_profile_data:
+        elif user.role == 'registrar':
             RegistrarProfile.objects.create(user=user, **registrar_profile_data)
             
         return user  # Return the created user
