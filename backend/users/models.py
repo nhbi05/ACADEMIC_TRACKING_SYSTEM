@@ -16,15 +16,20 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
     # Method for students to submit issues
-    def submit_issue(self, category, description):
+    def submit_issue(self, category, description,Reg_no,Student_no,course,semester,year_of_study):
         # Only students are allowed to submit issues
         if self.role != 'student':
             raise PermissionError("Only students can submit issues")
         # Create and return a new Issue object
         return Issue.objects.create(
+            Student_no = Student_no,
+            Reg_no = Reg_no,
             category=category,
-            status='open',
+            status='pending',
             description=description,
+            course = course,
+            semester = semester,
+            year_of_study = year_of_study,
             submitted_by=self  # Set the user who submitted the issue
         )
 
@@ -68,14 +73,14 @@ class StudentProfile(models.Model):
 
 
 class Department(models.Model):
-    department_id=models.IntegerField(primary_key=True)
+   # department_id=models.IntegerField(primary_key=True)
     name= models.CharField(max_length=100)
 
 
 # Profile model for lecturers, linked to the User model
 class LecturerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lecturer_profile')
-    department = models.ForeignKey(Department,on_delete=models.SET_NULL,null=True,blank=True,related_name='lecturers')  # Department name
+    department = models.ForeignKey(Department,on_delete=models.SET_NULL,null=True,blank=True,related_name='lecturer_profile')  # Department name
 
 
 # Profile model for registrars, linked to the User model
@@ -98,9 +103,27 @@ class Issue(models.Model):
         ('correction','Correction'),
         ('others','Others'),
     ]
+    # New choices for year of study 
+    YEAR_OF_STUDY =[
+        ( 1 , '1'),
+        ( 2, '2'),
+        ( 3,'3'),
+        ( 4, '4'),
+    ]
+    # New choices for semester
+    SEMESTER_OF_STUDY = [
+        ('Semester 1', 'Semester 1'),
+        ('Semester 2' , 'Semester 2'),
+        
+    ]
+    Student_no = models.IntegerField( unique=True)
+    Reg_no = models.CharField(max_length = 20, unique = True)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
-    description = models.TextField()  
+    description = models.TextField() 
+    course = models.TextField(max_length=100) 
+    year_of_study = models.IntegerField( choices= YEAR_OF_STUDY)
+    semester = models.CharField(max_length=20, choices= SEMESTER_OF_STUDY)
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  
     assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues") 
     created_at = models.DateTimeField(auto_now_add=True) 
