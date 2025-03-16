@@ -94,7 +94,7 @@ class SubmitIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        serializer = IssueSerializer(data=request.data)
+        serializer = IssueSerializer(data=request.data, context={'request':request})
         if serializer.is_valid():
             serializer.save(submitted_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

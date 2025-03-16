@@ -13,9 +13,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentProfile  # Specify the model to serializers
-
         fields = ["first_name","last_name",'registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
-
         #changed college and department to programme and student_no
 
 # Serializer for the LecturerProfile model
