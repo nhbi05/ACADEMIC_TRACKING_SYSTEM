@@ -83,7 +83,7 @@ This project is licensed under the **MIT License**.
 - **Nansereko Housnah** 
 - **Sumayah Kaswa Nabukeera**
 - **Suuna Raymond**
-- **Tamale denis Valelian**
+- **Tamale Denis Valelian**
 - **Kewoda Joanitah**
 - **Kukunda Stacy**
 

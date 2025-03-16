@@ -18,7 +18,6 @@ const Register = () => {
     college: '',
     department: '',
     student_no: '',        
-    registration_no: '', // 
     year_level: 1,
     programme: ''           
   });
@@ -64,16 +63,9 @@ const Register = () => {
     if (formData.role === 'student') {
       profileData = {
         student_profile: {
-<<<<<<< HEAD
           student_no: formData.student_id,
           college: formData.college,
           programme: formData.department,
-=======
-          student_no: formData.student_no,
-          registration_no: formData.registration_no, // Added registration number
-          college: formData.college,
-          programme: formData.programme,
->>>>>>> cd63143c01921c098c5abd3de1fdd2420d8507b3
         }
       };
     } else if (formData.role === 'lecturer') {
@@ -244,21 +236,6 @@ const Register = () => {
                         placeholder="Student number"
                         value={formData.student_no}
                         onChange={(e) => setFormData({ ...formData, student_no: e.target.value })}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="registration_no" className="block text-sm font-medium text-gray-700 mb-1">
-                        Registration Number
-                      </label>
-                      <input
-                        id="registration_no"
-                        type="text"
-                        required
-                        className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                        placeholder="Registration number"
-                        value={formData.registration_no}
-                        onChange={(e) => setFormData({ ...formData, registration_no: e.target.value })}
                       />
                     </div>
                   </div>

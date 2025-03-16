@@ -10,11 +10,7 @@ User = get_user_model()
 class StudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile  # Specify the model to serialize
-<<<<<<< HEAD
         fields = ['programme',"student_no"]  # Fields to include in the serialized output
-=======
-        fields = ['registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
->>>>>>> cd63143c01921c098c5abd3de1fdd2420d8507b3
         #changed college and department to programme and student_no
 
 # Serializer for the LecturerProfile model
