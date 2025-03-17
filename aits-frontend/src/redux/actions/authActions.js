@@ -37,6 +37,7 @@ export const clearMessages = () => ({
 });
 
 // Async action creators (thunks)
+// In loginUser action
 export const loginUser = (credentials, loginType) => async (dispatch) => {
   dispatch(loginRequest());
   
@@ -46,6 +47,12 @@ export const loginUser = (credentials, loginType) => async (dispatch) => {
       loginType 
     });
     
+    console.log('Auth response:', response);
+    
+    // Store tokens in localStorage
+    localStorage.setItem('access', response.access);
+    localStorage.setItem('refresh', response.refresh);
+    
     dispatch(loginSuccess(
       response.user, 
       {
@@ -54,15 +61,14 @@ export const loginUser = (credentials, loginType) => async (dispatch) => {
       }
     ));
     
-    // Return successful response to handle navigation
     return { success: true, userType: loginType };
   } catch (err) {
+    console.error('Login error:', err);
     const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
     dispatch(authFailure(errorMessage));
     return { success: false };
   }
 };
-
 export const registerUser = (userData) => async (dispatch) => {
   dispatch(loginRequest());
   
@@ -84,4 +90,11 @@ export const registerUser = (userData) => async (dispatch) => {
     dispatch(authFailure(errorMessage));
     return { success: false };
   }
+};
+
+export const logoutUser = () => (dispatch) => {
+  localStorage.removeItem('access');
+  localStorage.removeItem('refresh');
+  dispatch(logout());
+  return { success: true };
 };

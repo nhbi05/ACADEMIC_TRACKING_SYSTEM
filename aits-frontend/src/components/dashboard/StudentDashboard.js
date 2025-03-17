@@ -1,64 +1,53 @@
 // src/components/dashboard/StudentDashboard.js
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import axios from 'axios';
 import { Alert, AlertDescription } from '../ui/alert';
+import { fetchStudentData, fetchIssues } from '../../redux/actions/studentActions';
+import { logout } from '../../redux/actions/authActions';
 
 const StudentDashboard = () => {
-  const [profileData, setProfileData] = useState(null);
-  const [statsData, setStatsData] = useState({
-    totalIssues: 0,
-    resolvedIssues: 0,
-    pendingIssues: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  const { user, token } = useSelector(state => state.auth);
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  // Get data from Redux store
+  const { user } = useSelector(state => state.auth);
+  const { 
+    profileData, 
+    loading: profileLoading, 
+    error: profileError 
+  } = useSelector(state => state.student || {});
+  
+  const { 
+    issues, 
+    loading: issuesLoading, 
+    error: issuesError 
+  } = useSelector(state => state.issues || {});
+  
+  // Derived stats based on issues
+  const statsData = {
+    totalIssues: issues?.length || 0,
+    resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0,
+    pendingIssues: issues?.filter(issue => issue.status !== 'resolved').length || 0
+  };
+  
+  // Loading and error states
+  const loading = profileLoading || issuesLoading;
+  const error = profileError || issuesError;
   
   useEffect(() => {
-    const fetchProfileData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('/api/student/profile/', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        setProfileData(response.data);
-        
-        // Fetch issues stats (in a real app, you might have a dedicated endpoint for this)
-        // This is a placeholder - replace with actual API call
-        const issuesResponse = await axios.get('/api/student/issues/stats/', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        setStatsData({
-          totalIssues: issuesResponse.data.total || 0,
-          resolvedIssues: issuesResponse.data.resolved || 0,
-          pendingIssues: issuesResponse.data.pending || 0
-        });
-        
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load profile data');
-        setLoading(false);
-        console.error('Error fetching profile data:', err);
-      }
-    };
+    // Fetch data when component mounts
+    dispatch(fetchStudentData()).catch(err => 
+      console.error('Error fetching profile data:', err)
+    );
     
-    fetchProfileData();
-  }, [token]);
+    dispatch(fetchIssues()).catch(err => 
+      console.error('Error fetching issues:', err)
+    );
+  }, [dispatch]);
   
   const handleLogout = () => {
-    // Implement logout functionality
-    dispatch({ type: 'LOGOUT' });
+    dispatch(logout());
     navigate('/login');
   };
   
@@ -69,7 +58,7 @@ const StudentDashboard = () => {
     { name: 'Profile', icon: '👤', path: '/student/profile' },
     { name: 'Settings', icon: '⚙️', path: '/student/settings' },
   ];
-
+  
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation */}
@@ -219,8 +208,8 @@ const StudentDashboard = () => {
                     <p className="text-base text-gray-900">{profileData?.programme || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">College</p>
-                    <p className="text-base text-gray-900">{profileData?.college || 'N/A'}</p>
+                    <p className="text-sm font-medium text-gray-500">Registration Number</p>
+                    <p className="text-base text-gray-900">{profileData?.registration_no || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Email</p>
@@ -244,10 +233,27 @@ const StudentDashboard = () => {
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                 </div>
-              ) : statsData.totalIssues > 0 ? (
+              ) : issues && issues.length > 0 ? (
                 <div className="divide-y divide-gray-200">
-                  <p className="py-3 text-gray-700">Issue data will appear here</p>
-                  <p className="py-3 text-gray-500 text-sm italic">For demo purposes, implement actual issue fetching</p>
+                  {issues.slice(0, 5).map(issue => (
+                    <div key={issue.id} className="py-3">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-medium text-gray-800">{issue.title}</h4>
+                          <p className="text-sm text-gray-600">{issue.description?.substring(0, 100)}...</p>
+                        </div>
+                        <div>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            issue.status === 'resolved' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {issue.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-8">

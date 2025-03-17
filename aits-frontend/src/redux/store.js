@@ -3,7 +3,7 @@ import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { thunk } from 'redux-thunk'; // Updated: changed from default import to named import
 import { composeWithDevTools } from '@redux-devtools/extension'; // Updated: changed package name
 import authReducer from './reducers/authReducer';
-import { studentReducer } from './reducers/studentReducer';
+import  studentReducer  from './reducers/studentReducer';
 
 // Combine all reducers (add more as needed)
 const rootReducer = combineReducers({
