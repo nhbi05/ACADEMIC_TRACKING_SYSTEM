@@ -13,7 +13,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 #<<<<<<< HEAD
         fields = ['programme',"student_no"]  # Fields to include in the serialized output
 #=======
-        fields = ['registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
+        #fields = ['registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
 #>>>>>>> cd63143c01921c098c5abd3de1fdd2420d8507b3
         #changed college and department to programme and student_no
 
