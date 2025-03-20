@@ -11,8 +11,8 @@ from .views import( RegisterView,
                    LecturerProfileView,
                    RegistrarProfileView,
                    StudentProfileView,
+                   LogoutView,
                    IssueCountView)
-
 
 
 urlpatterns = [
@@ -27,6 +27,7 @@ urlpatterns = [
     path('my-issues/',StudentIssueView.as_view(),name='my-issues'),
     path('resolved-issues/',ResolvedIssuesView.as_view(),name='resolved-issues'),
     path('create-issue/',CreateIssueView.as_view(),name='create-issue'),
-    path('issue/<int:pk>/',IssueDetailView.as_view(),name='issue-detail'),
     path('issue_counts/',IssueCountView.as_view(),name='issue_counts'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+
 ]

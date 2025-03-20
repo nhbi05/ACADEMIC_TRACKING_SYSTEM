@@ -188,6 +188,7 @@ class IssueDetailView(generics.RetrieveAPIView):
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
+
 class IssueCountView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
@@ -200,5 +201,19 @@ class IssueCountView(generics.ListAPIView):
             "resolved_issues":resolved_issues,
             "pending_issues":pending_issues
         })
+        
+
+class LogoutView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        try:
+            refresh_token=request.data.get('refresh')
+            if not RefreshToken:
+                return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
+            token=RefreshToken(refresh_token)
+            token.blacklist() #Blacklist the refresh token
+            return Response({'message': 'Successfully logged out'}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
