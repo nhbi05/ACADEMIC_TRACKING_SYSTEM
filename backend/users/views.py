@@ -165,7 +165,9 @@ class StudentIssueView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(student=self.request.user).order_by('created_at')
+        return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
+
+
 
 class ResolvedIssuesView(generics.ListAPIView):
     serializer_class=IssueSerializer
@@ -185,3 +187,18 @@ class IssueDetailView(generics.RetrieveAPIView):
     queryset = Issue.objects.all()
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
+
+class IssueCountView(generics.ListAPIView):
+    permission_classes=[IsAuthenticated]
+
+    def list(self,request,*args,**kwargs):
+        total_issues = Issue.objects.count()
+        resolved_issues = Issue.objects.filter(status="resolved").count()
+        pending_issues = Issue.objects.filter(status="pending").count()
+        return Response({
+            "total_issues":total_issues,
+            "resolved_issues":resolved_issues,
+            "pending_issues":pending_issues
+        })
+        
+
