@@ -114,10 +114,7 @@ export const authService = {
     localStorage.removeItem('token');
   },
 
-  getCurrentUser: async () => {
-    const response = await api.get('/users/me/');
-    return response.data;
-  }
+  
 };
 
 

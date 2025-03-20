@@ -50,11 +50,14 @@ class LoginView(APIView):
                         'refresh': str(refresh),
                         'access': str(refresh.access_token),
                         'user': {
+                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
-                        }
+                            'first_name': authenticated_user.first_name,
+                            'last_name': authenticated_user.last_name,
+                                                }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
