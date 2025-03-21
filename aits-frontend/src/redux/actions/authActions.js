@@ -1,5 +1,6 @@
 // src/redux/actions/authActions.js
-import { authService } from '../../services/api';
+import { authService,studentService } from '../../services/api';
+import api from '../../services/api';
 
 // Action Types (can be moved to a separate constants file)
 export const AUTH_INITIALIZED = 'AUTH_INITIALIZED';
@@ -28,7 +29,7 @@ export const initAuth = () => async (dispatch) => {
     
     // Get current user info to validate token
     // If you have a /me or /user endpoint, use that instead
-    const userData = await userService.getCurrentUser();
+    const userData = await studentService.getProfile();
     
     dispatch(authInitialized({ 
       user: userData,
@@ -44,7 +45,7 @@ export const initAuth = () => async (dispatch) => {
         api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
         
         // Try again with new token
-        const userData = await userService.getCurrentUser();
+        const userData = await studentService.getProfile();
         dispatch(authInitialized({ 
           user: userData,
           tokens: { access: response.access, refresh: refreshToken }
@@ -142,15 +143,8 @@ export const registerUser = (userData) => async (dispatch) => {
   }
 };
 
-export const logoutUser = () => (dispatch) => {
-  // Clear localStorage
-  localStorage.removeItem('access');
-  localStorage.removeItem('refresh');
-  
-  // Clear authorization header
-  delete axios.defaults.headers.common['Authorization'];
-  
-  // Update Redux state
+export const logoutUser = () => async (dispatch) => {
+  await authService.logout();
   dispatch(logout());
   return { success: true };
 };
