@@ -110,14 +110,23 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-  },
-
-  getCurrentUser: async () => {
-    const response = await api.get('/users/me/');
-    return response.data;
+  logout: async () => {
+    try {
+      // Call backend logout endpoint
+      await api.post('/logout/');
+      // This endpoint should invalidate the refresh token on the server
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with frontend logout even if backend fails
+    } finally {
+      // Clear local storage regardless of backend response
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+      delete api.defaults.headers.common['Authorization'];
+    }
   }
+
+  
 };
 
 

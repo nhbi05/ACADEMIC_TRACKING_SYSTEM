@@ -14,6 +14,13 @@ from .views import( RegisterView,
                    LogoutView,
                    IssueCountView)
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,)
+
+
+
+
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -29,5 +36,9 @@ urlpatterns = [
     path('create-issue/',CreateIssueView.as_view(),name='create-issue'),
     path('issue_counts/',IssueCountView.as_view(),name='issue_counts'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('issue/<int:pk>/',IssueDetailView.as_view(),name='issue-detail'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
 
 ]

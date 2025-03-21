@@ -4,14 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status,generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-#from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from .models import Issue
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-"""changes made:I JUST DELETED THE CSRF TOKEN THING """
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -50,11 +48,14 @@ class LoginView(APIView):
                         'refresh': str(refresh),
                         'access': str(refresh.access_token),
                         'user': {
+                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
-                        }
+                            'first_name': authenticated_user.first_name,
+                            'last_name': authenticated_user.last_name,
+                                                }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
@@ -188,7 +189,6 @@ class IssueDetailView(generics.RetrieveAPIView):
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
-
 class IssueCountView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
@@ -215,5 +215,4 @@ class LogoutView(APIView):
             return Response({'message': 'Successfully logged out'}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
 

@@ -1,7 +1,9 @@
 // src/redux/actions/authActions.js
-import { authService } from '../../services/api';
+import { authService,studentService } from '../../services/api';
+import api from '../../services/api';
 
 // Action Types (can be moved to a separate constants file)
+export const AUTH_INITIALIZED = 'AUTH_INITIALIZED';
 export const AUTH_REQUEST = 'AUTH_REQUEST';
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 export const REGISTER_SUCCESS = 'REGISTER_SUCCESS';
@@ -9,6 +11,55 @@ export const AUTH_FAILURE = 'AUTH_FAILURE';
 export const LOGOUT = 'LOGOUT';
 export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
 
+export const authInitialized = (user) => ({
+  type: AUTH_INITIALIZED,
+  payload: user
+});
+export const initAuth = () => async (dispatch) => {
+  const accessToken = localStorage.getItem('access');
+  const refreshToken = localStorage.getItem('refresh');
+  
+  if (!accessToken) {
+    return false;
+  }
+  
+  try {
+    // Set the token in axios defaults
+    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    
+    // Get current user info to validate token
+    // If you have a /me or /user endpoint, use that instead
+    const userData = await studentService.getProfile();
+    
+    dispatch(authInitialized({ 
+      user: userData,
+      tokens: { access: accessToken, refresh: refreshToken }
+    }));
+    return true;
+  } catch (error) {
+    // If token is invalid, try refresh
+    try {
+      if (refreshToken) {
+        const response = await authService.refresh(refreshToken);
+        localStorage.setItem('access', response.access);
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
+        
+        // Try again with new token
+        const userData = await studentService.getProfile();
+        dispatch(authInitialized({ 
+          user: userData,
+          tokens: { access: response.access, refresh: refreshToken }
+        }));
+        return true;
+      }
+    } catch (refreshError) {
+      // Clear invalid tokens
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+      return false;
+    }
+  }
+};
 // Action creators
 export const loginRequest = () => ({
   type: AUTH_REQUEST
@@ -92,9 +143,8 @@ export const registerUser = (userData) => async (dispatch) => {
   }
 };
 
-export const logoutUser = () => (dispatch) => {
-  localStorage.removeItem('access');
-  localStorage.removeItem('refresh');
+export const logoutUser = () => async (dispatch) => {
+  await authService.logout();
   dispatch(logout());
   return { success: true };
 };

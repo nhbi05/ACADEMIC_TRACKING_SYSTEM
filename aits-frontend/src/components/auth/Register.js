@@ -18,7 +18,7 @@ const Register = () => {
     college: '',
     department: '',
     student_no: '',        
-    year_level: 1,
+    //year_level: 1,
     programme: '' ,      
     registration_no:""
   });
