@@ -18,9 +18,9 @@ const Register = () => {
     college: '',
     department: '',
     student_no: '',        
-    registration_no: '', // 
-    year_level: 1,
-    programme: ''           
+    //year_level: 1,
+    programme: '' ,      
+    registration_no:""
   });
 
   const [passwordError, setPasswordError] = useState('');
@@ -229,9 +229,6 @@ const Register = () => {
                   <h3 className="text-lg font-medium text-green-700 mb-3">Student Info</h3>
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="student_no" className="block text-sm font-medium text-gray-700 mb-1">
-                        Student Number
-                      </label>
                       <input
                         id="student_no"
                         type="text"
@@ -241,12 +238,8 @@ const Register = () => {
                         value={formData.student_no}
                         onChange={(e) => setFormData({ ...formData, student_no: e.target.value })}
                       />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="registration_no" className="block text-sm font-medium text-gray-700 mb-1">
-                        Registration Number
-                      </label>
+                      </div>
+                      <div>
                       <input
                         id="registration_no"
                         type="text"

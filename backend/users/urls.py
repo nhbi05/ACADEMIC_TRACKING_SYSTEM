@@ -10,7 +10,15 @@ from .views import( RegisterView,
                    IssueDetailView,
                    LecturerProfileView,
                    RegistrarProfileView,
-                   StudentProfileView)
+                   StudentProfileView,
+                   LogoutView,
+                   IssueCountView)
+
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,)
+
+
 
 
 
@@ -23,9 +31,14 @@ urlpatterns = [
     path('submit-issue/', SubmitIssueView.as_view(), name='submit_issue'),
     path('resolve-issue/', ResolveIssueView.as_view(), name='resolve_issue'),
     path('assign-issue/<int:issue_id>/', AssignIssueView.as_view(), name='assign_issue'),
-    #path('api/csrf/', CSRFTokenView.as_view(), name='csrf-token'),
     path('my-issues/',StudentIssueView.as_view(),name='my-issues'),
     path('resolved-issues/',ResolvedIssuesView.as_view(),name='resolved-issues'),
     path('create-issue/',CreateIssueView.as_view(),name='create-issue'),
+    path('issue_counts/',IssueCountView.as_view(),name='issue_counts'),
+    path('logout/', LogoutView.as_view(), name='logout'),
     path('issue/<int:pk>/',IssueDetailView.as_view(),name='issue-detail'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
+
 ]

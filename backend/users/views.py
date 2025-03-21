@@ -4,14 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status,generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-#from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from .models import Issue
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-"""changes made:I JUST DELETED THE CSRF TOKEN THING """
 class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -50,11 +48,14 @@ class LoginView(APIView):
                         'refresh': str(refresh),
                         'access': str(refresh.access_token),
                         'user': {
+                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
-                        }
+                            'first_name': authenticated_user.first_name,
+                            'last_name': authenticated_user.last_name,
+                                                }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
@@ -165,7 +166,9 @@ class StudentIssueView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(student=self.request.user).order_by('created_at')
+        return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
+
+
 
 class ResolvedIssuesView(generics.ListAPIView):
     serializer_class=IssueSerializer
@@ -186,4 +189,34 @@ class IssueDetailView(generics.RetrieveAPIView):
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
+<<<<<<< HEAD
 #functionality for the register's dashboard     
+=======
+class IssueCountView(generics.ListAPIView):
+    permission_classes=[IsAuthenticated]
+
+    def list(self,request,*args,**kwargs):
+        total_issues = Issue.objects.count()
+        resolved_issues = Issue.objects.filter(status="resolved").count()
+        pending_issues = Issue.objects.filter(status="pending").count()
+        return Response({
+            "total_issues":total_issues,
+            "resolved_issues":resolved_issues,
+            "pending_issues":pending_issues
+        })
+        
+
+class LogoutView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        try:
+            refresh_token=request.data.get('refresh')
+            if not RefreshToken:
+                return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
+            token=RefreshToken(refresh_token)
+            token.blacklist() #Blacklist the refresh token
+            return Response({'message': 'Successfully logged out'}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+>>>>>>> c585c076e98db5aca392cb0cb8feb6cfa12c2f7b
