@@ -189,9 +189,7 @@ class IssueDetailView(generics.RetrieveAPIView):
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
-<<<<<<< HEAD
-#functionality for the register's dashboard     
-=======
+
 class IssueCountView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
@@ -219,4 +217,3 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
->>>>>>> c585c076e98db5aca392cb0cb8feb6cfa12c2f7b

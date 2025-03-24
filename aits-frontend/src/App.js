@@ -26,6 +26,7 @@ function App() {
           <Route path="/registrar-dashboard" element={<RegistrarDashboard />} />
           <Route path="/submit-issue" element={<ProtectedRoute element={<IssueSubmissionForm />} />} />
           <Route path="/student-issues" element={<ProtectedRoute element={<IssueSubmissionForm />} />} />
+          <Route path="/student/issues/create" element={<IssueSubmissionForm />} />
         </Routes>
       </div>
     </AuthProvider>
