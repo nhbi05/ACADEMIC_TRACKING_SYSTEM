@@ -182,7 +182,8 @@ class CreateIssueView(generics.CreateAPIView):
     permission_classes=[IsAuthenticated]
 
     def perform_create(self,serializer):
-        serializer.save(student=self.request.user)
+        #O11 serializer.save(student=self.request.user)
+        serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
     queryset = Issue.objects.all()

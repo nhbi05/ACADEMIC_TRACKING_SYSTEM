@@ -34,7 +34,6 @@ const StudentDashboard = () => {
   // Loading and error states
   const loading = profileLoading || issuesLoading;
   const error = profileError || issuesError;
-  
   useEffect(() => {
     // Fetch data when component mounts
     dispatch(fetchStudentData()).catch(err => 
@@ -50,6 +49,7 @@ const StudentDashboard = () => {
     dispatch(logout());
     navigate('/login');
   };
+  
   
   const navItems = [
     { name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },

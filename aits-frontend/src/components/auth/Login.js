@@ -4,11 +4,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, clearMessages } from "../../redux/actions/authActions";
 import { Alert, AlertDescription } from "../ui/alert";
+import { useAuth } from '../../context/AuthContext'
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginType, setLoginType] = useState("student");
+  const auth = useAuth()
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -42,7 +44,7 @@ const Login = () => {
           default:
             navigate('/');
         }
-      }, 1000);
+      }, 100);
       
       return () => clearTimeout(timer);
     }
@@ -57,7 +59,7 @@ const Login = () => {
       dispatch({ type: 'AUTH_FAILURE', payload: "Password is required" });
       return false;
     }
-    if (password.length < 6) {
+    if (password.length < 3) {
       dispatch({ type: 'AUTH_FAILURE', payload: "Password must be at least 6 characters" });
       return false;
     }
@@ -71,7 +73,7 @@ const Login = () => {
       return;
     }
   
-    dispatch(loginUser({ username, password }, loginType));
+    dispatch(loginUser({ username, password }, loginType, auth));
   };
 
   return (

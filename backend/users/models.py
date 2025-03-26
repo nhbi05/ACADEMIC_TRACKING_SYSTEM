@@ -115,8 +115,8 @@ class Issue(models.Model):
         ('Semester 2' , 'Semester 2'),
         
     ]
-    Student_no = models.IntegerField( unique=True)
-    Reg_no = models.CharField(max_length = 20, unique = True)
+    Student_no = models.IntegerField()
+    Reg_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField() 

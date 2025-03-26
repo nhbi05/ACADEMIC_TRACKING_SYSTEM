@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate} from "react-router-dom";
+import { useAuth } from '../context/AuthContext'
 
 const IssueSubmissionForm = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +21,10 @@ const IssueSubmissionForm = () => {
   const [staffUsers, setStaffUsers] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubMitted] = useState(false)
+  const navigate = useNavigate()
+  const { user, token } = useAuth()
+  
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -40,16 +46,16 @@ const IssueSubmissionForm = () => {
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
-      "student_no",
-      "reg_no",
-      "category",
-      "course_unit",
-      "year_of_study",
-      "semester",
-      "description",
-      "opened_by",
-      "priority",
-      "issue_date",
+      // "student_no",
+      // "reg_no",
+      // "category",
+      // "description",
+      // "course_unit",
+      // "year_of_study",
+      // "semester",
+      // "submitted_by",
+      // "priority",
+      // "issue_date",
     ];
 
     requiredFields.forEach((field) => {
@@ -66,37 +72,41 @@ const IssueSubmissionForm = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const profile = await axios.get('http://localhost:8000/api/student/profile/', {
+      headers: {
+        Authorization: `Bearer ${token.access}`,
+      }
+    }).then(res => res.data).catch(err => null );
+    // console.log({profile, user, token})
+
+    if (profile === null) alert("Could not fetch your profile data");
+
     setIsSubmitting(true);
-    try {
-      await axios.post("/api/issues/create/", {
-        ...formData,
-        submitted_by: localStorage.getItem("userId"),
-      });
-      alert("Issue submitted successfully!");
-      setFormData({
-        student_no: "",
-        reg_no: "",
-        category: "",
-        course_unit: "",
-        year_of_study: "",
-        semester: "",
-        description: "",
-        opened_by: "",
-        assigned_to: "",
-        priority: "",
-        issue_date: "",
-      });
-    } catch (error) {
-      console.error("Submission error:", error.response?.data);
-      alert(
-        `Failed to submit issue: ${error.response?.data?.error || error.message}`
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    await axios.post('http://localhost:8000/api/create-issue/', {
+      ...formData,
+      Student_no: profile['student_no'],
+      Reg_no: profile['registration_no'],
+      submitted_by: user['id'],
+    }, {
+      // xsrfCookieName: "csrftoken",
+      headers: {
+        Authorization: `Bearer ${token.access}`,
+      }
+    }).then(result => {
+      let {data: {id}} = result
+      let cont = prompt(`Issue #${id} submitted sucessfully`, 'OK to proceed')
+      if (cont)
+        navigate('/student-dashboard')
+    }).catch(error => {
+      setIsSubmitting(false)
+      alert("Failed creating Issue")
+      console.log("Failed creating issue", error)
+    })
   };
 
-  return (
+  return ( !user &&
+    <p>You've been logged out</p>
+    ||
     <div className="min-h-screen flex justify-center items-center bg-green-50">
       <div className="max-w-2xl w-full p-6 bg-white shadow-lg rounded-lg">
         {/* Logo */}
@@ -109,31 +119,6 @@ const IssueSubmissionForm = () => {
         <h1 className="text-xl font-bold mb-4">Academic Issue Submission</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Student Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block font-medium">Student Number*</label>
-              <input
-                type="text"
-                name="student_no"
-                value={formData.student_no}
-                onChange={handleChange}
-                className={`w-full p-2 border ${errors.student_no ? "border-red-500" : "border-gray-300"} rounded bg-white`}
-              />
-              {errors.student_no && <span className="text-red-500 text-sm">{errors.student_no}</span>}
-            </div>
-            <div>
-              <label className="block font-medium">Registration Number*</label>
-              <input
-                type="text"
-                name="reg_no"
-                value={formData.reg_no}
-                onChange={handleChange}
-                className={`w-full p-2 border ${errors.reg_no ? "border-red-500" : "border-gray-300"} rounded bg-white`}
-              />
-              {errors.reg_no && <span className="text-red-500 text-sm">{errors.reg_no}</span>}
-            </div>
-          </div>
-
           {/* Academic Details */}
           <div className="grid grid-cols-2 gap-4">
             <div>
