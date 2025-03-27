@@ -1,3 +1,4 @@
+__pycache__
 # IDEs and Editors
 .idea/
 .vscode/
@@ -44,4 +45,3 @@ yarn-error.log*
 # System Files
 .DS_Store
 Thumbs.db
-__pycache__/
