@@ -1,0 +1,13 @@
+option:hover {
+    background-color: #10b981 !important; /* green-500 */
+    color: white !important;
+  }
+  
+  select:focus option:hover {
+    background-color: #10b981 !important;
+    color: white !important;
+  }
+  
+  select option:hover {
+    background-color: #10b981 !important;
+  }
