@@ -8,10 +8,13 @@ User = get_user_model()
 
 # Serializer for the StudentProfile model
 class StudentProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+
     class Meta:
-        model = StudentProfile  # Specify the model to serialize
-        # fields = '__all__'  # Fields to include in the serialized output
-        exclude = ['id']
+        model = StudentProfile  # Specify the model to serializers
+        fields = ["first_name","last_name",'registration_no', 'programme',"student_no"]  # Fields to include in the serialized output
+        #changed college and department to programme and student_no
 
 # Serializer for the LecturerProfile model
 class LecturerProfileSerializer(serializers.ModelSerializer):

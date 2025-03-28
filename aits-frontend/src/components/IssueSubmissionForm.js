@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate} from "react-router-dom";
 import { useAuth } from '../context/AuthContext'
-
 const IssueSubmissionForm = () => {
   const [formData, setFormData] = useState({
     student_no: "",
@@ -15,12 +14,15 @@ const IssueSubmissionForm = () => {
     opened_by: "",
     assigned_to: "",
     priority: "",
+    // eslint-disable-next-line
     issue_date: "",
   });
 
   const [staffUsers, setStaffUsers] = useState([]);
+  // eslint-disable-next-line
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // eslint-disable-next-line
   const [submitted, setSubMitted] = useState(false)
   const navigate = useNavigate()
   const { user, token } = useAuth()
@@ -103,9 +105,10 @@ const IssueSubmissionForm = () => {
       console.log("Failed creating issue", error)
     })
   };
-
+// eslint-disable-next-line
   return ( !user &&
     <p>You've been logged out</p>
+    // eslint-disable-next-line
     ||
     <div className="min-h-screen flex justify-center items-center bg-green-50">
       <div className="max-w-2xl w-full p-6 bg-white shadow-lg rounded-lg">
