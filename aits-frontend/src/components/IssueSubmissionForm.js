@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate} from "react-router-dom";
-import { useAuth } from '../context/AuthContext'
+import { useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
+
 const IssueSubmissionForm = () => {
   const [formData, setFormData] = useState({
     student_no: "",
@@ -14,8 +15,7 @@ const IssueSubmissionForm = () => {
     opened_by: "",
     assigned_to: "",
     priority: "",
-    // eslint-disable-next-line
-    issue_date: "",
+    issue_date: "", // eslint-disable-next-line
   });
 
   const [staffUsers, setStaffUsers] = useState([]);
@@ -23,10 +23,9 @@ const IssueSubmissionForm = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   // eslint-disable-next-line
-  const [submitted, setSubMitted] = useState(false)
-  const navigate = useNavigate()
-  const { user, token } = useAuth()
-  
+  const [submitted, setSubMitted] = useState(false);
+  const navigate = useNavigate();
+  const { user, token } = useAuth();
 
   useEffect(() => {
     const fetchStaff = async () => {
@@ -48,16 +47,7 @@ const IssueSubmissionForm = () => {
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
-      // "student_no",
-      // "reg_no",
-      // "category",
-      // "description",
-      // "course_unit",
-      // "year_of_study",
-      // "semester",
-      // "submitted_by",
-      // "priority",
-      // "issue_date",
+      "category", "course_unit", "year_of_study", "semester", "description", "priority",
     ];
 
     requiredFields.forEach((field) => {
@@ -72,41 +62,62 @@ const IssueSubmissionForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
-    const profile = await axios.get('http://localhost:8000/api/student/profile/', {
-      headers: {
-        Authorization: `Bearer ${token.access}`,
-      }
-    }).then(res => res.data).catch(err => null );
-    // console.log({profile, user, token})
+    // Check if token and user are available
+    if (!token || !token.access) {
+      alert("Token is not available. Please log in.");
+      return;
+    }
 
-    if (profile === null) alert("Could not fetch your profile data");
+    if (!user) {
+      alert("User is not available. Please log in.");
+      return;
+    }
 
-    setIsSubmitting(true);
-    await axios.post('http://localhost:8000/api/create-issue/', {
-      ...formData,
-      Student_no: profile['student_no'],
-      Reg_no: profile['registration_no'],
-      submitted_by: user['id'],
-    }, {
-      // xsrfCookieName: "csrftoken",
-      headers: {
-        Authorization: `Bearer ${token.access}`,
+    try {
+      const profile = await axios.get('http://localhost:8000/api/student/profile/', {
+        headers: {
+          Authorization: `Bearer ${token.access}`,
+        },
+      }).then(res => res.data).catch(err => {
+        console.error("Error fetching profile data:", err);
+        return null;
+      });
+
+      if (profile === null) {
+        alert("Could not fetch your profile data");
+        return;
       }
-    }).then(result => {
-      let {data: {id}} = result
-      let cont = prompt(`Issue #${id} submitted sucessfully`, 'OK to proceed')
-      if (cont)
-        navigate('/student-dashboard')
-    }).catch(error => {
-      setIsSubmitting(false)
-      alert("Failed creating Issue")
-      console.log("Failed creating issue", error)
-    })
+
+      setIsSubmitting(true);
+      await axios.post('http://localhost:8000/api/create-issue/', {
+        ...formData,
+        Student_no: profile['student_no'],
+        Reg_no: profile['registration_no'],
+        submitted_by: user['id'],
+      }, {
+        headers: {
+          Authorization: `Bearer ${token.access}`,
+        },
+      }).then(result => {
+        let { data: { id } } = result;
+        let cont = prompt(`Issue #${id} submitted successfully`, 'OK to proceed');
+        if (cont) navigate('/student-dashboard');
+      }).catch(error => {
+        setIsSubmitting(false);
+        alert("Failed creating Issue");
+        console.log("Failed creating issue", error);
+      });
+    } catch (error) {
+      console.error("Error during issue submission:", error);
+      setIsSubmitting(false);
+      alert("An error occurred while submitting the issue.");
+    }
   };
-// eslint-disable-next-line
-  return ( 
+
+  return (
     <div className="min-h-screen flex justify-center items-center bg-green-50">
       <div className="max-w-2xl w-full p-6 bg-white shadow-lg rounded-lg">
         {/* Logo */}
