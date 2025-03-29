@@ -16,16 +16,20 @@ export const authInitialized = (user) => ({
   payload: user
 });
 export const initAuth = () => async (dispatch) => {
-  const accessToken = localStorage.getItem('access');
-  const refreshToken = localStorage.getItem('refresh');
+  let token
+  try {
+    token = JSON.parse(localStorage.getItem('token'))
+  } catch {
+    token = null
+  }
   
-  if (!accessToken) {
+  if (!token) {
     return false;
   }
   
   try {
     // Set the token in axios defaults
-    api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token.access}`;
     
     // Get current user info to validate token
     // If you have a /me or /user endpoint, use that instead
@@ -33,14 +37,14 @@ export const initAuth = () => async (dispatch) => {
     
     dispatch(authInitialized({ 
       user: userData,
-      tokens: { access: accessToken, refresh: refreshToken }
+      tokens: { access: token.access, refresh: token.refresh }
     }));
     return true;
   } catch (error) {
     // If token is invalid, try refresh
     try {
-      if (refreshToken) {
-        const response = await authService.refresh(refreshToken);
+      if (token.refresh) {
+        const response = await authService.refresh(token.refresh);
         localStorage.setItem('access', response.access);
         api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
         
@@ -48,14 +52,13 @@ export const initAuth = () => async (dispatch) => {
         const userData = await studentService.getProfile();
         dispatch(authInitialized({ 
           user: userData,
-          tokens: { access: response.access, refresh: refreshToken }
+          tokens: { access: response.access, refresh: token.refresh }
         }));
         return true;
       }
-    } catch (refreshError) {
+    } catch (refresh) {
       // Clear invalid tokens
-      localStorage.removeItem('access');
-      localStorage.removeItem('refresh');
+      localStorage.removeItem('token');
       return false;
     }
   }
@@ -89,7 +92,7 @@ export const clearMessages = () => ({
 
 // Async action creators (thunks)
 // In loginUser action
-export const loginUser = (credentials, loginType) => async (dispatch) => {
+export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
   dispatch(loginRequest());
   
   try {
@@ -100,10 +103,11 @@ export const loginUser = (credentials, loginType) => async (dispatch) => {
     
     console.log('Auth response:', response);
     
-    // Store tokens in localStorage
-    localStorage.setItem('access', response.access);
-    localStorage.setItem('refresh', response.refresh);
-    
+    const user = response.user
+    const token = { access: response.access, refresh: response.refresh }
+    const { login } = auth
+
+    login(user, token)
     dispatch(loginSuccess(
       response.user, 
       {

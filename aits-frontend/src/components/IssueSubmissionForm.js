@@ -14,15 +14,12 @@ const IssueSubmissionForm = () => {
     opened_by: "",
     assigned_to: "",
     priority: "",
-    // eslint-disable-next-line
     issue_date: "",
   });
 
   const [staffUsers, setStaffUsers] = useState([]);
-  // eslint-disable-next-line
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // eslint-disable-next-line
   const [submitted, setSubMitted] = useState(false)
   const navigate = useNavigate()
   const { user, token } = useAuth()
