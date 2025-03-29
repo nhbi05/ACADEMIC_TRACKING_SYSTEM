@@ -27,7 +27,7 @@ const processQueue = (error, token = null) => {
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('access'); // Changed from 'accessToken'
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,7 +35,6 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -57,15 +56,17 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken');
+        // Change this line to match how you store the token
+        const refreshToken = localStorage.getItem('refresh'); // Changed from 'refreshToken'
         if (!refreshToken) {
           throw new Error('No refresh token available');
         }
 
         const response = await authService.refresh(refreshToken);
-        const newAccessToken = response.data.access;
+        // Make sure this matches the structure of your API response
+        const newAccessToken = response.access;
         
-        localStorage.setItem('accessToken', newAccessToken);
+        localStorage.setItem('access', newAccessToken);
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         
@@ -74,8 +75,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         // Clear auth state if refresh fails
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {
@@ -85,6 +86,9 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+      
+
+      
 
 // Auth services
 export const authService = {
@@ -93,39 +97,45 @@ export const authService = {
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
-    console.log("this is the response")
-    console.log(response)
-    console.log(response.data)
     return response.data;
   },
 
   login: async (credentials) => {
     const response = await api.post('/login/', credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-    }
-    return response.data;
+    return response.data; // Ensure this contains user, access, refresh
   },
-
-  logout: () => {
-    localStorage.removeItem('token');
-  },
-
-  getCurrentUser: async () => {
-    const response = await api.get('/users/me/');
-    return response.data;
-  },
-
+  
   refresh: async (refreshToken) => {
     const response = await api.post('/token/refresh/', { refresh: refreshToken });
     return response.data;
+  },
+
+  logout: async () => {
+    try {
+      // Call backend logout endpoint
+      await api.post('/logout/');
+      // This endpoint should invalidate the refresh token on the server
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Continue with frontend logout even if backend fails
+    } finally {
+      // Clear local storage regardless of backend response
+      localStorage.removeItem('access');
+      localStorage.removeItem('refresh');
+      delete api.defaults.headers.common['Authorization'];
+    }
   }
+
+  
 };
+
+
+  
 
 // Student services - Added missing studentService
 export const studentService = {
   getProfile: async () => {
-    const response = await api.get('/students/profile/');
+    const response = await api.get('/student/profile/');
     return response.data;
   },
   // Add this new function

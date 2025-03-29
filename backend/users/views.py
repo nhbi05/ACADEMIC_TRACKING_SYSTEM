@@ -4,25 +4,35 @@ from rest_framework.response import Response
 from rest_framework import status,generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-#from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from .models import Issue
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
+from rest_framework.permissions import AllowAny
+
 
 User = get_user_model()
-"""changes made:I JUST DELETED THE CSRF TOKEN THING """
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        print(request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {"message": "User created successfully", "user": serializer.data}, 
-                status=status.HTTP_201_CREATED
-            )
-        print(serializer.errors)
+            try:
+                user = serializer.save()
+                return Response(
+                    {
+                        "message": "User created successfully",
+                        "user_id": user.id,
+                        "username": user.username
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+            except Exception as e:
+                return Response(
+                    {"error": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
@@ -50,11 +60,14 @@ class LoginView(APIView):
                         'refresh': str(refresh),
                         'access': str(refresh.access_token),
                         'user': {
+                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
-                        }
+                            'first_name': authenticated_user.first_name,
+                            'last_name': authenticated_user.last_name,
+                                                }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
@@ -94,7 +107,7 @@ class SubmitIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        serializer = IssueSerializer(data=request.data)
+        serializer = IssueSerializer(data=request.data, context={'request':request})
         if serializer.is_valid():
             serializer.save(submitted_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -165,7 +178,9 @@ class StudentIssueView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(student=self.request.user).order_by('created_at')
+        return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
+
+
 
 class ResolvedIssuesView(generics.ListAPIView):
     serializer_class=IssueSerializer
@@ -179,9 +194,39 @@ class CreateIssueView(generics.CreateAPIView):
     permission_classes=[IsAuthenticated]
 
     def perform_create(self,serializer):
-        serializer.save(student=self.request.user)
+        #O11 serializer.save(student=self.request.user)
+        serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
     queryset = Issue.objects.all()
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
+
+
+class IssueCountView(generics.ListAPIView):
+    permission_classes=[IsAuthenticated]
+
+    def list(self,request,*args,**kwargs):
+        total_issues = Issue.objects.count()
+        resolved_issues = Issue.objects.filter(status="resolved").count()
+        pending_issues = Issue.objects.filter(status="pending").count()
+        return Response({
+            "total_issues":total_issues,
+            "resolved_issues":resolved_issues,
+            "pending_issues":pending_issues
+        })
+        
+
+class LogoutView(APIView):
+    permission_classes=[IsAuthenticated]
+    def post(self,request):
+        try:
+            refresh_token=request.data.get('refresh')
+            if not RefreshToken:
+                return Response({'error': 'Refresh token is required'}, status=status.HTTP_400_BAD_REQUEST)
+            token=RefreshToken(refresh_token)
+            token.blacklist() #Blacklist the refresh token
+            return Response({'message': 'Successfully logged out'}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
