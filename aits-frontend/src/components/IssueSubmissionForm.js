@@ -107,7 +107,7 @@ const IssueSubmissionForm = () => {
   };
 // eslint-disable-next-line
   return ( !user &&
-    <p>You've been logged out</p>
+    <p>Please log in to submit an issue.</p>
     // eslint-disable-next-line
     ||
     <div className="min-h-screen flex justify-center items-center bg-green-50">
