@@ -9,6 +9,7 @@ from .models import Issue
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
+from django.db.models import Q
 
 
 User = get_user_model()
@@ -99,18 +100,22 @@ class RegistrarProfileView(generics.RetrieveUpdateAPIView):
 
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         if request.user.role != 'student':
             return Response(
                 {'error': 'Only students can submit issues'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        serializer = IssueSerializer(data=request.data, context={'request':request})
+
+        request_data = request.data.copy()  # Copy data to avoid modifying the original request
+
+        serializer = IssueSerializer(data=request_data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(submitted_by=request.user)
+            # Save issue with status "pending" so the Registrar can review it
+            serializer.save(submitted_by=request.user, status="pending")  
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):
@@ -180,6 +185,24 @@ class StudentIssueView(generics.ListAPIView):
     def get_queryset(self):
         return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
 
+class LecturerSearchView(generics.ListAPIView):
+    
+    #API endpoint for searching lecturers by name.
+    
+    serializer_class = LecturerProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        return User.objects.filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query),
+            role='lecturer'
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ResolvedIssuesView(generics.ListAPIView):
