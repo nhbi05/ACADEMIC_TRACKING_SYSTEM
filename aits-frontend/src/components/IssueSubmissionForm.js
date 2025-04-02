@@ -1,68 +1,57 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate} from "react-router-dom";
-import { useAuth } from '../context/AuthContext'
+import { useNavigate } from "react-router-dom";
+import { useAuth } from '../context/AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { createIssue } from '../redux/actions/studentActions';
+import { Alert } from './ui/alert';
+
 const IssueSubmissionForm = () => {
   const [formData, setFormData] = useState({
-    student_no: "",
-    reg_no: "",
     category: "",
     course_unit: "",
     year_of_study: "",
     semester: "",
     description: "",
-    opened_by: "",
     assigned_to: "",
-    priority: "",
-    issue_date: "",
   });
 
   const [staffUsers, setStaffUsers] = useState([]);
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubMitted] = useState(false)
-  const navigate = useNavigate()
-  const { user, token } = useAuth()
+  const [successMessage, setSuccessMessage] = useState(null); // New state for success message
+  const navigate = useNavigate();
+  const { user, token } = useAuth();
+  const dispatch = useDispatch();
   
+  const { submitting, error: submissionError } = useSelector(state => state.issues);
 
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const response = await axios.get("/api/users/staff/");
+        const response = await axios.get("/api/users/staff/", {
+          headers: { Authorization: `Bearer ${token.access}` }
+        });
         setStaffUsers(response.data);
       } catch (error) {
-        console.error("Error fetching staff:", error);
+        setErrors(prev => ({ ...prev, staff: "Failed to load staff list" }));
       }
     };
-    fetchStaff();
-  }, []);
+    
+    if (token) fetchStaff();
+  }, [token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-    const requiredFields = [
-      // "student_no",
-      // "reg_no",
-      // "category",
-      // "description",
-      // "course_unit",
-      // "year_of_study",
-      // "semester",
-      // "submitted_by",
-      // "priority",
-      // "issue_date",
-    ];
-
-    requiredFields.forEach((field) => {
-      if (!formData[field]) {
-        newErrors[field] = `${field.replace("_", " ")} is required`;
-      }
+    const requiredFields = ['category', 'course_unit', 'year_of_study', 'semester', 'description'];
+    requiredFields.forEach(field => {
+      if (!formData[field]) newErrors[field] = `${field.replace(/_/g, ' ')} is required`;
     });
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -70,64 +59,77 @@ const IssueSubmissionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
-    const profile = await axios.get('http://localhost:8000/api/student/profile/', {
-      headers: {
-        Authorization: `Bearer ${token.access}`,
+  
+    try {
+      const profile = await axios.get('/api/student/profile/', {
+        headers: { Authorization: `Bearer ${token.access}` }
+      }).then(res => res.data);
+  
+      const issueData = {
+        ...formData,
+        Student_no: profile.student_no,
+        Reg_no: profile.registration_no,
+        submitted_by: user.id,
+        priority: "medium",
+        issue_date: new Date().toISOString()
+      };
+  
+      console.log("Dispatching createIssue with:", issueData);
+      
+      // Fix the parameter passing to match the action creator
+      const result = await dispatch(createIssue(issueData, token));
+      
+      console.log("Dispatch result:", result);
+      
+      if (result.payload?.id) {
+        setSuccessMessage(`Issue #${result.payload.id} submitted successfully!`);
+        setTimeout(() => navigate('/student-dashboard'), 3000);
       }
-    }).then(res => res.data).catch(err => null );
-    // console.log({profile, user, token})
-
-    if (profile === null) alert("Could not fetch your profile data");
-
-    setIsSubmitting(true);
-    await axios.post('http://localhost:8000/api/create-issue/', {
-      ...formData,
-      Student_no: profile['student_no'],
-      Reg_no: profile['registration_no'],
-      submitted_by: user['id'],
-    }, {
-      // xsrfCookieName: "csrftoken",
-      headers: {
-        Authorization: `Bearer ${token.access}`,
-      }
-    }).then(result => {
-      let {data: {id}} = result
-      let cont = prompt(`Issue #${id} submitted sucessfully`, 'OK to proceed')
-      if (cont)
-        navigate('/student-dashboard')
-    }).catch(error => {
-      setIsSubmitting(false)
-      alert("Failed creating Issue")
-      console.log("Failed creating issue", error)
-    })
+    } catch (err) {
+      console.error("Submission error:", err);
+      setErrors(prev => ({ ...prev, form: submissionError || "Failed to submit issue" }));
+    }
   };
-// eslint-disable-next-line
-  return ( !user &&
-    <p>You've been logged out</p>
-    // eslint-disable-next-line
-    ||
-    <div className="min-h-screen flex justify-center items-center bg-green-50">
+  return (
+    <div className="min-h-screen flex justify-center items-center bg-green-50 p-4">
       <div className="max-w-2xl w-full p-6 bg-white shadow-lg rounded-lg">
-        {/* Logo */}
         <img
           src="/makerere_university.jpg"
           alt="Makerere University Logo"
           className="mx-auto w-32 h-32 mb-4"
         />
 
-        <h1 className="text-xl font-bold mb-4">Academic Issue Submission</h1>
+        <h1 className="text-2xl font-bold text-center mb-6 text-green-800">
+          Academic Issue Submission
+        </h1>
+        
+        {/* Success message */}
+        {successMessage && (
+          <Alert variant="success" className="mb-4">
+            {successMessage}
+          </Alert>
+        )}
+
+        {/* Error message */}
+        {errors.form && (
+          <Alert variant="destructive" className="mb-4">
+            {errors.form}
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Student Info */}
-          {/* Academic Details */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Category and Course Unit */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-medium">Category*</label>
+              <label className="block font-medium text-gray-700 mb-1">
+                Category*
+              </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded bg-white"
+                className={`w-full p-2 border rounded bg-white ${
+                  errors.category ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 <option value="">Select Category</option>
                 <option value="missing_marks">Missing Marks</option>
@@ -135,64 +137,101 @@ const IssueSubmissionForm = () => {
                 <option value="correction">Correction</option>
                 <option value="others">Others</option>
               </select>
+              {errors.category && (
+                <Alert variant="destructive" className="mt-1 text-sm p-2">
+                  {errors.category}
+                </Alert>
+              )}
             </div>
+            
             <div>
-              <label className="block font-medium">Course Unit*</label>
+              <label className="block font-medium text-gray-700 mb-1">
+                Course Unit*
+              </label>
               <input
                 type="text"
                 name="course_unit"
                 value={formData.course_unit}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded bg-white"
+                className={`w-full p-2 border rounded bg-white ${
+                  errors.course_unit ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="e.g. CSC 101"
               />
+              {errors.course_unit && (
+                <Alert variant="destructive" className="mt-1 text-sm p-2">
+                  {errors.course_unit}
+                </Alert>
+              )}
             </div>
           </div>
 
-          {/* Year & Semester */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Year and Semester */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-medium">Year of Study*</label>
+              <label className="block font-medium text-gray-700 mb-1">
+                Year of Study*
+              </label>
               <select
                 name="year_of_study"
                 value={formData.year_of_study}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded bg-white"
+                className={`w-full p-2 border rounded bg-white ${
+                  errors.year_of_study ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 <option value="">Select Year</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
+                <option value="1">Year 1</option>
+                <option value="2">Year 2</option>
+                <option value="3">Year 3</option>
+                <option value="4">Year 4</option>
               </select>
+              {errors.year_of_study && (
+                <Alert variant="destructive" className="mt-1 text-sm p-2">
+                  {errors.year_of_study}
+                </Alert>
+              )}
             </div>
+            
             <div>
-              <label className="block font-medium">Semester*</label>
+              <label className="block font-medium text-gray-700 mb-1">
+                Semester*
+              </label>
               <select
                 name="semester"
                 value={formData.semester}
                 onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded bg-white"
+                className={`w-full p-2 border rounded bg-white ${
+                  errors.semester ? 'border-red-500' : 'border-gray-300'
+                }`}
               >
                 <option value="">Select Semester</option>
                 <option value="Semester 1">Semester 1</option>
                 <option value="Semester 2">Semester 2</option>
               </select>
+              {errors.semester && (
+                <Alert variant="destructive" className="mt-1 text-sm p-2">
+                  {errors.semester}
+                </Alert>
+              )}
             </div>
           </div>
 
           {/* Assigned Staff */}
           <div>
-            <label className="block font-medium">Assigned To</label>
+            <label className="block font-medium text-gray-700 mb-1">
+              Assigned To (Optional)
+            </label>
             <select
               name="assigned_to"
               value={formData.assigned_to}
               onChange={handleChange}
               className="w-full p-2 border border-gray-300 rounded bg-white"
             >
-              <option value="">Select Staff</option>
-              {staffUsers.map((user) => (
+              <option value="">Select Staff Member</option>
+              {staffUsers.map(user => (
                 <option key={user.id} value={user.id}>
-                  {user.name}
+                  {user.name} ({user.department || 'Staff'})
                 </option>
               ))}
             </select>
@@ -200,23 +239,47 @@ const IssueSubmissionForm = () => {
 
           {/* Description */}
           <div>
-            <label className="block font-medium">Description*</label>
+            <label className="block font-medium text-gray-700 mb-1">
+              Description*
+            </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded bg-white"
-              rows="4"
+              className={`w-full p-2 border rounded bg-white ${
+                errors.description ? 'border-red-500' : 'border-gray-300'
+              }`}
+              rows="5"
+              placeholder="Describe your issue in detail..."
             />
+            {errors.description && (
+              <Alert variant="destructive" className="mt-1 text-sm p-2">
+                {errors.description}
+              </Alert>
+            )}
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700"
+            disabled={submitting}
+            className={`w-full py-3 px-4 rounded-md text-white font-medium ${
+              submitting 
+                ? 'bg-green-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            } transition-colors`}
           >
-            {isSubmitting ? "Submitting..." : "Submit Issue"}
+            {submitting ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Submitting...
+              </span>
+            ) : (
+              "Submit Issue"
+            )}
           </button>
         </form>
       </div>

@@ -2,42 +2,44 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Alert, AlertDescription } from '../ui/alert';
-import { fetchAllIssues, fetchRegistrarData } from '../../redux/actions/registrarActions.js';
-import { logout } from '../../redux/actions/authActions';
+import { fetchAllIssues, fetchRegistrarData } from '../../redux/actions/registrarActions';
+import { logoutUser } from '../../redux/actions/authActions';
 
 const RegistrarDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Get data from Redux store
+  // Get data from Redux store with updated selectors
   const { user } = useSelector(state => state.auth);
   const { 
-    issues = [], 
+    data: issues = [], 
     loading: issuesLoading = true, 
     error: issuesError = null 
-  } = useSelector(state => state.issues || {});
+  } = useSelector(state => state.registrar.issues);
   
-  // Derived stats based on issues
-  const statsData = {
-    totalIssues: issues?.length || 0,
-    pendingIssues: issues?.filter(issue => issue.status !== 'resolved').length || 0,
-    resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0
-  };
+  const { 
+    totalIssues = 0, 
+    pendingIssues = 0, 
+    resolvedIssues = 0 
+  } = useSelector(state => state.registrar.stats);
   
   useEffect(() => {
-    // Fetch data when component mounts
-    dispatch(fetchAllIssues()).catch(err => 
-      console.error('Error fetching issues:', err)
-    );
+    // Fetch issues with stats
+    dispatch(fetchAllIssues())
+      .catch(err => console.error('Error fetching issues:', err));
     
-    dispatch(fetchRegistrarData()).catch(err => 
-      console.error('Error fetching registrar data:', err)
-    );
+    // Fetch registrar profile data
+    dispatch(fetchRegistrarData())
+      .catch(err => console.error('Error fetching registrar data:', err));
   }, [dispatch]);
   
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser());
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
   
   const navItems = [
@@ -135,7 +137,7 @@ const RegistrarDashboard = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Total Issues</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {issuesLoading ? '...' : statsData.totalIssues}
+                    {issuesLoading ? '...' : totalIssues}
                   </p>
                 </div>
               </div>
@@ -149,7 +151,7 @@ const RegistrarDashboard = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Pending Issues</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {issuesLoading ? '...' : statsData.pendingIssues}
+                    {issuesLoading ? '...' : pendingIssues}
                   </p>
                 </div>
               </div>
@@ -163,7 +165,7 @@ const RegistrarDashboard = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Resolved Issues</p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {issuesLoading ? '...' : statsData.resolvedIssues}
+                    {issuesLoading ? '...' : resolvedIssues}
                   </p>
                 </div>
               </div>

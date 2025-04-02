@@ -1,5 +1,5 @@
 // src/redux/actions/registrarActions.js
-import axios from 'axios';
+import { registrarService } from '../../services/api';
 
 // Action Types
 export const FETCH_ISSUES_REQUEST = 'FETCH_ISSUES_REQUEST';
@@ -14,47 +14,20 @@ export const REGISTRAR_DATA_REQUEST = 'REGISTRAR_DATA_REQUEST';
 export const REGISTRAR_DATA_SUCCESS = 'REGISTRAR_DATA_SUCCESS';
 export const REGISTRAR_DATA_FAILURE = 'REGISTRAR_DATA_FAILURE';
 
-// Fetch all academic issues
-export const fetchAllIssues = () => async (dispatch) => {
-  dispatch(fetchIssuesRequest());
-  
-  try {
-    const response = await axios.get('/api/registrar/issues');
-    dispatch(fetchIssuesSuccess(response.data));
-  } catch (error) {
-    dispatch(fetchIssuesFailure(error.response?.data?.message || 'Failed to fetch issues'));
-  }
-};
-
 // Action Creators for fetchAllIssues
 export const fetchIssuesRequest = () => ({
   type: FETCH_ISSUES_REQUEST
 });
 
-export const fetchIssuesSuccess = (issues) => ({
+export const fetchIssuesSuccess = (data) => ({
   type: FETCH_ISSUES_SUCCESS,
-  payload: issues
+  payload: data
 });
 
 export const fetchIssuesFailure = (error) => ({
   type: FETCH_ISSUES_FAILURE,
   payload: error
 });
-
-// Assign an issue to a specific lecturer or staff
-export const assignIssue = (issueId, assignedTo) => async (dispatch) => {
-  dispatch(assignIssueRequest());
-  
-  try {
-    const response = await axios.put(`/api/registrar/issues/${issueId}/assign`, { 
-      assigned_to: assignedTo 
-    });
-    
-    dispatch(assignIssueSuccess(response.data));
-  } catch (error) {
-    dispatch(assignIssueFailure(error.response?.data?.message || 'Failed to assign issue'));
-  }
-};
 
 // Action Creators for assignIssue
 export const assignIssueRequest = () => ({
@@ -71,18 +44,6 @@ export const assignIssueFailure = (error) => ({
   payload: error
 });
 
-// Fetch registrar dashboard data
-export const fetchRegistrarData = () => async (dispatch) => {
-  dispatch(fetchRegistrarDataRequest());
-  
-  try {
-    const response = await axios.get('/api/registrar/dashboard');
-    dispatch(fetchRegistrarDataSuccess(response.data));
-  } catch (error) {
-    dispatch(fetchRegistrarDataFailure(error.response?.data?.message || 'Failed to fetch registrar data'));
-  }
-};
-
 // Action Creators for fetchRegistrarData
 export const fetchRegistrarDataRequest = () => ({
   type: REGISTRAR_DATA_REQUEST
@@ -98,23 +59,71 @@ export const fetchRegistrarDataFailure = (error) => ({
   payload: error
 });
 
-// Additional utility actions can be added here
+// Thunk Action Creators
+
+// Fetch all academic issues
+export const fetchAllIssues = () => async (dispatch) => {
+  dispatch(fetchIssuesRequest());
+  try {
+    const data = await registrarService.getAllIssues();
+    dispatch(fetchIssuesSuccess(data));
+    return data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch issues';
+    dispatch(fetchIssuesFailure(errorMessage));
+    throw error;
+  }
+};
+
+// Assign an issue to a specific lecturer or staff
+export const assignIssue = (issueId, assignedTo) => async (dispatch) => {
+  dispatch(assignIssueRequest());
+  
+  try {
+    const data = await registrarService.assignIssue(issueId, assignedTo);
+    dispatch(assignIssueSuccess(data));
+    return data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to assign issue';
+    dispatch(assignIssueFailure(errorMessage));
+    throw error;
+  }
+};
+
+// Fetch registrar dashboard data
+export const fetchRegistrarData = () => async (dispatch) => {
+  dispatch(fetchRegistrarDataRequest());
+  
+  try {
+    const data = await registrarService.getDashboardData();
+    dispatch(fetchRegistrarDataSuccess(data));
+    return data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch registrar data';
+    dispatch(fetchRegistrarDataFailure(errorMessage));
+    throw error;
+  }
+};
+
+// Filter issues based on criteria
 export const filterIssues = (filters) => async (dispatch) => {
   dispatch(fetchIssuesRequest());
   
   try {
-    const response = await axios.post('/api/registrar/issues/filter', filters);
-    dispatch(fetchIssuesSuccess(response.data));
+    const data = await registrarService.filterIssues(filters);
+    dispatch(fetchIssuesSuccess(data));
+    return data;
   } catch (error) {
-    dispatch(fetchIssuesFailure(error.response?.data?.message || 'Failed to filter issues'));
+    const errorMessage = error.response?.data?.message || 'Failed to filter issues';
+    dispatch(fetchIssuesFailure(errorMessage));
+    throw error;
   }
 };
 
 // Generate a report
 export const generateReport = (reportParams) => async () => {
   try {
-    const response = await axios.post('/api/registrar/reports', reportParams);
-    return response.data;
+    return await registrarService.generateReport(reportParams);
   } catch (error) {
     console.error('Report generation failed:', error);
     throw error;

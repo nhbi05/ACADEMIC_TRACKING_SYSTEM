@@ -145,9 +145,10 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
+# settings.py
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Short-lived access token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Longer-lived refresh token
+    'ROTATE_REFRESH_TOKENS': True,                   # Give new refresh token when refreshing
+    'BLACKLIST_AFTER_ROTATION': True,                # Blacklist old refresh tokens
 }
