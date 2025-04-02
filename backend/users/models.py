@@ -124,14 +124,3 @@ class Issue(models.Model):
         return f"Issue {self.id} - {self.category} ({self.status})"
     
 
-# Model for notifications related to users
-#This will help in storing every notification in the database
-class Notification(models.Model):
-    User = get_user_model()
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
-    subject = models.CharField(max_length=255)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    
