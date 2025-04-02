@@ -1,5 +1,6 @@
 // src/redux/actions/studentActions.js
 import { studentService } from '../../services/api';
+import axios from 'axios';
 
 // Action Types
 export const STUDENT_DATA_REQUEST = 'STUDENT_DATA_REQUEST';
@@ -13,6 +14,11 @@ export const FETCH_ISSUES_FAILURE = 'FETCH_ISSUES_FAILURE';
 export const FETCH_ANNOUNCEMENTS_REQUEST = 'FETCH_ANNOUNCEMENTS_REQUEST';
 export const FETCH_ANNOUNCEMENTS_SUCCESS = 'FETCH_ANNOUNCEMENTS_SUCCESS';
 export const FETCH_ANNOUNCEMENTS_FAILURE = 'FETCH_ANNOUNCEMENTS_FAILURE';
+
+export const CREATE_ISSUE_REQUEST = 'CREATE_ISSUE_REQUEST';
+export const CREATE_ISSUE_SUCCESS = 'CREATE_ISSUE_SUCCESS';
+export const CREATE_ISSUE_FAILURE = 'CREATE_ISSUE_FAILURE';
+
 
 // Action Creators
 export const fetchStudentDataRequest = () => ({
@@ -56,6 +62,21 @@ export const fetchAnnouncementsFailure = (error) => ({
   type: FETCH_ANNOUNCEMENTS_FAILURE,
   payload: error,
 });
+export const createIssueRequest = () => ({
+  type: CREATE_ISSUE_REQUEST
+});
+
+export const createIssueSuccess = (issue) => ({
+  type: CREATE_ISSUE_SUCCESS,
+  payload: issue
+});
+
+export const createIssueFailure = (error) => ({
+  type: CREATE_ISSUE_FAILURE,
+  payload: error
+});
+
+
 
 // Thunk Action Creators
 export const fetchStudentData = () => async (dispatch) => {
@@ -95,6 +116,28 @@ export const fetchAnnouncements = () => async (dispatch) => {
     return response;
   } catch (error) {
     dispatch(fetchAnnouncementsFailure(error.message || 'Failed to fetch announcements'));
+    throw error;
+  }
+};
+
+
+
+export const createIssue = (issueData, token) => async (dispatch) => {
+  dispatch(createIssueRequest());
+  try {
+    console.log("Action received data:", issueData);
+    console.log("Using token:", token);
+    
+    const response = await axios.post('/api/create-issue/', issueData, {
+      headers: { Authorization: `Bearer ${token.access}` }
+    });
+    
+    console.log("API response:", response.data);
+    dispatch(createIssueSuccess(response.data));
+    return { payload: response.data };  // Return consistent with your component expectation
+  } catch (error) {
+    console.error("API error:", error.response?.data || error.message);
+    dispatch(createIssueFailure(error.message));
     throw error;
   }
 };

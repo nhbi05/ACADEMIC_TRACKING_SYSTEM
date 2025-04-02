@@ -1,14 +1,20 @@
+from email import message
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status,generics
+from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-from .models import Issue
+
+#from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
+from .models import Issue,Notification,User
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 User = get_user_model()
@@ -110,6 +116,23 @@ class SubmitIssueView(APIView):
         serializer = IssueSerializer(data=request.data, context={'request':request})
         if serializer.is_valid():
             serializer.save(submitted_by=request.user)
+            #Get the registrar's email
+            registrar= User.objects.filter(role='registrar').first()
+            if registrar and registrar.email:
+                Notification.objects.create(
+                    recipient=registrar,
+                    subject="New Issue Submitted",
+                    message=f"A new issue has been submitted by {request.user.username}",
+                )
+                #send email notification to registrar
+                send_mail(
+                    subject="New Issue Submitted",
+                    message=f"A new issue has been submitted by {request.user.username}",
+                    from_email= settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[registrar.email],
+                    fail_silently=False,        
+
+                )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -125,7 +148,26 @@ class ResolveIssueView(APIView):
         
         try:
             issue = Issue.objects.get(id=issue_id)
+            #the lecturer resolves the issue calling the method from the user model
             request.user.resolve_issue(issue)
+            #send an email notification to the student who submitted the issue
+            student_user= issue.submitted_by
+            if student_user and student_user.email:
+               Notification.objects.create(
+                    recipient=student_user,
+                    subject="Your Issue has been resolved",
+                    message=f"Hello {student_user.username}, your issue has been successfully resolved",
+                )
+               send_mail(
+                    subject= "Your Issue has been resolved",
+                    message=(f"Hello {student_user.username},your issue has been successfully resolved "),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[student_user.email],
+                    fail_silently=False,
+                    
+                    )
+
+                
             return Response(
                 {'message': 'Issue resolved successfully'},
                 status=status.HTTP_200_OK
@@ -157,6 +199,21 @@ class AssignIssueView(APIView):
             issue = Issue.objects.get(id=issue_id)
             lecturer = User.objects.get(id=lecturer_id, role='lecturer')
             request.user.assign_issue(issue, lecturer)
+            #send email notification to lecturer
+            if lecturer.email:
+                Notification.objects.create(
+                    recipient=lecturer,
+                    subject="New Issue Assigned",
+                    message=f"Dear {lecturer.username}, you have been assigned a new issue from the registrar",
+                )
+                send_mail(
+                    subject= "New Issue Assigned",
+                    message= f"Dear {lecturer.username}, you have been assigned a new issue from the registrar",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[lecturer.email],
+                    fail_silently=False,
+                    
+                )
             return Response(
                 {'message': 'Issue assigned successfully'},
                 status=status.HTTP_200_OK
@@ -194,7 +251,7 @@ class CreateIssueView(generics.CreateAPIView):
     permission_classes=[IsAuthenticated]
 
     def perform_create(self,serializer):
-        #O11 serializer.save(student=self.request.user)
+        #O11 serializer.save(student=self.request.use
         serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
@@ -206,7 +263,7 @@ class IssueDetailView(generics.RetrieveAPIView):
 class IssueCountView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
-    def list(self,request,*args,**kwargs):
+    def list(self,request):
         total_issues = Issue.objects.count()
         resolved_issues = Issue.objects.filter(status="resolved").count()
         pending_issues = Issue.objects.filter(status="pending").count()
@@ -229,4 +286,52 @@ class LogoutView(APIView):
             return Response({'message': 'Successfully logged out'}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+#functionality for Registrar dashboard
+
+class RegistrarIssueView(generics.ListAPIView):
+    # API endpoint for registrar to view all submitted issues and filter all submitted issues
+    
+    serializer_class= IssueSerializer
+    permission_classes= [IsAuthenticated]
+    #Retrieves all issues for the registar
+    def get_queryset(self):
+        return Issue.objects.all().order_by('created_at')
+    #filtering capabalities
+    filter_backends= [DjangoFilterBackend,filters.SearchFilter]
+    filterset_fields= ['status','category']
+
+    # Method for registrars to assign issues to lecturers
+    def assign_issue(self, issue, lecturer):
+        # Only registrars can assign issues
+        if self.role != 'registrar':
+            raise PermissionError("Only Registrar can assign issues to lecturers")
+        # Ensure the lecturer is of the correct role
+        if lecturer.role != 'lecturer':
+            raise ValueError("Issues can only be assigned to lecturers")
+        # Assign the issue to the lecturer and update its status
+        issue.assigned_to = lecturer
+        issue.status = 'in_progress'
+        issue.save()
+
+     #viewing Issue statistics 
+class RegisterCountView(generics.ListAPIView):
+    permission_classes=[IsAuthenticated]
+
+    def list(self,request):
+        if request.user.role == "registrar":
+            total_issues = Issue.objects.count()
+            resolved_issues = Issue.objects.filter(status="resolved").count()
+            pending_issues = Issue.objects.filter(status="pending").count()
+            return Response({
+            "total_issues":total_issues,
+            "resolved_issues":resolved_issues,
+            "pending_issues":pending_issues
+        })
+        
+        
+        
+
 

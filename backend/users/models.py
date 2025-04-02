@@ -2,6 +2,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+
+
+
 
 class User(AbstractUser):
     # Choices for user roles
@@ -31,19 +35,6 @@ class User(AbstractUser):
             year_of_study = year_of_study,
             submitted_by=self  # Set the user who submitted the issue
         )
-
-    # Method for registrars to assign issues to lecturers
-    def assign_issue(self, issue, lecturer):
-        # Only registrars can assign issues
-        if self.role != 'registrar':
-            raise PermissionError("Only Registrar can assign issues to lecturers")
-        # Ensure the lecturer is of the correct role
-        if lecturer.role != 'lecturer':
-            raise ValueError("Issues can only be assigned to lecturers")
-        # Assign the issue to the lecturer and update its status
-        issue.assigned_to = lecturer
-        issue.status = 'in_progress'
-        issue.save()
 
     # Method for lecturers to resolve assigned issues
     def resolve_issue(self, issue):
@@ -131,13 +122,16 @@ class Issue(models.Model):
     def __str__(self):
         # String representation of the issue
         return f"Issue {self.id} - {self.category} ({self.status})"
+    
 
 # Model for notifications related to users
+#This will help in storing every notification in the database
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # User to whom the notification belongs
-    message = models.TextField()  # Notification message
-    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp when the notification was created
+    User = get_user_model()
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
 
-    def __str__(self):
-        # String representation of the notification
-        return f"Notification for {self.user.username}: {self.message}"
+    

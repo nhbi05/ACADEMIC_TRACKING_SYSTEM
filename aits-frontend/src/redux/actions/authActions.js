@@ -1,8 +1,8 @@
 // src/redux/actions/authActions.js
-import { authService,studentService } from '../../services/api';
+import { authService, studentService } from '../../services/api';
 import api from '../../services/api';
 
-// Action Types (can be moved to a separate constants file)
+// Action Types
 export const AUTH_INITIALIZED = 'AUTH_INITIALIZED';
 export const AUTH_REQUEST = 'AUTH_REQUEST';
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
@@ -11,59 +11,41 @@ export const AUTH_FAILURE = 'AUTH_FAILURE';
 export const LOGOUT = 'LOGOUT';
 export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
 
+// Helper Functions for Token Management
+const saveTokens = (tokens) => {
+  localStorage.setItem('token', JSON.stringify({
+    access: tokens.access,
+    refresh: tokens.refresh
+  }));
+};
+
+const getTokens = () => {
+  try {
+    return JSON.parse(localStorage.getItem('token'));
+  } catch (error) {
+    return null;
+  }
+};
+
+const clearTokens = () => {
+  localStorage.removeItem('token');
+  delete api.defaults.headers.common['Authorization'];
+};
+
+const setAuthHeader = (token) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
+
+// Action Creators
 export const authInitialized = (user) => ({
   type: AUTH_INITIALIZED,
   payload: user
 });
-export const initAuth = () => async (dispatch) => {
-  let token
-  try {
-    token = JSON.parse(localStorage.getItem('token'))
-  } catch {
-    token = null
-  }
-  
-  if (!token) {
-    return false;
-  }
-  
-  try {
-    // Set the token in axios defaults
-    api.defaults.headers.common['Authorization'] = `Bearer ${token.access}`;
-    
-    // Get current user info to validate token
-    // If you have a /me or /user endpoint, use that instead
-    const userData = await studentService.getProfile();
-    
-    dispatch(authInitialized({ 
-      user: userData,
-      tokens: { access: token.access, refresh: token.refresh }
-    }));
-    return true;
-  } catch (error) {
-    // If token is invalid, try refresh
-    try {
-      if (token.refresh) {
-        const response = await authService.refresh(token.refresh);
-        localStorage.setItem('access', response.access);
-        api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
-        
-        // Try again with new token
-        const userData = await studentService.getProfile();
-        dispatch(authInitialized({ 
-          user: userData,
-          tokens: { access: response.access, refresh: token.refresh }
-        }));
-        return true;
-      }
-    } catch (refresh) {
-      // Clear invalid tokens
-      localStorage.removeItem('token');
-      return false;
-    }
-  }
-};
-// Action creators
+
 export const loginRequest = () => ({
   type: AUTH_REQUEST
 });
@@ -90,8 +72,66 @@ export const clearMessages = () => ({
   type: CLEAR_MESSAGES
 });
 
-// Async action creators (thunks)
-// In loginUser action
+// Async Action Creators (Thunks)
+
+// Initialize Authentication - Check if user is already logged in
+export const initAuth = () => async (dispatch) => {
+  const tokens = getTokens();
+  
+  if (!tokens || !tokens.access) {
+    return false;
+  }
+  
+  try {
+    // Set the auth header with existing token
+    setAuthHeader(tokens.access);
+    
+    // Verify token by fetching user profile
+    const userData = await studentService.getProfile();
+    
+    dispatch(authInitialized({ 
+      user: userData,
+      tokens: tokens
+    }));
+    return true;
+  } catch (error) {
+    // Token might be expired, try to refresh
+    if (tokens.refresh) {
+      try {
+        const refreshResponse = await authService.refresh(tokens.refresh);
+        
+        // Create new tokens object, maintaining refresh token if not returned
+        const newTokens = {
+          access: refreshResponse.access,
+          refresh: refreshResponse.refresh || tokens.refresh
+        };
+        
+        // Save tokens and update header
+        saveTokens(newTokens);
+        setAuthHeader(newTokens.access);
+        
+        // Try again with new token
+        const userData = await studentService.getProfile();
+        
+        dispatch(authInitialized({ 
+          user: userData,
+          tokens: newTokens
+        }));
+        return true;
+      } catch (refreshError) {
+        // Refresh failed, clear tokens and require login
+        clearTokens();
+        return false;
+      }
+    } else {
+      // No refresh token available
+      clearTokens();
+      return false;
+    }
+  }
+};
+
+// Login User
 export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
   dispatch(loginRequest());
   
@@ -103,18 +143,24 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
     
     console.log('Auth response:', response);
     
-    const user = response.user
-    const token = { access: response.access, refresh: response.refresh }
-    const { login } = auth
-
-    login(user, token)
-    dispatch(loginSuccess(
-      response.user, 
-      {
-        access: response.access,
-        refresh: response.refresh
-      }
-    ));
+    // Extract user and tokens
+    const user = response.user;
+    const tokens = { 
+      access: response.access, 
+      refresh: response.refresh 
+    };
+    
+    // Save tokens and set auth header
+    saveTokens(tokens);
+    setAuthHeader(tokens.access);
+    
+    // If auth object with login function is provided, call it
+    if (auth && typeof auth.login === 'function') {
+      auth.login(user, tokens);
+    }
+    
+    // Update Redux state
+    dispatch(loginSuccess(user, tokens));
     
     return { success: true, userType: loginType };
   } catch (err) {
@@ -124,6 +170,8 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
     return { success: false };
   }
 };
+
+// Register User
 export const registerUser = (userData) => async (dispatch) => {
   dispatch(loginRequest());
   
@@ -133,13 +181,11 @@ export const registerUser = (userData) => async (dispatch) => {
     return { success: true };
   } catch (err) {
     let errorMessage = 'Registration failed. Please try again.';
-    // console.log(err)
     
     if (err.response?.data) {
       errorMessage = Object.entries(err.response.data)
         .map(([key, value]) => `${key}: ${value}`)
         .join(' ');
-        
     }
     
     dispatch(authFailure(errorMessage));
@@ -147,8 +193,51 @@ export const registerUser = (userData) => async (dispatch) => {
   }
 };
 
+// Logout User
 export const logoutUser = () => async (dispatch) => {
-  await authService.logout();
-  dispatch(logout());
-  return { success: true };
+  try {
+    // Attempt to call the logout API endpoint
+    await authService.logout();
+  } catch (error) {
+    console.error('Error during logout API call:', error);
+    // Continue with logout process even if API call fails
+  } finally {
+    // Clear tokens and auth header
+    clearTokens();
+    
+    // Update Redux state
+    dispatch(logout());
+    
+    return { success: true };
+  }
+};
+
+// Refresh Token
+export const refreshToken = () => async (dispatch, getState) => {
+  const currentTokens = getTokens();
+  
+  if (!currentTokens || !currentTokens.refresh) {
+    dispatch(logout());
+    return false;
+  }
+  
+  try {
+    const response = await authService.refresh(currentTokens.refresh);
+    
+    const newTokens = {
+      access: response.access,
+      // Keep existing refresh token if a new one isn't provided
+      refresh: response.refresh || currentTokens.refresh
+    };
+    
+    saveTokens(newTokens);
+    setAuthHeader(newTokens.access);
+    
+    // No need to dispatch a new action, just return success
+    return true;
+  } catch (error) {
+    console.error('Token refresh failed:', error);
+    dispatch(logout());
+    return false;
+  }
 };
