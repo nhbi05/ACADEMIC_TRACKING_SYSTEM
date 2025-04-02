@@ -15,12 +15,14 @@ const initialState = {
   issues: {
     data: [],
     loading: false,
-    error: null
+    error: null,
+    lastUpdated: null
   },
   stats: {
     totalIssues: 0,
     pendingIssues: 0,
-    resolvedIssues: 0
+    resolvedIssues: 0,
+    assignedIssues: 0
   },
   registrarData: {
     profile: {},
@@ -38,7 +40,7 @@ const initialState = {
 // Reducer function to handle all registrar-related actions
 export default function registrarReducer(state = initialState, action) {
   switch (action.type) {
-    // Fetch Issues
+    // Fetch Issues Cases
     case FETCH_ISSUES_REQUEST:
       return {
         ...state,
@@ -48,21 +50,33 @@ export default function registrarReducer(state = initialState, action) {
           error: null
         }
       };
-      case FETCH_ISSUES_SUCCESS:
-        const issues = action.payload.issues || [];
-        return {
-          ...state,
-          issues: {
-            data: issues,
-            loading: false,
-            error: null
-          },
-          stats: {
-            totalIssues: issues.length,
-            pendingIssues: issues.filter(issue => issue.status !== 'resolved').length,
-            resolvedIssues: issues.filter(issue => issue.status === 'resolved').length
-          }
-        };
+
+    case FETCH_ISSUES_SUCCESS:
+      const issues = action.payload.issues || [];
+      const pendingCount = issues.filter(issue => 
+        issue.status && issue.status.toLowerCase() !== 'resolved'
+      ).length;
+      
+      const assignedCount = issues.filter(issue => 
+        issue.assigned_to && issue.status !== 'resolved'
+      ).length;
+
+      return {
+        ...state,
+        issues: {
+          data: issues,
+          loading: false,
+          error: null,
+          lastUpdated: new Date().toISOString()
+        },
+        stats: {
+          totalIssues: issues.length,
+          pendingIssues: pendingCount,
+          resolvedIssues: issues.length - pendingCount,
+          assignedIssues: assignedCount
+        }
+      };
+
     case FETCH_ISSUES_FAILURE:
       return {
         ...state,
@@ -72,8 +86,8 @@ export default function registrarReducer(state = initialState, action) {
           error: action.payload
         }
       };
-      
-    // Assign Issue
+
+    // Assign Issue Cases
     case ASSIGN_ISSUE_REQUEST:
       return {
         ...state,
@@ -83,15 +97,38 @@ export default function registrarReducer(state = initialState, action) {
           success: false
         }
       };
+
     case ASSIGN_ISSUE_SUCCESS:
+      const updatedIssues = state.issues.data.map(issue => 
+        issue.id === action.payload.id ? action.payload : issue
+      );
+
+      const newPendingCount = updatedIssues.filter(issue => 
+        issue.status && issue.status.toLowerCase() !== 'resolved'
+      ).length;
+
+      const newAssignedCount = updatedIssues.filter(issue => 
+        issue.assigned_to && issue.status !== 'resolved'
+      ).length;
+
       return {
         ...state,
+        issues: {
+          ...state.issues,
+          data: updatedIssues
+        },
+        stats: {
+          ...state.stats,
+          pendingIssues: newPendingCount,
+          assignedIssues: newAssignedCount
+        },
         assignIssue: {
           loading: false,
           error: null,
           success: true
         }
       };
+
     case ASSIGN_ISSUE_FAILURE:
       return {
         ...state,
@@ -101,8 +138,8 @@ export default function registrarReducer(state = initialState, action) {
           success: false
         }
       };
-      
-    // Registrar Data
+
+    // Registrar Data Cases
     case REGISTRAR_DATA_REQUEST:
       return {
         ...state,
@@ -112,6 +149,7 @@ export default function registrarReducer(state = initialState, action) {
           error: null
         }
       };
+
     case REGISTRAR_DATA_SUCCESS:
       return {
         ...state,
@@ -122,6 +160,7 @@ export default function registrarReducer(state = initialState, action) {
           error: null
         }
       };
+
     case REGISTRAR_DATA_FAILURE:
       return {
         ...state,
@@ -131,7 +170,8 @@ export default function registrarReducer(state = initialState, action) {
           error: action.payload
         }
       };
-      
+
+    // Default Case
     default:
       return state;
   }

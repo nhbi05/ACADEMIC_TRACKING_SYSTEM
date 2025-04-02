@@ -200,22 +200,30 @@ const RegistrarDashboard = () => {
                     <tbody>
                       {issues.slice(0, 5).map(issue => (
                         <tr key={issue.id} className="border-b hover:bg-gray-100">
-                          <td className="px-4 py-3">{issue.student_name}</td>
-                          <td className="px-4 py-3">{issue.course}</td>
-                          <td className="px-4 py-3">{issue.registration_no}</td>
-                          <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td>
+                          <td className="px-4 py-3">
+                            {issue.student_name || issue.student?.name || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {issue.course || issue.student?.course || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {issue.registration_no || issue.student?.registration_number || 'N/A'}
+                          </td>
+                          <td className="px-4 py-3">
+                            {issue.assigned_to?.name || issue.assigned_to || 'Unassigned'}
+                          </td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded-full text-xs ${
                               issue.status === 'resolved' 
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {issue.status}
+                              {issue.status || 'pending'}
                             </span>
                           </td>
                         </tr>
                       ))}
-                    </tbody>
+                </tbody>
                   </table>
                 </div>
               ) : (
