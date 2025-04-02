@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,  } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
@@ -13,13 +13,12 @@ const IssueSubmissionForm = () => {
     semester: "",
     description: "",
     opened_by: "",
-    assigned_to: "",
+    name_of_Lecturer: "",
     priority: "",
-    issue_date: "", // eslint-disable-next-line
+    issue_date: "", 
   });
 
-  const [staffUsers, setStaffUsers] = useState([]);
-  // eslint-disable-next-line
+
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   // eslint-disable-next-line
@@ -27,17 +26,6 @@ const IssueSubmissionForm = () => {
   const navigate = useNavigate();
   const { user, token } = useAuth();
 
-  useEffect(() => {
-    const fetchStaff = async () => {
-      try {
-        const response = await axios.get("/api/users/staff/");
-        setStaffUsers(response.data);
-      } catch (error) {
-        console.error("Error fetching staff:", error);
-      }
-    };
-    fetchStaff();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -146,6 +134,7 @@ const IssueSubmissionForm = () => {
                 <option value="correction">Correction</option>
                 <option value="others">Others</option>
               </select>
+              {errors.category && <p className="text-red-500">{errors.category}</p>}
             </div>
             <div>
               <label className="block font-medium">Course Unit*</label>
@@ -190,24 +179,18 @@ const IssueSubmissionForm = () => {
               </select>
             </div>
           </div>
-
-          {/* Assigned Staff */}
+          {/*name_of_lecturer*/}
           <div>
-            <label className="block font-medium">Assigned To</label>
-            <select
-              name="assigned_to"
-              value={formData.assigned_to}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded bg-white"
-            >
-              <option value="">Select Staff</option>
-              {staffUsers.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <label className="block font-medium">name_of_Lecturer*</label>
+              <input
+                type="text"
+                name="name_of_Lecturer"
+                value={formData.name_of_Lecturer}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded bg-white"
+              />
+            </div>
+          
 
           {/* Description */}
           <div>
