@@ -95,39 +95,9 @@ export const initAuth = () => async (dispatch) => {
     }));
     return true;
   } catch (error) {
-    // Token might be expired, try to refresh
-    if (tokens.refresh) {
-      try {
-        const refreshResponse = await authService.refresh(tokens.refresh);
-        
-        // Create new tokens object, maintaining refresh token if not returned
-        const newTokens = {
-          access: refreshResponse.access,
-          refresh: refreshResponse.refresh || tokens.refresh
-        };
-        
-        // Save tokens and update header
-        saveTokens(newTokens);
-        setAuthHeader(newTokens.access);
-        
-        // Try again with new token
-        const userData = await studentService.getProfile();
-        
-        dispatch(authInitialized({ 
-          user: userData,
-          tokens: newTokens
-        }));
-        return true;
-      } catch (refreshError) {
-        // Refresh failed, clear tokens and require login
-        clearTokens();
-        return false;
-      }
-    } else {
-      // No refresh token available
-      clearTokens();
-      return false;
-    }
+    // Don't logout here - let the API interceptor handle token refresh
+    // Just return false to indicate initialization failed
+    return false;
   }
 };
 
@@ -140,8 +110,6 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
       ...credentials, 
       loginType 
     });
-    
-    console.log('Auth response:', response);
     
     // Extract user and tokens
     const user = response.user;
@@ -164,7 +132,6 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
     
     return { success: true, userType: loginType };
   } catch (err) {
-    console.error('Login error:', err);
     const errorMessage = err.response?.data?.message || 'Login failed. Please check your credentials.';
     dispatch(authFailure(errorMessage));
     return { success: false };
@@ -199,7 +166,6 @@ export const logoutUser = () => async (dispatch) => {
     // Attempt to call the logout API endpoint
     await authService.logout();
   } catch (error) {
-    console.error('Error during logout API call:', error);
     // Continue with logout process even if API call fails
   } finally {
     // Clear tokens and auth header
@@ -212,32 +178,34 @@ export const logoutUser = () => async (dispatch) => {
   }
 };
 
-// Refresh Token
-export const refreshToken = () => async (dispatch, getState) => {
-  const currentTokens = getTokens();
-  
-  if (!currentTokens || !currentTokens.refresh) {
-    dispatch(logout());
-    return false;
-  }
-  
+// Refresh Token - this will be called by the API interceptor
+export const refreshToken = (refreshTokenString) => async (dispatch) => {
   try {
-    const response = await authService.refresh(currentTokens.refresh);
+    let tokenToUse = refreshTokenString;
+    
+    if (!tokenToUse) {
+      const currentTokens = getTokens();
+      if (!currentTokens || !currentTokens.refresh) {
+        return false;
+      }
+      tokenToUse = currentTokens.refresh;
+    }
+    
+    const response = await authService.refresh(tokenToUse);
     
     const newTokens = {
       access: response.access,
       // Keep existing refresh token if a new one isn't provided
-      refresh: response.refresh || currentTokens.refresh
+      refresh: response.refresh || tokenToUse
     };
     
     saveTokens(newTokens);
     setAuthHeader(newTokens.access);
     
-    // No need to dispatch a new action, just return success
     return true;
   } catch (error) {
-    console.error('Token refresh failed:', error);
-    dispatch(logout());
+    // If refresh fails, clear tokens but don't logout yet
+    // Let the calling code decide whether to logout
     return false;
   }
 };

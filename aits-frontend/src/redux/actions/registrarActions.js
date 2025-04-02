@@ -1,6 +1,7 @@
 // src/redux/actions/registrarActions.js
 import { registrarService } from '../../services/api';
 
+
 // Action Types
 export const FETCH_ISSUES_REQUEST = 'FETCH_ISSUES_REQUEST';
 export const FETCH_ISSUES_SUCCESS = 'FETCH_ISSUES_SUCCESS';

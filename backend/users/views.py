@@ -6,8 +6,6 @@ from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-
-#from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
 from .models import Issue,Notification,User
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
@@ -246,13 +244,6 @@ class ResolvedIssuesView(generics.ListAPIView):
     def get_queryset(self):
         return Issue.objects.filter(student=self.request.user,status='resolved')
 
-class CreateIssueView(generics.CreateAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
-
-    def perform_create(self,serializer):
-        #O11 serializer.save(student=self.request.use
-        serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
     queryset = Issue.objects.all()

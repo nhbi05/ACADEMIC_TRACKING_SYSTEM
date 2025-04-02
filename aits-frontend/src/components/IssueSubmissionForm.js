@@ -18,27 +18,35 @@ const IssueSubmissionForm = () => {
 
   const [staffUsers, setStaffUsers] = useState([]);
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState(null); // New state for success message
+  const [successMessage, setSuccessMessage] = useState(null);
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const dispatch = useDispatch();
   
+  // Get auth tokens from Redux store instead of AuthContext
+  const { tokens } = useSelector(state => state.auth);
   const { submitting, error: submissionError } = useSelector(state => state.issues);
 
   useEffect(() => {
     const fetchStaff = async () => {
+      if (!tokens || !tokens.access) {
+        console.error("No access token available");
+        return;
+      }
+
       try {
-        const response = await axios.get("/api/users/staff/", {
-          headers: { Authorization: `Bearer ${token.access}` }
+        const response = await axios.get("/users/staff/", {
+          headers: { Authorization: `Bearer ${tokens.access}` }
         });
         setStaffUsers(response.data);
       } catch (error) {
+        console.error("Error fetching staff:", error);
         setErrors(prev => ({ ...prev, staff: "Failed to load staff list" }));
       }
     };
     
-    if (token) fetchStaff();
-  }, [token]);
+    if (tokens && tokens.access) fetchStaff();
+  }, [tokens]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,10 +67,15 @@ const IssueSubmissionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    
+    if (!tokens || !tokens.access) {
+      setErrors(prev => ({ ...prev, form: "Authentication error. Please log in again." }));
+      return;
+    }
   
     try {
-      const profile = await axios.get('/api/student/profile/', {
-        headers: { Authorization: `Bearer ${token.access}` }
+      const profile = await axios.get('/student/profile/', {
+        headers: { Authorization: `Bearer ${tokens.access}` }
       }).then(res => res.data);
   
       const issueData = {
@@ -74,22 +87,29 @@ const IssueSubmissionForm = () => {
         issue_date: new Date().toISOString()
       };
   
-      console.log("Dispatching createIssue with:", issueData);
+      console.log("Submitting issue data:", issueData);
       
-      // Fix the parameter passing to match the action creator
-      const result = await dispatch(createIssue(issueData, token));
+      // Pass the tokens object directly to the action
+      const result = await dispatch(createIssue(issueData, tokens));
       
-      console.log("Dispatch result:", result);
+      console.log("Submission result:", result);
       
       if (result.payload?.id) {
         setSuccessMessage(`Issue #${result.payload.id} submitted successfully!`);
         setTimeout(() => navigate('/student-dashboard'), 3000);
+      } else {
+        setErrors(prev => ({ ...prev, form: "Failed to submit issue - no ID returned" }));
       }
     } catch (err) {
       console.error("Submission error:", err);
-      setErrors(prev => ({ ...prev, form: submissionError || "Failed to submit issue" }));
+      setErrors(prev => ({ 
+        ...prev, 
+        form: submissionError || err.response?.data?.message || err.message || "Failed to submit issue" 
+      }));
     }
   };
+
+  // Rest of your component remains the same
   return (
     <div className="min-h-screen flex justify-center items-center bg-green-50 p-4">
       <div className="max-w-2xl w-full p-6 bg-white shadow-lg rounded-lg">

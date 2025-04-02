@@ -19,7 +19,6 @@ export const CREATE_ISSUE_REQUEST = 'CREATE_ISSUE_REQUEST';
 export const CREATE_ISSUE_SUCCESS = 'CREATE_ISSUE_SUCCESS';
 export const CREATE_ISSUE_FAILURE = 'CREATE_ISSUE_FAILURE';
 
-
 // Action Creators
 export const fetchStudentDataRequest = () => ({
   type: STUDENT_DATA_REQUEST,
@@ -62,6 +61,7 @@ export const fetchAnnouncementsFailure = (error) => ({
   type: FETCH_ANNOUNCEMENTS_FAILURE,
   payload: error,
 });
+
 export const createIssueRequest = () => ({
   type: CREATE_ISSUE_REQUEST
 });
@@ -76,13 +76,20 @@ export const createIssueFailure = (error) => ({
   payload: error
 });
 
-
-
 // Thunk Action Creators
-export const fetchStudentData = () => async (dispatch) => {
+export const fetchStudentData = () => async (dispatch, getState) => {
   dispatch(fetchStudentDataRequest());
   
   try {
+    // Get token from Redux store
+    const { tokens } = getState().auth;
+    if (!tokens || !tokens.access) {
+      throw new Error('No access token available');
+    }
+    
+    // Make sure API has the token
+    axios.defaults.headers.common['Authorization'] = `Bearer ${tokens.access}`;
+    
     const data = await studentService.getProfile();
     dispatch(fetchStudentDataSuccess(data));
     return data;
@@ -92,11 +99,19 @@ export const fetchStudentData = () => async (dispatch) => {
   }
 };
 
-export const fetchIssues = () => async (dispatch) => {
+export const fetchIssues = () => async (dispatch, getState) => {
   dispatch(fetchIssuesRequest());
   
   try {
-    // This should use the issueService to get student-specific issues
+    // Get token from Redux store
+    const { tokens } = getState().auth;
+    if (!tokens || !tokens.access) {
+      throw new Error('No access token available');
+    }
+    
+    // Make sure API has the token
+    axios.defaults.headers.common['Authorization'] = `Bearer ${tokens.access}`;
+    
     const response = await studentService.getIssues();
     dispatch(fetchIssuesSuccess(response));
     return response;
@@ -106,11 +121,19 @@ export const fetchIssues = () => async (dispatch) => {
   }
 };
 
-export const fetchAnnouncements = () => async (dispatch) => {
+export const fetchAnnouncements = () => async (dispatch, getState) => {
   dispatch(fetchAnnouncementsRequest());
   
   try {
-    // This should use a service to get announcements
+    // Get token from Redux store
+    const { tokens } = getState().auth;
+    if (!tokens || !tokens.access) {
+      throw new Error('No access token available');
+    }
+    
+    // Make sure API has the token
+    axios.defaults.headers.common['Authorization'] = `Bearer ${tokens.access}`;
+    
     const response = await studentService.getAnnouncements();
     dispatch(fetchAnnouncementsSuccess(response));
     return response;
@@ -120,24 +143,30 @@ export const fetchAnnouncements = () => async (dispatch) => {
   }
 };
 
-
-
-export const createIssue = (issueData, token) => async (dispatch) => {
+export const createIssue = (issueData, tokens) => async (dispatch) => {
   dispatch(createIssueRequest());
+  
   try {
     console.log("Action received data:", issueData);
-    console.log("Using token:", token);
     
-    const response = await axios.post('/api/create-issue/', issueData, {
-      headers: { Authorization: `Bearer ${token.access}` }
+    if (!tokens || !tokens.access) {
+      throw new Error('No access token available');
+    }
+    
+    console.log("Using token:", tokens.access);
+    
+    const response = await axios.post('/submit-issue/', issueData, {
+      headers: { Authorization: `Bearer ${tokens.access}` }
     });
     
     console.log("API response:", response.data);
     dispatch(createIssueSuccess(response.data));
-    return { payload: response.data };  // Return consistent with your component expectation
+    return { payload: response.data };
   } catch (error) {
     console.error("API error:", error.response?.data || error.message);
-    dispatch(createIssueFailure(error.message));
+    const errorMessage = error.response?.data?.message || error.message || 'Failed to create issue';
+    dispatch(createIssueFailure(errorMessage));
+    // Rethrow to allow component to handle
     throw error;
   }
 };

@@ -93,13 +93,13 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, clear auth and redirect to login
+        // If refresh fails, clear auth but don't redirect - let app handle it
         processQueue(refreshError, null);
         localStorage.removeItem('access');
         localStorage.removeItem('refresh');
+        localStorage.removeItem('user');
         delete api.defaults.headers.common['Authorization'];
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+        return Promise.reject(new Error('Session expired'));
       } finally {
         isRefreshing = false;
       }
@@ -122,6 +122,9 @@ export const authService = {
     // Store tokens
     if (response.data.access && response.data.refresh) {
       authService.setAuthTokens(response.data);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
     }
     return response.data;
   },
@@ -132,11 +135,10 @@ export const authService = {
     });
     return response.data;
   },
-
-
   
-  logout: async (refreshToken) => {
+  logout: async () => {
     try {
+      const refreshToken = localStorage.getItem('refresh');
       if (refreshToken) {
         await api.post('/logout/', { refresh: refreshToken });
       }
@@ -152,7 +154,6 @@ export const authService = {
       delete api.defaults.headers.common['Authorization'];
     }
   },
-  
   
   // Helper method to store auth tokens
   setAuthTokens: (tokens) => {
@@ -182,11 +183,12 @@ export const authService = {
           const response = await authService.refresh(refreshToken);
           authService.setAuthTokens({
             access: response.access,
-            refresh: localStorage.getItem('refresh') // Keep existing refresh token
+            refresh: response.refresh || refreshToken // Keep existing if not provided
           });
           return true;
         } catch (error) {
-          authService.logout();
+          console.error('Proactive refresh failed:', error);
+          // Don't logout here - let the interceptor handle it when needed
           return false;
         }
       }
@@ -200,6 +202,15 @@ export const authService = {
   // Check if user is authenticated
   isAuthenticated: () => {
     return !!localStorage.getItem('access');
+  },
+  
+  // Get current user data
+  getCurrentUser: () => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch (error) {
+      return null;
+    }
   }
 };
 
@@ -228,7 +239,7 @@ export const issueService = {
 
   getById: async (id) => {
     await authService.checkTokenExpiration();
-    const response = await api.get("/my-issues/");
+    const response = await api.get(`/issues/${id}/`);
     return response.data;
   },
 
@@ -267,6 +278,7 @@ export const notificationService = {
     return response.data;
   },
 };
+
 export const registrarService = {
   // Get registrar profile information
   getProfile: async () => {
@@ -275,22 +287,21 @@ export const registrarService = {
     return response.data;
   },
   
-  // Get all academic issues - need to determine correct endpoint from backend
-  // In src/services/api.js - Modify the getAllIssues function
-getAllIssues: async () => {
-  await authService.checkTokenExpiration();
-  
-  // Get issues
-  const issuesResponse = await api.get('/my-issues/');
-  
-  // Get statistics separately
-  const statsResponse = await api.get('/issue-count/');
-  
-  return { 
-    issues: issuesResponse.data,
-    stats: statsResponse.data  // This should include totalIssues, pendingIssues, resolvedIssues
-  };
-},
+  // Get all academic issues
+  getAllIssues: async () => {
+    await authService.checkTokenExpiration();
+    
+    // Get issues
+    const issuesResponse = await api.get('registrar/issues/');
+    
+    // Get statistics separately
+    const statsResponse = await api.get('Registrar_issue_counts/');
+    
+    return { 
+      issues: issuesResponse.data,
+      stats: statsResponse.data  // This should include totalIssues, pendingIssues, resolvedIssues
+    };
+  },
   
   // Assign an issue to a specific lecturer
   assignIssue: async (issueId, lecturerId) => {
@@ -301,27 +312,26 @@ getAllIssues: async () => {
     return response.data;
   },
 
-
-  // In src/services/api.js - Add this function
-getDashboardData: async () => {
-  await authService.checkTokenExpiration();
-  
-  // Get profile
-  const profileResponse = await api.get('/registrar/profile/');
-  
-  // Get issue stats (same as in issue counts)
-  const statsResponse = await api.get('/issue-count/');
-  
-  return {
-    profile: profileResponse.data,
-    dashboard: statsResponse.data
-  };
-},
+  // Get dashboard data
+  getDashboardData: async () => {
+    await authService.checkTokenExpiration();
+    
+    // Get profile
+    const profileResponse = await api.get('/registrar/profile/');
+    
+    // Get issue stats (same as in issue counts)
+    const statsResponse = await api.get('Registrar_issue_counts/');
+    
+    return {
+      profile: profileResponse.data,
+      dashboard: statsResponse.data
+    };
+  },
   
   // Get issue counts for dashboard
   getIssueStats: async () => {
     await authService.checkTokenExpiration();
-    const response = await api.get('/issue-count/');
+    const response = await api.get('Registrar_issue_counts/');
     return response.data;
   },
   
@@ -339,4 +349,5 @@ getDashboardData: async () => {
     return response.data;
   }
 };
+
 export default api;
