@@ -37,6 +37,7 @@ const processQueue = (error, token = null) => {
 // Add access token to every request
 api.interceptors.request.use(
   (config) => {
+    console.log('Making request to:', config.baseURL + config.url);
     const token = localStorage.getItem('access');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -215,6 +216,7 @@ export const authService = {
 };
 
 // Student services
+// Update to studentService in src/services/api.js
 export const studentService = {
   getProfile: async () => {
     await authService.checkTokenExpiration();
@@ -226,43 +228,17 @@ export const studentService = {
     await authService.checkTokenExpiration();
     const response = await api.get('/my-issues/');
     return response.data;
+  },
+  
+  // Add the createIssue method
+  createIssue: async (issueData) => {
+    await authService.checkTokenExpiration();
+    const response = await api.post('/submit-issue/', issueData);
+    return response.data;
   }
 };
 
 // Issue services
-export const issueService = {
-  getAll: async () => {
-    await authService.checkTokenExpiration();
-    const response = await api.get('/my-issues/');
-    return response.data;
-  },
-
-  getById: async (id) => {
-    await authService.checkTokenExpiration();
-    const response = await api.get(`/issues/${id}/`);
-    return response.data;
-  },
-
-  create: async (issueData) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post('/submit-issue/', issueData);
-    return response.data;
-  },
-  
-  assign: async (issueId, lecturerId) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post(`/issues/${issueId}/assign/`, {
-      lecturer_id: lecturerId,
-    });
-    return response.data;
-  },
-  
-  resolve: async (issueId) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post(`/issues/${issueId}/resolve/`);
-    return response.data;
-  },
-};
 
 // Notification services
 export const notificationService = {
