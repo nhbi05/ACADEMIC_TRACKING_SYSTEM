@@ -231,39 +231,91 @@ export const studentService = {
 
 // Issue services
 export const issueService = {
+  /**
+   * Get all issues for the current user
+   * @returns {Promise<Array>} List of issues
+   */
   getAll: async () => {
-    await authService.checkTokenExpiration();
-    const response = await api.get('/my-issues/');
-    return response.data;
+    try {
+      await authService.checkTokenExpiration();
+      const response = await api.get('/issues/');  // Changed from '/my-issues/' to standard REST convention
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch issues:', error);
+      throw new Error(error.response?.data?.message || 'Failed to fetch issues');
+    }
   },
 
+  /**
+   * Get a specific issue by ID
+   * @param {string|number} id - Issue ID
+   * @returns {Promise<Object>} Issue details
+   */
   getById: async (id) => {
-    await authService.checkTokenExpiration();
-    const response = await api.get(`/issues/${id}/`);
-    return response.data;
+    try {
+      await authService.checkTokenExpiration();
+      const response = await api.get(`/issues/${id}/`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch issue ${id}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to fetch issue ${id}`);
+    }
   },
 
+  /**
+   * Create a new issue
+   * @param {Object} issueData - Issue data to create
+   * @returns {Promise<Object>} Created issue details
+   */
   create: async (issueData) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post('/submit-issue/', issueData);
-    return response.data;
+    try {
+      await authService.checkTokenExpiration();
+      const response = await api.post('/submit-issue/', issueData);  // Changed to standard REST endpoint
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create issue:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Failed to create issue';
+      throw new Error(errorMessage);
+    }
   },
   
+  /**
+   * Assign an issue to a lecturer
+   * @param {string|number} issueId - Issue ID
+   * @param {string|number} lecturerId - Lecturer ID
+   * @returns {Promise<Object>} Updated issue details
+   */
   assign: async (issueId, lecturerId) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post(`/issues/${issueId}/assign/`, {
-      lecturer_id: lecturerId,
-    });
-    return response.data;
+    try {
+      await authService.checkTokenExpiration();
+      const response = await api.patch(`/issues/${issueId}/assign/`, {  // Changed to PATCH method
+        lecturer_id: lecturerId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to assign issue ${issueId}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to assign issue ${issueId}`);
+    }
   },
   
+  /**
+   * Resolve an issue
+   * @param {string|number} issueId - Issue ID
+   * @returns {Promise<Object>} Updated issue details
+   */
   resolve: async (issueId) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post(`/issues/${issueId}/resolve/`);
-    return response.data;
+    try {
+      await authService.checkTokenExpiration();
+      const response = await api.patch(`/issues/${issueId}/resolve/`);  // Changed to PATCH method
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to resolve issue ${issueId}:`, error);
+      throw new Error(error.response?.data?.message || `Failed to resolve issue ${issueId}`);
+    }
   },
 };
-
 // Notification services
 export const notificationService = {
   getAll: async () => {

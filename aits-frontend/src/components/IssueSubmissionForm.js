@@ -23,8 +23,9 @@ const IssueSubmissionForm = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
   
-  // Get auth tokens from Redux store instead of AuthContext
+  // Get auth tokens from Redux store
   const { tokens } = useSelector(state => state.auth);
+  // eslint-disable-next-line
   const { submitting, error: submissionError } = useSelector(state => state.issues);
 
   useEffect(() => {
@@ -35,7 +36,8 @@ const IssueSubmissionForm = () => {
       }
 
       try {
-        const response = await axios.get("/users/staff/", {
+        // Make sure the API endpoint is correct for fetching staff users
+        const response = await axios.get("/api/users/staff/", {
           headers: { Authorization: `Bearer ${tokens.access}` }
         });
         setStaffUsers(response.data);
@@ -74,7 +76,8 @@ const IssueSubmissionForm = () => {
     }
   
     try {
-      const profile = await axios.get('/student/profile/', {
+      // Use correct endpoint for student profile
+      const profile = await axios.get('/api/student/profile/', {
         headers: { Authorization: `Bearer ${tokens.access}` }
       }).then(res => res.data);
   
@@ -102,10 +105,23 @@ const IssueSubmissionForm = () => {
       }
     } catch (err) {
       console.error("Submission error:", err);
-      setErrors(prev => ({ 
-        ...prev, 
-        form: submissionError || err.response?.data?.message || err.message || "Failed to submit issue" 
-      }));
+      
+      // Provide more detailed error information
+      let errorMessage = "Failed to submit issue";
+      
+      if (err.response) {
+        if (err.response.status === 404) {
+          errorMessage = "API endpoint not found. Please contact support.";
+        } else {
+          errorMessage = err.response.data?.message || err.response.data?.error || err.response.statusText;
+        }
+      } else if (err.request) {
+        errorMessage = "No response from server. Please check your internet connection.";
+      } else {
+        errorMessage = err.message;
+      }
+      
+      setErrors(prev => ({ ...prev, form: errorMessage }));
     }
   };
 

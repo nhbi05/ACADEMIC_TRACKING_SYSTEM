@@ -46,9 +46,7 @@ const RegistrarDashboard = () => {
     { name: 'Dashboard', icon: '🏠', path: '/registrar-dashboard' },
     { name: 'Manage Students', icon: '👥', path: '/manage-students' },
     { name: 'Manage Issues', icon: '📋', path: '/manage-issues' },
-    { name: 'Reports', icon: '📊', path: '/reports' },
-    { name: 'Settings', icon: '⚙️', path: '/registrar/settings' },
-  ];
+      ];
   
   return (
     <div className="flex h-screen bg-green-50">
@@ -200,7 +198,7 @@ const RegistrarDashboard = () => {
                     <tbody>
                       {issues.slice(0, 5).map(issue => (
                         <tr key={issue.id} className="border-b hover:bg-gray-100">
-                          <td className="px-4 py-3">{issue.student_name}</td>
+                          <td className="px-4 py-3">{issue.first_name}</td>
                           <td className="px-4 py-3">{issue.course}</td>
                           <td className="px-4 py-3">{issue.registration_no}</td>
                           <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td>
