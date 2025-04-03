@@ -54,7 +54,7 @@ const StudentDashboard = () => {
   const navItems = [
     { name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },
     { name: 'View Issues', icon: '📄', path: '/student/issues' },
-    { name: 'Create Issue', icon: '➕', path: '/student/issues/create' },
+    { name: 'Create Issue', icon: '➕', path: '/submit-issue' },
     { name: 'Profile', icon: '👤', path: '/student/profile' },
     { name: 'Settings', icon: '⚙️', path: '/student/settings' },
   ];
