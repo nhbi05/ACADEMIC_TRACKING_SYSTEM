@@ -101,38 +101,42 @@ class RegistrarProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user.registrar_profile
 
+# Example views.py modification
+
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def post(self, request):
-        if request.user.role != 'student':
+    def post(self, request, *args, **kwargs):
+        # Print the incoming request data
+        print("Incoming request data:", request.data)
+
+        serializer = IssueSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            print("Serializer validated data:", serializer.validated_data)  # Debugging
+
+            serializer.validated_data['submitted_by'] = request.user
+            
+            # Check if registration_no is missing, then get it from the student's profile
+            if not serializer.validated_data.get('registration_no') and hasattr(request.user, 'student_profile'):
+                serializer.validated_data['registration_no'] = request.user.student_profile.registration_no
+
+            # Save the issue
+            issue = serializer.save()
+            print("Created issue:", issue)  # Debugging
+
             return Response(
-                {'error': 'Only students can submit issues'},
-                status=status.HTTP_403_FORBIDDEN
+                IssueSerializer(issue).data,
+                status=status.HTTP_201_CREATED
             )
         
-        serializer = IssueSerializer(data=request.data, context={'request':request})
-        if serializer.is_valid():
-            serializer.save(submitted_by=request.user)
-            #Get the registrar's email
-            registrar= User.objects.filter(role='registrar').first()
-            if registrar and registrar.email:
-                Notification.objects.create(
-                    recipient=registrar,
-                    subject="New Issue Submitted",
-                    message=f"A new issue has been submitted by {request.user.username}",
-                )
-                #send email notification to registrar
-                send_mail(
-                    subject="New Issue Submitted",
-                    message=f"A new issue has been submitted by {request.user.username}",
-                    from_email= settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[registrar.email],
-                    fail_silently=False,        
+        # Print validation errors if serializer is not valid
+        print("Validation errors:", serializer.errors)  # Debugging
 
-                )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 class ResolveIssueView(APIView):
     permission_classes = [IsAuthenticated]

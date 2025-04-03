@@ -106,8 +106,8 @@ class Issue(models.Model):
         ('Semester 2' , 'Semester 2'),
         
     ]
-    Student_no = models.IntegerField()
-    Reg_no = models.CharField(max_length = 20)
+    #Student_no = models.IntegerField()
+    registration_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField() 
@@ -117,7 +117,12 @@ class Issue(models.Model):
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  
     assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues") 
     created_at = models.DateTimeField(auto_now_add=True) 
-    resolved_at = models.DateTimeField(null=True, blank=True)  
+    resolved_at = models.DateTimeField(null=True, blank=True) 
+    lecturer_name = models.CharField(max_length=255) 
+    title = models.CharField(max_length=255) 
+    attachments = models.FileField(upload_to="issue_attachments/", blank=True, null=True)
+    
+    
     
     def __str__(self):
         # String representation of the issue

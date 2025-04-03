@@ -1,5 +1,6 @@
 // src/redux/actions/studentActions.js
 import { studentService } from '../../services/api';
+//import { issueService } from '../../services/api';
 //import axios from 'axios';
 
 // Action Types
@@ -117,12 +118,16 @@ export const fetchStudentData = () => async (dispatch) => {
 export const createIssue = (issueData) => async (dispatch) => {
   dispatch({ type: CREATE_ISSUE_REQUEST });
   try {
+    // Use the studentService method instead of issueService
     const data = await studentService.createIssue(issueData);
     dispatch({ type: CREATE_ISSUE_SUCCESS, payload: data });
-    return data ;
+    return { payload: data };
   } catch (error) {
-    //const message = error.response?.data?.message || error.message;
-    dispatch({ type: CREATE_ISSUE_FAILURE, payload: error.message });
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        'Failed to create issue';
+    dispatch({ type: CREATE_ISSUE_FAILURE, payload: errorMessage });
     throw error;
   }
 };
