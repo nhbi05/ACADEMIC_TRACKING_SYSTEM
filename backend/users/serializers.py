@@ -103,6 +103,21 @@ class LoginSerializer(serializers.Serializer):
 
 # Serializer for the Issue model
 class IssueSerializer(serializers.ModelSerializer):
+    # Auto-fetch student details from User and StudentProfile
+    first_name = serializers.CharField(source='submitted_by.first_name', read_only=True)
+    last_name = serializers.CharField(source='submitted_by.last_name', read_only=True)
+    registration_number = serializers.CharField(source='submitted_by.student_profile.registration_no', read_only=True)
+    student_no = serializers.CharField(source='submitted_by.student_profile.student_no', read_only=True)
+
     class Meta:
-        model = Issue  
-        fields = '__all__'  
+        model = Issue
+        fields = [
+            'id', 'category', 'status', 'description', 'course_unit', 
+            'year_of_study', 'semester', 'submitted_by', 'name_of_lecturer', 
+            'created_at', 'resolved_at', 'first_name', 'last_name', 
+            'registration_no', 'student_no'
+        ]
+        read_only_fields = [
+            'status', 'submitted_by', 'created_at', 'resolved_at', 
+            'first_name', 'last_name', 'registration_no', 'student_no'
+        ]  # These fields CANNOT be modified manually
