@@ -11,7 +11,8 @@ from .views import( RegisterView,
                    LecturerProfileView,
                    RegistrarProfileView,
                    StudentProfileView,
-                   LogoutView
+                   LogoutView,
+                   LecturerSearchView
                    )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -31,6 +32,7 @@ urlpatterns = [
     path('assign-issue/<int:issue_id>/', AssignIssueView.as_view(), name='assign_issue'),
     path('my-issues/',StudentIssueView.as_view(),name='my-issues'),
     path('resolved-issues/',ResolvedIssuesView.as_view(),name='resolved-issues'),
+    path('search-lecturers/', LecturerSearchView.as_view(), name='search_lecturers'),
     path('create-issue/',CreateIssueView.as_view(),name='create-issue'),
     path('issue/<int:pk>/',IssueDetailView.as_view(),name='issue-detail'),
     path('logout/', LogoutView.as_view(), name='logout'),

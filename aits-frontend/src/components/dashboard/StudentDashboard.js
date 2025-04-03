@@ -34,7 +34,6 @@ const StudentDashboard = () => {
   // Loading and error states
   const loading = profileLoading || issuesLoading;
   const error = profileError || issuesError;
-  
   useEffect(() => {
     // Fetch data when component mounts
     dispatch(fetchStudentData()).catch(err => 
@@ -50,6 +49,7 @@ const StudentDashboard = () => {
     dispatch(logout());
     navigate('/login');
   };
+  
   
   const navItems = [
     { name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },
@@ -72,13 +72,14 @@ const StudentDashboard = () => {
           <ul>
             {navItems.map((item, index) => (
               <li key={index}>
-                <a 
-                  href={item.path}
-                  className="flex items-center px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
+                <button 
+                  onClick={() => navigate(item.path)}
+                  className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
                 >
                   <span className="mr-3 text-lg">{item.icon}</span>
                   {item.name}
-                </a>
+                </button>
+
               </li>
             ))}
             
