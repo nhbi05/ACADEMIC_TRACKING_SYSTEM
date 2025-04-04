@@ -55,7 +55,10 @@ class Migration(migrations.Migration):
             name='Issue',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+<<<<<<< HEAD
                 ('registration_no', models.CharField(max_length=20)),
+=======
+>>>>>>> raymond-branch
                 ('category', models.CharField(choices=[('missing_marks', 'Missing Marks'), ('appeal', 'Appeal'), ('correction', 'Correction'), ('others', 'Others')], max_length=100)),
                 ('status', models.CharField(choices=[('pending', 'pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved')], default='pending', max_length=20)),
                 ('description', models.TextField()),
@@ -80,6 +83,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+<<<<<<< HEAD
             name='Notification',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -91,6 +95,8 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+=======
+>>>>>>> raymond-branch
             name='RegistrarProfile',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
