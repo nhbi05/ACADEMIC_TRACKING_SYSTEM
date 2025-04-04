@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-yto=31kte-xiyu4ilo45v+zcd^d8dpi%)lgi_&xq@+h3wqx9-s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["academictrackingsystem-production.up.railway.app"]
 
 
 # Application definition
@@ -135,7 +135,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React frontend
+    "http://localhost:3000",
+    "https://aits-frontend-omega.vercel.app"# React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'
