@@ -19,14 +19,12 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
     # Method for students to submit issues
-    def submit_issue(self, category, description,Reg_no,Student_no,course_unit,semester,year_of_study):
+    def submit_issue(self, category, description,course_unit,semester,year_of_study):
         # Only students are allowed to submit issues
         if self.role != 'student':
             raise PermissionError("Only students can submit issues")
         # Create and return a new Issue object
         return Issue.objects.create(
-            Student_no = Student_no,
-            Reg_no = Reg_no,
             category=category,
             status='pending',
             description=description,
@@ -106,8 +104,8 @@ class Issue(models.Model):
         ('Semester 2' , 'Semester 2'),
         
     ]
-    Student_no = models.IntegerField()
-    Reg_no = models.CharField(max_length = 20)
+    #Student_no = models.IntegerField()
+    registration_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField() 
@@ -117,21 +115,15 @@ class Issue(models.Model):
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  
     assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues") 
     created_at = models.DateTimeField(auto_now_add=True) 
-    resolved_at = models.DateTimeField(null=True, blank=True)  
+    resolved_at = models.DateTimeField(null=True, blank=True) 
+    lecturer_name = models.CharField(max_length=255) 
+    title = models.CharField(max_length=255) 
+    attachments = models.FileField(upload_to="issue_attachments/", blank=True, null=True)
+    
+    
     
     def __str__(self):
         # String representation of the issue
         return f"Issue {self.id} - {self.category} ({self.status})"
     
 
-# Model for notifications related to users
-#This will help in storing every notification in the database
-class Notification(models.Model):
-    User = get_user_model()
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
-    subject = models.CharField(max_length=255)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    

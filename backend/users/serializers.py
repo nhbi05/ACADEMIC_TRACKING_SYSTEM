@@ -104,5 +104,11 @@ class LoginSerializer(serializers.Serializer):
 # Serializer for the Issue model
 class IssueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Issue  
-        fields = '__all__'  
+        model = Issue
+        fields = [
+            'id', 'title', 'description', 'category', 'status',
+            'lecturer_name', 'semester', 'year_of_study', 'registration_no',
+            'submitted_by', 'assigned_to', 'attachments', 
+            'created_at', 
+        ]
+        read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']

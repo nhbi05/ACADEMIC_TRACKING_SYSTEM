@@ -6,7 +6,7 @@ from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-from .models import Issue,Notification,User
+from .models import Issue,User
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
@@ -101,38 +101,42 @@ class RegistrarProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user.registrar_profile
 
+# Example views.py modification
+
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def post(self, request):
-        if request.user.role != 'student':
+    def post(self, request, *args, **kwargs):
+        # Print the incoming request data
+        print("Incoming request data:", request.data)
+
+        serializer = IssueSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            print("Serializer validated data:", serializer.validated_data)  # Debugging
+
+            serializer.validated_data['submitted_by'] = request.user
+            
+            # Check if registration_no is missing, then get it from the student's profile
+            if not serializer.validated_data.get('registration_no') and hasattr(request.user, 'student_profile'):
+                serializer.validated_data['registration_no'] = request.user.student_profile.registration_no
+
+            # Save the issue
+            issue = serializer.save()
+            print("Created issue:", issue)  # Debugging
+
             return Response(
-                {'error': 'Only students can submit issues'},
-                status=status.HTTP_403_FORBIDDEN
+                IssueSerializer(issue).data,
+                status=status.HTTP_201_CREATED
             )
         
-        serializer = IssueSerializer(data=request.data, context={'request':request})
-        if serializer.is_valid():
-            serializer.save(submitted_by=request.user)
-            #Get the registrar's email
-            registrar= User.objects.filter(role='registrar').first()
-            if registrar and registrar.email:
-                Notification.objects.create(
-                    recipient=registrar,
-                    subject="New Issue Submitted",
-                    message=f"A new issue has been submitted by {request.user.username}",
-                )
-                #send email notification to registrar
-                send_mail(
-                    subject="New Issue Submitted",
-                    message=f"A new issue has been submitted by {request.user.username}",
-                    from_email= settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[registrar.email],
-                    fail_silently=False,        
+        # Print validation errors if serializer is not valid
+        print("Validation errors:", serializer.errors)  # Debugging
 
-                )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 class ResolveIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -151,14 +155,9 @@ class ResolveIssueView(APIView):
             #send an email notification to the student who submitted the issue
             student_user= issue.submitted_by
             if student_user and student_user.email:
-               Notification.objects.create(
-                    recipient=student_user,
-                    subject="Your Issue has been resolved",
-                    message=f"Hello {student_user.username}, your issue has been successfully resolved",
-                )
                send_mail(
                     subject= "Your Issue has been resolved",
-                    message=(f"Hello {student_user.username},your issue has been successfully resolved "),
+                    message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
                     fail_silently=False,
@@ -199,14 +198,9 @@ class AssignIssueView(APIView):
             request.user.assign_issue(issue, lecturer)
             #send email notification to lecturer
             if lecturer.email:
-                Notification.objects.create(
-                    recipient=lecturer,
-                    subject="New Issue Assigned",
-                    message=f"Dear {lecturer.username}, you have been assigned a new issue from the registrar",
-                )
                 send_mail(
                     subject= "New Issue Assigned",
-                    message= f"Dear {lecturer.username}, you have been assigned a new issue from the registrar",
+                    message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[lecturer.email],
                     fail_silently=False,
