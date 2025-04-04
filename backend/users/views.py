@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
 
 #from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
-from .models import Issue,Notification,User
+from .models import Issue,User
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
@@ -119,15 +119,10 @@ class SubmitIssueView(APIView):
             #Get the registrar's email
             registrar= User.objects.filter(role='registrar').first()
             if registrar and registrar.email:
-                Notification.objects.create(
-                    recipient=registrar,
-                    subject="New Issue Submitted",
-                    message=f"A new issue has been submitted by {request.user.username}",
-                )
                 #send email notification to registrar
                 send_mail(
                     subject="New Issue Submitted",
-                    message=f"A new issue has been submitted by {request.user.username}",
+                    message=f"A new issue has been submitted by {request.user.first_name}",
                     from_email= settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[registrar.email],
                     fail_silently=False,        
@@ -153,14 +148,9 @@ class ResolveIssueView(APIView):
             #send an email notification to the student who submitted the issue
             student_user= issue.submitted_by
             if student_user and student_user.email:
-               Notification.objects.create(
-                    recipient=student_user,
-                    subject="Your Issue has been resolved",
-                    message=f"Hello {student_user.username}, your issue has been successfully resolved",
-                )
                send_mail(
                     subject= "Your Issue has been resolved",
-                    message=(f"Hello {student_user.username},your issue has been successfully resolved "),
+                    message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
                     fail_silently=False,
@@ -201,14 +191,9 @@ class AssignIssueView(APIView):
             request.user.assign_issue(issue, lecturer)
             #send email notification to lecturer
             if lecturer.email:
-                Notification.objects.create(
-                    recipient=lecturer,
-                    subject="New Issue Assigned",
-                    message=f"Dear {lecturer.username}, you have been assigned a new issue from the registrar",
-                )
                 send_mail(
                     subject= "New Issue Assigned",
-                    message= f"Dear {lecturer.username}, you have been assigned a new issue from the registrar",
+                    message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[lecturer.email],
                     fail_silently=False,
