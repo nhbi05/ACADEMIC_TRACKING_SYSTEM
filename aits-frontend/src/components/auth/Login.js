@@ -2,21 +2,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, clearMessages } from "../../redux/actions/authActions";
+import { clearMessages } from "../../redux/actions/authActions";
 import { Alert, AlertDescription } from "../ui/alert";
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginType, setLoginType] = useState("student");
-  const auth = useAuth()
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const auth = useAuth();
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
   // Get state from Redux store
-  const { isLoading, error, successMessage, isAuthenticated } = useSelector(
+  const { isLoading, successMessage, isAuthenticated } = useSelector(
     (state) => state.auth
   );
 
@@ -50,30 +53,36 @@ const Login = () => {
     }
   }, [isAuthenticated, loginType, navigate]);
 
-  const validateForm = () => {
-    if (!username.trim()) {
-      dispatch({ type: 'AUTH_FAILURE', payload: "Username is required" });
-      return false;
-    }
-    if (!password) {
-      dispatch({ type: 'AUTH_FAILURE', payload: "Password is required" });
-      return false;
-    }
-    if (password.length < 3) {
-      dispatch({ type: 'AUTH_FAILURE', payload: "Password must be at least 6 characters" });
-      return false;
-    }
-    return true;
-  };
-
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    if (!validateForm()) {
-      return;
+    try {
+      const response = await axios.post('http://localhost:8000/api/login/', {
+        username,
+        password,
+        // ...other fields
+      });
+      
+      console.log("Auth response:", response.data);
+      
+      // Pass the entire response data to login
+      auth.login(response.data);
+      
+      // Navigate based on role
+      if (response.data.user.role === 'student') {
+        navigate('/student-dashboard');
+      } else if (response.data.user.role === 'lecturer') {
+        navigate('/lecturer-dashboard');
+      } else {
+        navigate('/registrar-dashboard');
+      }
+      
+    } catch (err) {
+      setError(err.response?.data?.error || "Login failed");
+    } finally {
+      setIsSubmitting(false);
     }
-  
-    dispatch(loginUser({ username, password }, loginType, auth));
   };
 
   return (
@@ -119,7 +128,7 @@ const Login = () => {
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
               htmlFor="username"
@@ -134,7 +143,7 @@ const Login = () => {
               className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
             />
           </div>
 
@@ -152,16 +161,16 @@ const Login = () => {
               className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
             />
           </div>
 
           <button
             type="submit"
             className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitting}
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <span className="flex items-center justify-center">
                 <svg
                   className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

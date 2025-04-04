@@ -1,28 +1,92 @@
 // src/components/dashboard/StudentDashboard.js
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { Alert, AlertDescription } from '../ui/alert';
-import { fetchStudentData, fetchIssues } from '../../redux/actions/studentActions';
-import { logout } from '../../redux/actions/authActions';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const StudentDashboard = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user, token, logout } = useAuth();
   
-  // Get data from Redux store
-  const { user } = useSelector(state => state.auth);
-  const { 
-    profileData, 
-    loading: profileLoading, 
-    error: profileError 
-  } = useSelector(state => state.student || {});
+  const [profileData, setProfileData] = useState(null);
+  const [issues, setIssues] = useState([]);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [issuesLoading, setIssuesLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  const { 
-    issues, 
-    loading: issuesLoading, 
-    error: issuesError 
-  } = useSelector(state => state.issues || {});
+  // Get token helper
+  const getAuthToken = useCallback(() => {
+    if (token?.access) {
+      return token.access;
+    }
+    try {
+      const tokensStr = localStorage.getItem('tokens');
+      if (tokensStr) {
+        const tokens = JSON.parse(tokensStr);
+        return tokens.access;
+      }
+    } catch (err) {
+      console.error("Failed to parse tokens from localStorage:", err);
+    }
+    return null;
+  }, [token]);
+  
+  // Fetch student profile data
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      const accessToken = getAuthToken();
+      
+      if (!accessToken) {
+        setError("Authentication token not found. Please log in again.");
+        setProfileLoading(false);
+        return;
+      }
+      
+      try {
+        const response = await axios.get('http://localhost:8000/api/student/profile/', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setProfileData(response.data);
+      } catch (err) {
+        console.error("Error fetching profile data:", err);
+        setError("Failed to load your profile. Please try again.");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    
+    fetchStudentData();
+  }, [getAuthToken]);
+  
+  // Fetch issues
+  useEffect(() => {
+    const fetchIssues = async () => {
+      const accessToken = getAuthToken();
+      
+      if (!accessToken) {
+        setIssuesLoading(false);
+        return;
+      }
+      
+      try {
+        const response = await axios.get('http://localhost:8000/api/my-issues/', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        setIssues(response.data);
+      } catch (err) {
+        console.error("Error fetching issues:", err);
+        setError("Failed to load your issues. Please try again.");
+      } finally {
+        setIssuesLoading(false);
+      }
+    };
+    
+    fetchIssues();
+  }, [getAuthToken]);
   
   // Derived stats based on issues
   const statsData = {
@@ -33,23 +97,14 @@ const StudentDashboard = () => {
   
   // Loading and error states
   const loading = profileLoading || issuesLoading;
-  const error = profileError || issuesError;
-  useEffect(() => {
-    // Fetch data when component mounts
-    dispatch(fetchStudentData()).catch(err => 
-      console.error('Error fetching profile data:', err)
-    );
-    
-    dispatch(fetchIssues()).catch(err => 
-      console.error('Error fetching issues:', err)
-    );
-  }, [dispatch]);
   
   const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+    if (window.confirm("Are you sure you want to log out?")) {
+      // Access our logout function from AuthContext
+      logout();
+      navigate('/login');
+    }
   };
-  
   
   const navItems = [
     { name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },
@@ -79,7 +134,6 @@ const StudentDashboard = () => {
                   <span className="mr-3 text-lg">{item.icon}</span>
                   {item.name}
                 </button>
-
               </li>
             ))}
             
@@ -136,9 +190,9 @@ const StudentDashboard = () => {
         {/* Main Dashboard Content */}
         <main className="p-6">
           {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+              {error}
+            </div>
           )}
           
           {/* Stats Cards */}
@@ -192,7 +246,7 @@ const StudentDashboard = () => {
               <h3 className="text-lg font-medium text-gray-800">Profile Information</h3>
             </div>
             <div className="p-6">
-              {loading ? (
+              {profileLoading ? (
                 <div className="animate-pulse space-y-4">
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -225,10 +279,15 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-800">Recent Issues</h3>
-              <a href="/student/issues" className="text-sm text-green-600 hover:text-green-500">View all</a>
+              <button 
+                onClick={() => navigate('/student/issues')}
+                className="text-sm text-green-600 hover:text-green-500"
+              >
+                View all
+              </button>
             </div>
             <div className="p-6">
-              {loading ? (
+              {issuesLoading ? (
                 <div className="animate-pulse space-y-4">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -240,16 +299,21 @@ const StudentDashboard = () => {
                     <div key={issue.id} className="py-3">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h4 className="font-medium text-gray-800">{issue.title}</h4>
-                          <p className="text-sm text-gray-600">{issue.description?.substring(0, 100)}...</p>
+                          <h4 className="font-medium text-gray-800">Issue #{issue.id} - {issue.course_unit}</h4>
+                          <p className="text-sm text-gray-600">
+                            {issue.description?.substring(0, 100)}
+                            {issue.description?.length > 100 ? '...' : ''}
+                          </p>
                         </div>
                         <div>
                           <span className={`px-2 py-1 rounded-full text-xs ${
                             issue.status === 'resolved' 
                               ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                              : issue.status === 'in progress'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {issue.status}
+                            {issue.status || 'Pending'}
                           </span>
                         </div>
                       </div>

@@ -51,7 +51,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setPasswordError('');
+      setPasswordError('');
+      console.log("Form data before validation:", formData);
     
     // Validate passwords match
     if (formData.password !== formData.password2) {

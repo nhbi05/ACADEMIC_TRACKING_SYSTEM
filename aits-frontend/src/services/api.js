@@ -93,10 +93,12 @@ api.interceptors.response.use(
 // Auth services
 export const authService = {
   register: async (userData) => {
-    const response = await api.post('/register/', userData);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-    }
+    // Create a new axios instance without default headers for registration
+    const registerAxios = axios.create({
+      baseURL: API_URL
+    });
+    
+    const response = await registerAxios.post('/register/', userData);
     return response.data;
   },
 
@@ -125,11 +127,8 @@ export const authService = {
       delete api.defaults.headers.common['Authorization'];
     }
   }
-
   
 };
-
-
   
 
 // Student services - Added missing studentService

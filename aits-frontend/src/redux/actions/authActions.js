@@ -5,6 +5,7 @@ import api from '../../services/api';
 // Action Types (can be moved to a separate constants file)
 export const AUTH_INITIALIZED = 'AUTH_INITIALIZED';
 export const AUTH_REQUEST = 'AUTH_REQUEST';
+export const REGISTER_REQUEST = 'REGISTER_REQUEST';
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 export const REGISTER_SUCCESS = 'REGISTER_SUCCESS';
 export const AUTH_FAILURE = 'AUTH_FAILURE';
@@ -65,6 +66,10 @@ export const loginRequest = () => ({
   type: AUTH_REQUEST
 });
 
+export const registerRequest = () => ({
+  type: REGISTER_REQUEST
+});
+
 export const loginSuccess = (user, tokens) => ({
   type: LOGIN_SUCCESS,
   payload: { user, tokens }
@@ -121,25 +126,46 @@ export const loginUser = (credentials, loginType) => async (dispatch) => {
   }
 };
 export const registerUser = (userData) => async (dispatch) => {
-  dispatch(loginRequest());
+  console.log('Registering user:', userData);
+  dispatch(registerRequest());
   
   try {
-    await authService.register(userData);
+    // Clear any existing auth headers before registration
+    delete api.defaults.headers.common['Authorization'];
+    
+    const response = await authService.register(userData);
+    console.log('Registration response:', response);
     dispatch(registerSuccess());
     return { success: true };
   } catch (err) {
+    console.error('Registration error:', err);
     let errorMessage = 'Registration failed. Please try again.';
-    // console.log(err)
     
     if (err.response?.data) {
-      errorMessage = Object.entries(err.response.data)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(' ');
-        
+      // Handle different error response formats
+      if (typeof err.response.data === 'string') {
+        errorMessage = err.response.data;
+      } else if (typeof err.response.data === 'object') {
+        errorMessage = Object.entries(err.response.data)
+          .map(([key, value]) => {
+            // Handle nested arrays in error messages
+            if (Array.isArray(value)) {
+              return `${key}: ${value.join(' ')}`;
+            }
+            return `${key}: ${value}`;
+          })
+          .join(' ');
+      }
     }
     
     dispatch(authFailure(errorMessage));
-    return { success: false };
+    return { success: false, error: errorMessage };
+  } finally {
+    // Restore auth header if there was one
+    const accessToken = localStorage.getItem('access');
+    if (accessToken) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    }
   }
 };
 

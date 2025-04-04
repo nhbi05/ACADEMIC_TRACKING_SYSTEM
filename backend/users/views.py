@@ -16,6 +16,7 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
+        print("register view")
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             try:
@@ -39,35 +40,38 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data['username']  # Use username instead of email
+            username = serializer.validated_data['username']
             password = serializer.validated_data['password']
-            login_type = serializer.validated_data.get('loginType')  # Use get() for optional field
+            login_type = serializer.validated_data.get('loginType')
             
-            # Find user by username
             try:
-                user = User.objects.get(username=username)  # Find user by username instead of email
-                # Authenticate with username and password
+                user = User.objects.get(username=username)
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
                 if authenticated_user is not None:
-                    # Optional role check
                     if login_type and authenticated_user.role != login_type:
                         return Response({'error': 'Invalid role for this login type'}, 
                                        status=status.HTTP_403_FORBIDDEN)
                     
                     refresh = RefreshToken.for_user(authenticated_user)
+                    access_token = refresh.access_token
+                    
+                    # Add custom claims to the token
+                    access_token['username'] = authenticated_user.username
+                    access_token['role'] = authenticated_user.role
+
                     return Response({
                         'refresh': str(refresh),
-                        'access': str(refresh.access_token),
+                        'access': str(access_token),
+                        'token_type': 'Bearer',
                         'user': {
-                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
                             'first_name': authenticated_user.first_name,
                             'last_name': authenticated_user.last_name,
-                                                }
+                        }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
@@ -178,6 +182,7 @@ class StudentIssueView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
+        print("query view")
         return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
 
 

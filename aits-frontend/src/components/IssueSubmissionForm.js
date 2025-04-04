@@ -1,7 +1,7 @@
-import React, { useState,  } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const IssueSubmissionForm = () => {
   const [formData, setFormData] = useState({
@@ -14,18 +14,38 @@ const IssueSubmissionForm = () => {
     description: "",
     opened_by: "",
     name_of_Lecturer: "",
-    priority: "",
-    issue_date: "", 
+    priority: "medium", // Add default priority
+    issue_date: new Date().toISOString().split('T')[0], // Add today's date
   });
-
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // eslint-disable-next-line
-  const [submitted, setSubMitted] = useState(false);
   const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
 
+  // Debug logs
+  useEffect(() => {
+    console.log("Auth state:", { user, token, isAuthenticated });
+    console.log("LocalStorage tokens:", localStorage.getItem('tokens'));
+    console.log("LocalStorage user:", localStorage.getItem('user'));
+  }, [user, token, isAuthenticated]);
+
+  // Fallback token access if context is not working
+  const getAuthToken = () => {
+    if (token?.access) {
+      return token.access;
+    }
+    try {
+      const tokensStr = localStorage.getItem('tokens');
+      if (tokensStr) {
+        const tokens = JSON.parse(tokensStr);
+        return tokens.access;
+      }
+    } catch (err) {
+      console.error("Failed to parse tokens from localStorage:", err);
+    }
+    return null;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,58 +70,64 @@ const IssueSubmissionForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submit button clicked");
 
-    if (!validateForm()) return;
-
-    // Check if token and user are available
-    if (!token || !token.access) {
-      alert("Token is not available. Please log in.");
+    if (!validateForm()) {
+      console.log("Form validation failed", errors);
       return;
     }
 
-    if (!user) {
-      alert("User is not available. Please log in.");
+    const accessToken = getAuthToken();
+
+    if (!accessToken) {
+      alert("Authentication token not found. Please log in again.");
+      navigate('/login');
       return;
     }
 
     try {
-      const profile = await axios.get('http://localhost:8000/api/student/profile/', {
+      setIsSubmitting(true);
+      console.log("Using token:", accessToken);
+
+      // Get student profile first
+      const profileResponse = await axios.get('http://localhost:8000/api/student/profile/', {
         headers: {
-          Authorization: `Bearer ${token.access}`,
-        },
-      }).then(res => res.data).catch(err => {
-        console.error("Error fetching profile data:", err);
-        return null;
+          'Authorization': `Bearer ${accessToken}`,
+        }
       });
 
-      if (profile === null) {
-        alert("Could not fetch your profile data");
-        return;
-      }
+      const profile = profileResponse.data;
+      console.log("Profile data:", profile);
 
-      setIsSubmitting(true);
-      await axios.post('http://localhost:8000/api/create-issue/', {
+      // Then submit the issue
+      const result = await axios.post('http://localhost:8000/api/create-issue/', {
         ...formData,
-        Student_no: profile['student_no'],
-        Reg_no: profile['registration_no'],
-        submitted_by: user['id'],
+        Student_no: profile.student_no,
+        Reg_no: profile.registration_no,
+        submitted_by: user?.id || profile.user_id,
       }, {
         headers: {
-          Authorization: `Bearer ${token.access}`,
-        },
-      }).then(result => {
-        let { data: { id } } = result;
-        let cont = prompt(`Issue #${id} submitted successfully`, 'OK to proceed');
-        if (cont) navigate('/student-dashboard');
-      }).catch(error => {
-        setIsSubmitting(false);
-        alert("Failed creating Issue");
-        console.log("Failed creating issue", error);
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        }
       });
+
+      console.log("Submission response:", result);
+
+      if (result.data) {
+        alert(`Issue #${result.data.id} submitted successfully`);
+        navigate('/student-dashboard');
+      }
     } catch (error) {
       console.error("Error during issue submission:", error);
       setIsSubmitting(false);
-      alert("An error occurred while submitting the issue.");
+
+      if (error.response?.status === 401) {
+        alert("Your session has expired. Please log in again.");
+        navigate('/login');
+      } else {
+        alert(error.response?.data?.message || "An error occurred while submitting the issue.");
+      }
     }
   };
 
@@ -145,6 +171,7 @@ const IssueSubmissionForm = () => {
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded bg-white"
               />
+              {errors.course_unit && <p className="text-red-500">{errors.course_unit}</p>}
             </div>
           </div>
 
@@ -164,6 +191,7 @@ const IssueSubmissionForm = () => {
                 <option value="3">3</option>
                 <option value="4">4</option>
               </select>
+              {errors.year_of_study && <p className="text-red-500">{errors.year_of_study}</p>}
             </div>
             <div>
               <label className="block font-medium">Semester*</label>
@@ -177,20 +205,38 @@ const IssueSubmissionForm = () => {
                 <option value="Semester 1">Semester 1</option>
                 <option value="Semester 2">Semester 2</option>
               </select>
+              {errors.semester && <p className="text-red-500">{errors.semester}</p>}
             </div>
           </div>
-          {/*name_of_lecturer*/}
-          <div>
-              <label className="block font-medium">name_of_Lecturer*</label>
-              <input
-                type="text"
-                name="name_of_Lecturer"
-                value={formData.name_of_Lecturer}
-                onChange={handleChange}
-                className="w-full p-2 border border-gray-300 rounded bg-white"
-              />
-            </div>
           
+          {/* Name of Lecturer */}
+          <div>
+            <label className="block font-medium">Name of Lecturer*</label>
+            <input
+              type="text"
+              name="name_of_Lecturer"
+              value={formData.name_of_Lecturer}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded bg-white"
+            />
+            {errors.name_of_Lecturer && <p className="text-red-500">{errors.name_of_Lecturer}</p>}
+          </div>
+          
+          {/* Priority field */}
+          <div>
+            <label className="block font-medium">Priority*</label>
+            <select
+              name="priority"
+              value={formData.priority}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded bg-white"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+            {errors.priority && <p className="text-red-500">{errors.priority}</p>}
+          </div>
 
           {/* Description */}
           <div>
@@ -202,6 +248,7 @@ const IssueSubmissionForm = () => {
               className="w-full p-2 border border-gray-300 rounded bg-white"
               rows="4"
             />
+            {errors.description && <p className="text-red-500">{errors.description}</p>}
           </div>
 
           {/* Submit Button */}

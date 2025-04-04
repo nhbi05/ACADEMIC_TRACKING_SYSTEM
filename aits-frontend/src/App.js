@@ -8,6 +8,9 @@ import { Navigate } from 'react-router-dom';
 import React from 'react';
 import IssueSubmissionForm from './components/IssueSubmissionForm';  // Keep IssueSubmissionForm
 import ProtectedRoute from './components/ProtectedRoute';
+import IssueDetails from './components/IssueDetails';
+import Profile from './components/Profile';
+import Settings from './components/Settings';
 
 //const StudentDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Student Dashboard</h1>;
 const LecturerDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Lecturer Dashboard</h1>;
@@ -26,7 +29,10 @@ function App() {
           <Route path="/registrar-dashboard" element={<RegistrarDashboard />} />
           <Route path="/submit-issue" element={<ProtectedRoute element={<IssueSubmissionForm />} />} />
           <Route path="/student-issues" element={<ProtectedRoute element={<IssueSubmissionForm />} />} />
+          <Route path="/student/issues" element={<ProtectedRoute element={<IssueDetails />} />} />
+          <Route path="/student/profile" element={<ProtectedRoute element={<Profile />} />} />
           <Route path="/student/issues/create" element={<IssueSubmissionForm />} />
+          <Route path="/student/settings" element={<ProtectedRoute element={<Settings />} />} />
         </Routes>
       </div>
     </AuthProvider>
