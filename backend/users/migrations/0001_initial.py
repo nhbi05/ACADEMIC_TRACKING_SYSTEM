@@ -83,7 +83,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-<<<<<<< HEAD
             name='Notification',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -95,8 +94,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-=======
->>>>>>> raymond-branch
             name='RegistrarProfile',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
