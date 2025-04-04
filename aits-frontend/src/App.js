@@ -4,6 +4,7 @@ import Login from './components/auth/Login';
 import './styles/style_login.css';
 import StudentDashboard from './components/dashboard/StudentDashboard';
 import RegistrarDashboard from './components/dashboard/RegistrarDashboard';
+import LecturerDashboard from './components/dashboard/LecturerDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import React from 'react';
@@ -11,7 +12,7 @@ import IssueSubmissionForm from './components/IssueSubmissionForm';  // Keep Iss
 import ViewIssues from './components/ViewIssues';  
 import ProtectedRoute from './components/ProtectedRoute';
 //const StudentDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Student Dashboard</h1>;
-const LecturerDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Lecturer Dashboard</h1>;
+//const LecturerDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Lecturer Dashboard</h1>;
 //const RegistrarDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Registrar Dashboard</h1>;
 
 function App() {
