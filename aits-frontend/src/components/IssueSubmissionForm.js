@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,  } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext';
@@ -66,6 +66,7 @@ const IssueSubmissionForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateForm()) return;
     
     if (!tokens || !tokens.access) {
@@ -157,11 +158,7 @@ const IssueSubmissionForm = () => {
                 <option value="correction">Correction</option>
                 <option value="others">Others</option>
               </select>
-              {errors.category && (
-                <Alert variant="destructive" className="mt-1 text-sm p-2">
-                  {errors.category}
-                </Alert>
-              )}
+              {errors.category && <p className="text-red-500">{errors.category}</p>}
             </div>
             
             <div>
@@ -236,26 +233,18 @@ const IssueSubmissionForm = () => {
               )}
             </div>
           </div>
-
-          {/* Assigned Staff */}
+          {/*name_of_lecturer*/}
           <div>
-            <label className="block font-medium text-gray-700 mb-1">
-              Assigned To (Optional)
-            </label>
-            <select
-              name="assigned_to"
-              value={formData.assigned_to}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded bg-white"
-            >
-              <option value="">Select Staff Member</option>
-              {staffUsers.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.department || 'Staff'})
-                </option>
-              ))}
-            </select>
-          </div>
+              <label className="block font-medium">name_of_Lecturer*</label>
+              <input
+                type="text"
+                name="name_of_Lecturer"
+                value={formData.name_of_Lecturer}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded bg-white"
+              />
+            </div>
+          
 
           {/* Description */}
           <div>
