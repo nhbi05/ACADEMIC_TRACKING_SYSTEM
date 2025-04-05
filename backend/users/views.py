@@ -335,3 +335,29 @@ class LecturerIssueDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return Issue.objects.filter(assigned_to=self.request.user)
 
+class LecturerResolveIssueView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            issue = Issue.objects.get(pk=pk, assigned_to=request.user)
+            if issue.status == 'resolved':
+                return Response({'error': 'Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            issue.status = 'resolved'
+            issue.save()
+
+            # Notify the student who submitted the issue
+            student_user = issue.submitted_by
+            if student_user and student_user.email:
+                send_mail(
+                    subject="Your Issue Has Been Resolved",
+                    message=f"Dear {student_user.first_name}, your issue titled '{issue.title}' has been resolved.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[student_user.email],
+                    fail_silently=False,
+                )
+
+            return Response({'message': 'Issue resolved successfully'}, status=status.HTTP_200_OK)
+        except Issue.DoesNotExist:
+            return Response({'error': 'Issue not found or not assigned to you'}, status=status.HTTP_404_NOT_FOUND)
