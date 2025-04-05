@@ -121,4 +121,13 @@ class LecturerProfileSerializer(serializers.ModelSerializer):
         model = LecturerProfile
         fields = ["first_name", "last_name", "department"]
 
-        
+class IssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = [
+            'id', 'title', 'description', 'category', 'status',
+            'lecturer_name', 'semester', 'year_of_study', 'registration_no',
+            'submitted_by', 'assigned_to', 'attachments', 
+            'created_at', 
+        ]
+        read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']
