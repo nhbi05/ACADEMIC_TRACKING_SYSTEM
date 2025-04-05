@@ -362,3 +362,15 @@ class LecturerResolveIssueView(APIView):
         except Issue.DoesNotExist:
             return Response({'error': 'Issue not found or not assigned to you'}, status=status.HTTP_404_NOT_FOUND)
         
+def notify_lecturer(issue):
+    lecturer = issue.assigned_to
+    if lecturer and lecturer.email:
+        send_mail(
+            subject="New Issue Assigned",
+            message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[lecturer.email],
+            fail_silently=False,
+        )
+
+        
