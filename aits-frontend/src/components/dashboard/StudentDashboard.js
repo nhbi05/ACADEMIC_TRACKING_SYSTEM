@@ -1,16 +1,8 @@
 // src/components/dashboard/StudentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-=======
-import { useSelector, useDispatch } from 'react-redux';
-import { Alert, AlertDescription } from '../ui/alert';
-import { fetchStudentData, fetchIssues } from '../../redux/actions/studentActions';
-//import { logout } from '../../redux/actions/authActions';
-import { logoutUser } from '../../redux/actions/authActions';
->>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -106,20 +98,11 @@ const StudentDashboard = () => {
   // Loading and error states
   const loading = profileLoading || issuesLoading;
   
-<<<<<<< HEAD
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
       // Access our logout function from AuthContext
       logout();
       navigate('/login');
-=======
-  const handleLogout = async () => {
-    try {
-      await dispatch(logoutUser());
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
->>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
     }
   };
   

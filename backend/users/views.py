@@ -234,6 +234,24 @@ class StudentIssueView(generics.ListAPIView):
         print("query view")
         return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
 
+class LecturerSearchView(generics.ListAPIView):
+    
+    #API endpoint for searching lecturers by name.
+    
+    serializer_class = LecturerProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        return User.objects.filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query),
+            role='lecturer'
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ResolvedIssuesView(generics.ListAPIView):
