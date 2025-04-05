@@ -361,3 +361,4 @@ class LecturerResolveIssueView(APIView):
             return Response({'message': 'Issue resolved successfully'}, status=status.HTTP_200_OK)
         except Issue.DoesNotExist:
             return Response({'error': 'Issue not found or not assigned to you'}, status=status.HTTP_404_NOT_FOUND)
+        

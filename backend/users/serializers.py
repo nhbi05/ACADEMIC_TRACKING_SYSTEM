@@ -112,3 +112,13 @@ class IssueSerializer(serializers.ModelSerializer):
             'created_at', 
         ]
         read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']
+
+class LecturerProfileSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+
+    class Meta:
+        model = LecturerProfile
+        fields = ["first_name", "last_name", "department"]
+
+        
