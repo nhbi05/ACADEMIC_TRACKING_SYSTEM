@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 // src/context/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
+=======
+import React, { createContext, useContext, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, logoutUser, initAuth } from '../redux/actions/authActions';
+>>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+<<<<<<< HEAD
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -107,6 +114,55 @@ export const AuthProvider = ({ children }) => {
       login, 
       logout 
     }}>
+=======
+  const dispatch = useDispatch();
+  const { user, isAuthenticated, isLoading, error, tokens } = useSelector(state => state.auth);
+  
+  // Initialize auth on app startup
+  useEffect(() => {
+    const initialize = async () => {
+      await dispatch(initAuth());
+    };
+    
+    initialize();
+  }, [dispatch]);
+  
+  // Context login will dispatch Redux action
+  const login = async (credentials, loginType = 'student') => {
+    try {
+      const result = await dispatch(loginUser(credentials, loginType));
+      return result;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+  
+  // Context logout will dispatch Redux action
+  const logout = async () => {
+    try {
+      const result = await dispatch(logoutUser());
+      return result;
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
+  };
+  
+  // Value object with everything needed from auth state
+  const authValue = {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    tokens,
+    login,
+    logout
+  };
+  
+  return (
+    <AuthContext.Provider value={authValue}>
+>>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
       {children}
     </AuthContext.Provider>
   );

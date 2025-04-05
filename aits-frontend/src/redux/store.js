@@ -4,11 +4,15 @@ import { thunk } from 'redux-thunk'; // Updated: changed from default import to 
 import { composeWithDevTools } from '@redux-devtools/extension'; // Updated: changed package name
 import authReducer from './reducers/authReducer';
 import  studentReducer  from './reducers/studentReducer';
+import  registrarReducer  from './reducers/registrarReducer';
+import { issuesReducer } from './reducers/issuesReducer';
 
 // Combine all reducers (add more as needed)
 const rootReducer = combineReducers({
   auth: authReducer,
   student: studentReducer,
+  registrar: registrarReducer,
+  issues: issuesReducer,
   // Add other reducers here
 });
 
