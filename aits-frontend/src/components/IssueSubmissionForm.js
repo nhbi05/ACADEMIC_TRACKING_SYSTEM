@@ -55,21 +55,6 @@ const IssueSubmissionForm = () => {
   };
   
   // Handle form submission
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-  
-  // Handle file upload
-  const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      attachments: e.target.files[0]
-    });
-  };
-  
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -128,7 +113,7 @@ const IssueSubmissionForm = () => {
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation can be imported from your StudentDashboard component */}
-      
+    
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         <header className="bg-white shadow-sm">
@@ -342,6 +327,6 @@ const IssueSubmissionForm = () => {
       </div>
     </div>
   );
-
+};
 
 export default IssueSubmissionForm;
