@@ -340,6 +340,8 @@ class RegisterCountView(generics.ListAPIView):
             "pending_issues":pending_issues
         })
 
+   #Functinality of lecture dashboard      
+
 class LecturerAssignedIssuesView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
