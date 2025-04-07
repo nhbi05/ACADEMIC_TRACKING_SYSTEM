@@ -381,6 +381,14 @@ class LecturerResolveIssueView(APIView):
         except Issue.DoesNotExist:
             return Response({'error': 'Issue not found or not assigned to you'}, status=status.HTTP_404_NOT_FOUND)
         
+class LecturerPendingIssuesView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        #filter issues assigned to the logged in lecturer with a pending status
+        return Issue.Objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
+    
 def notify_lecturer(issue):
     lecturer = issue.assigned_to
     if lecturer and lecturer.email:
@@ -392,4 +400,3 @@ def notify_lecturer(issue):
             fail_silently=False,
         )
 
-        
