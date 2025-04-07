@@ -1,41 +1,65 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import { createIssue } from '../redux/actions/studentActions';
+import { createIssue, fetchStudentData } from '../redux/actions/studentActions';
 import { Alert, AlertDescription } from './ui/alert';
 
 const IssueSubmissionForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Get the submission state and user info from redux
+  // Get the submission state from redux
   const { submitting, error } = useSelector(state => state.issues || {});
-  const user = useSelector(state => state.auth.user); // Assuming user info is stored in auth reducer
-  
-  // Extended form state
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'missing_marks', // Changed from category_choices to category
-    attachments: null,
-    lecturer_name: '',
-    semester: 'Semester 1', // Changed to match exact format expected by backend
-    year_of_study: '',
-    registration_no: user?.student_profile?.registration_no || '' // Pre-fill if available
-  });
-  
-  // Effect to update registration number if user data loads after component mount
-  useEffect(() => {
-    if (user?.student_profile?.registration_no) {
-      setFormData(prev => ({
-        ...prev,
-        registration_no: user.student_profile.registration_no
-      }));
-    }
-  }, [user]);
+  // Get user from auth reducer
+  const user = useSelector(state => state.auth.user);
+  // Get student profile data from student reducer
+  const { profileData } = useSelector(state => state.student || {});
   
   // Success message state
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // Load student profile data when component mounts
+  useEffect(() => {
+    dispatch(fetchStudentData());
+  }, [dispatch]);
+  
+  // Function to get registration number from available sources
+  const getRegistrationNumber = useCallback(() => {
+    // Check profile data first (from student reducer)
+    if (profileData?.registration_no) {
+      return profileData.registration_no;
+    }
+    
+    // Fall back to user object if available (from auth reducer)
+    if (user?.student_profile?.registration_no) {
+      return user.student_profile.registration_no;
+    }
+    
+    return '';
+  }, [profileData, user]);
+  
+  // Form state with initial values
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'missing_marks',
+    attachments: null,
+    lecturer_name: '',
+    semester: 'Semester 1',
+    year_of_study: '',
+    registration_no: '' // Will be updated in useEffect
+  });
+  
+  // Effect to update registration number when profile data or user data loads
+  useEffect(() => {
+    const regNumber = getRegistrationNumber();
+    if (regNumber) {
+      setFormData(prev => ({
+        ...prev,
+        registration_no: regNumber
+      }));
+    }
+  }, [getRegistrationNumber]);
   
   // Handle form field changes
   const handleChange = (e) => {
@@ -73,8 +97,8 @@ const IssueSubmissionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Ensure registration_no is set from user profile if not already in form
-    const registrationNo = formData.registration_no || user?.student_profile?.registration_no || '';
+    // Get registration number from form or from data sources
+    const registrationNo = formData.registration_no || getRegistrationNumber();
     
     // Validate registration number before submitting
     if (!registrationNo) {
@@ -86,9 +110,7 @@ const IssueSubmissionForm = () => {
     const issueData = new FormData();
     issueData.append('title', formData.title);
     issueData.append('description', formData.description);
-    issueData.append('category', formData.category); // Changed from category_choices to category
-    
-    // Add the new fields to the form data
+    issueData.append('category', formData.category);
     issueData.append('lecturer_name', formData.lecturer_name);
     issueData.append('semester', formData.semester);
     issueData.append('year_of_study', formData.year_of_study);
@@ -106,7 +128,7 @@ const IssueSubmissionForm = () => {
       setFormData({
         title: '',
         description: '',
-        category: 'missing_marks', // Changed from category_choices to category
+        category: 'missing_marks',
         attachments: null,
         lecturer_name: '',
         semester: 'Semester 1',
@@ -124,7 +146,7 @@ const IssueSubmissionForm = () => {
       // Error will be handled by the reducer and displayed via the error state
     }
   };
-  
+
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation can be imported from your StudentDashboard component */}
