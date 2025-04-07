@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {  useDispatch } from 'react-redux';
-import { Alert, AlertDescription } from '../ui/alert';
+import { useDispatch } from 'react-redux';
 import axios from 'axios'; // For API calls
 import { logoutUser } from '../../redux/actions/authActions';
 
@@ -9,8 +8,6 @@ const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Redux state
- // const { user } = useSelector(state => state.auth); // Use 'user' if needed
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,6 +56,22 @@ const LecturerDashboard = () => {
           <ul>
             <li>
               <button
+                className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
+              >
+                <span className="mr-3 text-lg">📄</span>
+                Assigned Issues
+              </button>
+            </li>
+            <li>
+              <button
+                className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
+              >
+                <span className="mr-3 text-lg">✅</span>
+                Resolved Issues
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={handleLogout}
                 className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-red-100 hover:text-red-700 transition-colors"
               >
@@ -78,15 +91,41 @@ const LecturerDashboard = () => {
           </div>
         </header>
         <main className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Assigned Issues</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {issues.map(issue => (
-              <div key={issue.id} className="bg-white rounded-lg shadow p-4">
-                <h4 className="text-md font-semibold">{issue.title}</h4>
-                <p className="text-sm text-gray-600">{issue.description}</p>
-                <p className="text-sm text-gray-500">Status: {issue.status}</p>
-              </div>
-            ))}
+          {/* Dashboard Summary */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="bg-white shadow rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-700">Assigned Issues</h3>
+              <p className="text-2xl font-bold text-green-600">{issues.filter(issue => issue.status === 'Assigned').length}</p>
+            </div>
+            <div className="bg-white shadow rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-700">Pending Issues</h3>
+              <p className="text-2xl font-bold text-red-600">{issues.filter(issue => issue.status === 'Pending').length}</p>
+            </div>
+          </div>
+
+          {/* Issues Table */}
+          <h3 className="text-lg font-semibold mb-4">Issues Overview</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow rounded-lg">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Course Code</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue Type</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {issues.map(issue => (
+                  <tr key={issue.id} className="border-t">
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.course_code}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.issue_type}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </main>
       </div>
