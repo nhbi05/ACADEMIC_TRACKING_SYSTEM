@@ -1,5 +1,5 @@
 // src/redux/actions/authActions.js
-import { authService, studentService } from '../../services/api';
+import { authService, studentService,  } from '../../services/api';
 import api from '../../services/api';
 
 // Action Types
@@ -161,26 +161,9 @@ export const registerUser = (userData) => async (dispatch) => {
     let errorMessage = 'Registration failed. Please try again.';
     
     if (err.response?.data) {
-<<<<<<< HEAD
-      // Handle different error response formats
-      if (typeof err.response.data === 'string') {
-        errorMessage = err.response.data;
-      } else if (typeof err.response.data === 'object') {
-        errorMessage = Object.entries(err.response.data)
-          .map(([key, value]) => {
-            // Handle nested arrays in error messages
-            if (Array.isArray(value)) {
-              return `${key}: ${value.join(' ')}`;
-            }
-            return `${key}: ${value}`;
-          })
-          .join(' ');
-      }
-=======
       errorMessage = Object.entries(err.response.data)
         .map(([key, value]) => `${key}: ${value}`)
         .join(' ');
->>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
     }
     
     dispatch(authFailure(errorMessage));

@@ -114,16 +114,7 @@ api.interceptors.response.use(
 // Auth service
 export const authService = {
   register: async (userData) => {
-<<<<<<< HEAD
-    // Create a new axios instance without default headers for registration
-    const registerAxios = axios.create({
-      baseURL: API_URL
-    });
-    
-    const response = await registerAxios.post('/register/', userData);
-=======
     const response = await api.post('/register/', userData);
->>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
     return response.data;
   },
 
@@ -163,11 +154,9 @@ export const authService = {
       // Remove auth header
       delete api.defaults.headers.common['Authorization'];
     }
-<<<<<<< HEAD
-  }
-=======
+
   },
->>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
+
   
   // Helper method to store auth tokens
   setAuthTokens: (tokens) => {
@@ -227,15 +216,7 @@ export const authService = {
     }
   }
 };
-<<<<<<< HEAD
-  
 
-// Student services - Added missing studentService
-=======
-
-// Student services
-// Update to studentService in src/services/api.js
->>>>>>> 33c444bdc549bbe66ebdfc2fa68ff7a0e1a58393
 export const studentService = {
   getProfile: async () => {
     await authService.checkTokenExpiration();
