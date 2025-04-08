@@ -394,7 +394,8 @@ class LecturerResolvedIssuesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue,Objects.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_when')
+        return Issue,object.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_at')
+    
 def notify_lecturer(issue):
     lecturer = issue.assigned_to
     if lecturer and lecturer.email:
