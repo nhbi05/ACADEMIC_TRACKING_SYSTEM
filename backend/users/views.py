@@ -389,6 +389,12 @@ class LecturerPendingIssuesView(generics.ListAPIView):
         #filter issues assigned to the logged in lecturer with a pending status
         return Issue.Objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
     
+class LecturerResolvedIssuesView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue,Objects.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_when')
 def notify_lecturer(issue):
     lecturer = issue.assigned_to
     if lecturer and lecturer.email:

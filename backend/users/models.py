@@ -80,7 +80,7 @@ class RegistrarProfile(models.Model):
 class Issue(models.Model):
     # Choices for issue status
     STATUS_CHOICES = [
-        ('pending', 'pending'),
+        ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
     ]
