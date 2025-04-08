@@ -279,12 +279,7 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-800">Recent Issues</h3>
-              <button 
-                onClick={() => navigate('/student/issues')}
-                className="text-sm text-green-600 hover:text-green-500"
-              >
-                View all
-              </button>
+              <a href="/my-issues" className="text-sm text-green-600 hover:text-green-500">View all</a>
             </div>
             <div className="p-6">
               {issuesLoading ? (
@@ -295,7 +290,7 @@ const StudentDashboard = () => {
                 </div>
               ) : issues && issues.length > 0 ? (
                 <div className="divide-y divide-gray-200">
-                  {issues.slice(0, 5).map(issue => (
+                  {issues.slice(0, 3).map(issue => (
                     <div key={issue.id} className="py-3">
                       <div className="flex justify-between items-center">
                         <div>
