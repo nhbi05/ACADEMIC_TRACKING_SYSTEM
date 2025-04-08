@@ -199,7 +199,7 @@ const RegistrarDashboard = () => {
                       {issues.slice(0, 5).map(issue => (
                         <tr key={issue.id} className="border-b hover:bg-gray-100">
                           <td className="px-4 py-3">{issue.first_name}</td>
-                          <td className="px-4 py-3">{issue.course}</td>
+                          <td className="px-4 py-3">{issue.programme}</td>
                           <td className="px-4 py-3">{issue.registration_no}</td>
                           <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td>
                           <td className="px-4 py-3">
