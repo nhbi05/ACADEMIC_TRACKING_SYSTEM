@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from unittest.mock import DEFAULT
+from dotenv import load_dotenv
+load_dotenv()
 
 
 
