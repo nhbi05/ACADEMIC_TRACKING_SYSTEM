@@ -326,4 +326,62 @@ export const registrarService = {
   }
 };
 
+
+export const lecturerService = {
+  
+  getAssignedIssues: async () => {
+    const response = await axios.get('/api/assigned-issues/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+  getResolvedIssues: async () => {
+    const response = await axios.get('/api/resolved-issues/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  getIssueDetails: async (issueId) => {
+    const response = await axios.get(`/api/issues/${issueId}/`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  resolveIssue: async (issueId) => {
+    const response = await axios.patch(`/api/issues/${issueId}/resolve/`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  getNotifications: async () => {
+    const response = await axios.get('/api/lecturer/notifications/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  markNotificationAsRead: async (notificationId) => {
+    const response = await axios.patch(`/api/lecturer/notifications/${notificationId}/read/`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  }
+};
+
+
 export default api;
