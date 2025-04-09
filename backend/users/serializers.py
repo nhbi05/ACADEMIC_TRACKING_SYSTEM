@@ -1,6 +1,6 @@
 # users/serializers.py
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model,authenticate
 from .models import StudentProfile, LecturerProfile, RegistrarProfile, Issue
 
 # Get the custom User model
@@ -95,12 +95,37 @@ class RegisterSerializer(serializers.ModelSerializer):
             
         return user  # Return the created user
 
-# Serializer for user login
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=255)  # Username field changed from email
-    password = serializers.CharField(write_only=True) 
-    loginType = serializers.CharField(required=False)  
+    username = serializers.CharField(max_length=255)
+    password = serializers.CharField(write_only=True)
+    loginType = serializers.CharField(required=False)
 
+    def validate(self, data):
+        print("\n=== LoginSerializer Input Data ===")
+        print(f"Username: {data.get('username')}")
+        print(f"LoginType: {data.get('loginType')}")
+        print("===============================\n")
+        
+        username = data.get('username')
+        password = data.get('password')
+        
+        user = authenticate(
+            username=username,
+            password=password
+        )
+        
+        if not user:
+            raise serializers.ValidationError("Invalid credentials")
+        
+        print("\n=== User Authentication Successful ===")
+        print(f"User ID: {user.id}")
+        print(f"User Type: {getattr(user, 'user_type', 'N/A')}")
+        print("==================================\n")
+        
+        # Include the password in the validated data
+        data['user'] = user
+        return data
+        
 # Serializer for the Issue model
 class IssueSerializer(serializers.ModelSerializer):
     # Auto-fetch student details from User and StudentProfile

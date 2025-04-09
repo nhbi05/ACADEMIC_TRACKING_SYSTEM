@@ -1,5 +1,5 @@
 // src/redux/actions/authActions.js
-import { authService, studentService,  } from '../../services/api';
+import { authService, studentService } from '../../services/api';
 import api from '../../services/api';
 
 // Action Types
@@ -14,22 +14,24 @@ export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
 
 // Helper Functions for Token Management
 const saveTokens = (tokens) => {
-  localStorage.setItem('token', JSON.stringify({
-    access: tokens.access,
-    refresh: tokens.refresh
-  }));
+  localStorage.setItem('access', tokens.access);
+  localStorage.setItem('refresh', tokens.refresh);
 };
 
 const getTokens = () => {
   try {
-    return JSON.parse(localStorage.getItem('token'));
+    return {
+      access: localStorage.getItem('access'),
+      refresh: localStorage.getItem('refresh')
+    };
   } catch (error) {
     return null;
   }
 };
 
 const clearTokens = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('access');
+  localStorage.removeItem('refresh');
   delete api.defaults.headers.common['Authorization'];
 };
 
@@ -107,7 +109,7 @@ export const initAuth = () => async (dispatch) => {
 };
 
 // Login User
-export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
+export const loginUser = (credentials, loginType) => async (dispatch) => {
   dispatch(loginRequest());
   
   try {
@@ -126,11 +128,6 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
     // Save tokens and set auth header
     saveTokens(tokens);
     setAuthHeader(tokens.access);
-    
-    // If auth object with login function is provided, call it
-    if (auth && typeof auth.login === 'function') {
-      auth.login(user, tokens);
-    }
     
     // Update Redux state
     dispatch(loginSuccess(user, tokens));
@@ -183,7 +180,7 @@ export const logoutUser = () => async (dispatch) => {
     // Attempt to call the logout API endpoint
     await authService.logout();
   } catch (error) {
-    // Continue with logout process even if API call fails
+    // Continue with logout process even if API fails
   } finally {
     // Clear tokens and auth header
     clearTokens();
