@@ -1,3 +1,4 @@
+__pycache__
 # IDEs and Editors
 .idea/
 .vscode/
@@ -6,30 +7,11 @@
 .DS_Store
 *.sublime-workspace
 *.sublime-project
+venv/
 
 # Testing
 .coverage
 htmlcov/
-.tox/
-.nox/
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-
-# Production
-/static/
-staticfiles/
-
-# Database
-*.sqlite3
-*.db
-
-# Environment variables
 .env
 .env.local
 .env.*.local
@@ -44,4 +26,3 @@ yarn-error.log*
 # System Files
 .DS_Store
 Thumbs.db
-__pycache__/

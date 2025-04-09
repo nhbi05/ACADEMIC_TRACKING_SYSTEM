@@ -5,7 +5,7 @@ django-cors-headers==4.3.1
 python-dotenv==1.0.0
 
 # Database
-#psycopg2-binary==2.9.9
+psycopg2-binary==2.9.9
 
 # Authentication & Security
 djangorestframework-simplejwt==5.3.1

@@ -1,62 +1,39 @@
 // src/components/auth/Login.js
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { clearMessages } from "../../redux/actions/authActions";
 import { Alert, AlertDescription } from "../ui/alert";
-import { authService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginType, setLoginType] = useState("student");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const auth = useAuth();
+  
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
+  
+  // Get state from Redux store
+  const { isLoading, successMessage, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
 
-  const validateForm = () => {
-    if (!email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-    if (!email.includes("@")) {
-      setError("Invalid email address");
-      return false;
-    }
-    if (!password) {
-      setError("Password is required");
-      return false;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-    return true;
-  };
+  // Clear messages when component unmounts or when navigating away
+  useEffect(() => {
+    return () => {
+      dispatch(clearMessages());
+    };
+  }, [dispatch]);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccessMessage('');
-  
-    if (!validateForm()) {
-      return;
-    }
-  
-    setIsLoading(true);
-  
-    try {
-      const response = await authService.login({ email, password, loginType });
-      login(response.user, {
-        access: response.access,
-        refresh: response.refresh
-      });
-  
-      setSuccessMessage('Login successful! Redirecting...');
-  
-      setTimeout(() => {
+  // Redirect if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timer = setTimeout(() => {
         switch (loginType) {
           case 'student':
             navigate('/student-dashboard');
@@ -70,11 +47,41 @@ const Login = () => {
           default:
             navigate('/');
         }
-      }, 1000);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, loginType, navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const response = await axios.post('http://localhost:8000/api/login/', {
+        username,
+        password,
+        // ...other fields
+      });
+      
+      console.log("Auth response:", response.data);
+      
+      // Pass the entire response data to login
+      auth.login(response.data);
+      
+      // Navigate based on role
+      if (response.data.user.role === 'student') {
+        navigate('/student-dashboard');
+      } else if (response.data.user.role === 'lecturer') {
+        navigate('/lecturer-dashboard');
+      } else {
+        navigate('/registrar-dashboard');
+      }
+      
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.error || "Login failed");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -121,22 +128,22 @@ const Login = () => {
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address
+              Username
             </label>
             <input
-              id="email"
-              type="email"
+              id="username"
+              type="text"
               required
               className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading || isSubmitting}
             />
           </div>
 
@@ -154,16 +161,16 @@ const Login = () => {
               className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || isSubmitting}
             />
           </div>
 
           <button
             type="submit"
             className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            disabled={isLoading}
+            disabled={isLoading || isSubmitting}
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <span className="flex items-center justify-center">
                 <svg
                   className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
