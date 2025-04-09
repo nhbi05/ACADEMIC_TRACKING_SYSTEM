@@ -89,10 +89,10 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ait_db',
+        'NAME': 'railway',
         'USER':'postgres',
-        'PASSWORD':'4007#',
-        'HOST':'localhost',
+        'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+        'HOST':'postgres.railway.internal',
         'PORT':'5432'
     }
 }
