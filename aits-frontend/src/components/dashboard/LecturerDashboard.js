@@ -1,48 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import axios from 'axios'; // For API calls
 import { logoutUser } from '../../redux/actions/authActions';
+import { fetchAssignedIssues, fetchResolvedIssues } from '../../redux/actions/LecturerActions';
 
 const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [issues, setIssues] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Destructure issues from the Redux state
+  const { loading, issues, resolvedIssues, error } = useSelector(state => state.lecturer || { loading: false, issues: [], resolvedIssues: [], error: null });
 
   useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        const response = await axios.get('/api/resolved-issues/', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('access')}` },
-        });
-        setIssues(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to fetch issues.');
-        setLoading(false);
-      }
-    };
-
-    fetchIssues();
-  }, []);
+    dispatch(fetchAssignedIssues());  // Fetch assigned issues
+    dispatch(fetchResolvedIssues()); // Fetch resolved issues
+  }, [dispatch]);
 
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser());
       navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (err) {
+      console.error('Logout failed:', err);
     }
   };
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
-  
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="flex h-screen bg-green-50">
@@ -55,17 +39,13 @@ const LecturerDashboard = () => {
         <nav className="mt-6">
           <ul>
             <li>
-              <button
-                className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
-              >
+              <button className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors">
                 <span className="mr-3 text-lg">📄</span>
                 Assigned Issues
               </button>
             </li>
             <li>
-              <button
-                className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
-              >
+              <button className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors">
                 <span className="mr-3 text-lg">✅</span>
                 Resolved Issues
               </button>
@@ -98,13 +78,13 @@ const LecturerDashboard = () => {
               <p className="text-2xl font-bold text-green-600">{issues.filter(issue => issue.status === 'Assigned').length}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-700">Pending Issues</h3>
-              <p className="text-2xl font-bold text-red-600">{issues.filter(issue => issue.status === 'Pending').length}</p>
+              <h3 className="text-lg font-semibold text-gray-700">Resolved Issues</h3>
+              <p className="text-2xl font-bold text-blue-600">{resolvedIssues.length}</p>
             </div>
           </div>
 
-          {/* Issues Table */}
-          <h3 className="text-lg font-semibold mb-4">Issues Overview</h3>
+          {/* Assigned Issues Table */}
+          <h3 className="text-lg font-semibold mb-4">Assigned Issues</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded-lg">
               <thead>
@@ -116,7 +96,32 @@ const LecturerDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {issues.map(issue => (
+                {issues.filter(issue => issue.status === 'Assigned').map(issue => (
+                  <tr key={issue.id} className="border-t">
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.course_code}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.issue_type}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Resolved Issues Table */}
+          <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow rounded-lg">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Course Code</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue Type</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resolvedIssues.map(issue => (
                   <tr key={issue.id} className="border-t">
                     <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{issue.course_code}</td>

@@ -256,11 +256,12 @@ class LecturerSearchView(generics.ListAPIView):
 
 
 class ResolvedIssuesView(generics.ListAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(student=self.request.user,status='resolved')
+        return Issue.objects.filter(submitted_by=self.request.user, status='resolved')
+
 
 
 class IssueDetailView(generics.RetrieveAPIView):
