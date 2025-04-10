@@ -56,7 +56,7 @@ const Settings = () => {
     }));
   };
   
-  // Handle display settings changes
+  
   const handleDisplayChange = (e) => {
     const { name, checked } = e.target;
     setDisplaySettings(prev => ({
