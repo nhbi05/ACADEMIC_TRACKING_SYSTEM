@@ -94,7 +94,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'railway',
-        'NAME': 'railway',
         'USER':'postgres',
         'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
         'HOST':'postgres-production-cb33.up.railway.app',
