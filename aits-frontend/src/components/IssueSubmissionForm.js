@@ -85,7 +85,7 @@ const IssueSubmissionForm = () => {
     // Get registration number from form or from data sources
     const registrationNo = formData.registration_no || getRegistrationNumber();
     
-    
+    // Validate registration number before submitting
     if (!registrationNo) {
       alert('Registration number is required');
       return;
@@ -121,7 +121,7 @@ const IssueSubmissionForm = () => {
         registration_no: registrationNo // Keep the registration number
       });
       
-      // Redirect to issues list after 2 seconds
+      /
       setTimeout(() => {
         navigate('/my-issues');
       }, 2000);
