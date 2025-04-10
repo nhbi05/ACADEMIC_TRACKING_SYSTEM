@@ -19,6 +19,14 @@ const initialState = {
           successMessage: null
         };
       
+      case 'REGISTER_REQUEST':
+        return {
+          ...state,
+          isLoading: true,
+          error: null,
+          successMessage: null
+        };
+      
       case 'LOGIN_SUCCESS':
         return {
           ...state,

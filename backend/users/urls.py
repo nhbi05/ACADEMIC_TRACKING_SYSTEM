@@ -6,13 +6,19 @@ from .views import( RegisterView,
                    ResolveIssueView,
                    StudentIssueView,
                    ResolvedIssuesView,
-                   CreateIssueView,
                    IssueDetailView,
                    LecturerProfileView,
                    RegistrarProfileView,
                    StudentProfileView,
-                   LogoutView
-                   )
+                   LogoutView,
+                   RegistrarIssueView,
+                   IssueCountView,
+                   RegisterCountView,
+                   LecturerAssignedIssuesView,
+                   LecturerIssueDetailView,
+                   LecturerResolveIssueView,
+                   LecturerPendingIssuesView,)
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,)
@@ -31,9 +37,15 @@ urlpatterns = [
     path('assign-issue/<int:issue_id>/', AssignIssueView.as_view(), name='assign_issue'),
     path('my-issues/',StudentIssueView.as_view(),name='my-issues'),
     path('resolved-issues/',ResolvedIssuesView.as_view(),name='resolved-issues'),
-    path('create-issue/',CreateIssueView.as_view(),name='create-issue'),
     path('issue/<int:pk>/',IssueDetailView.as_view(),name='issue-detail'),
+    path('issue-count/', IssueCountView.as_view(), name='issue-count'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh')
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('registrar/issues/', RegistrarIssueView.as_view(), name='registrar_issues'),
+    path('Registrar_issue_counts/',RegisterCountView.as_view(),name='Registrar_issue_counts'),
+    path('assigned-issues/', LecturerAssignedIssuesView.as_view(), name='lecturer_assigned_issues'),
+    path('lecturer/issue/<int:pk>/',LecturerIssueDetailView.as_view(), name='lecturer_issue_detail'),
+    path('lecturer/resolve_issue/<int:pk>/',LecturerResolveIssueView.as_view(), name='lecturer_resolve_issue'),
+    path('lecturer/pending_issues/', LecturerPendingIssuesView.as_view(), name='lecturer_pending_issues'),
 ]

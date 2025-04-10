@@ -10,13 +10,27 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from unittest.mock import DEFAULT
+from dotenv import load_dotenv
+load_dotenv()
+
+
+
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+SECRET_KEY = os.getenv('SECRET_KEY')
+#secret app info
+db_password =os.getenv('password')
+db_host = os.getenv('host')
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
+# Quick-start development settings - unsuitable for procduction
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -25,7 +39,7 @@ SECRET_KEY = 'django-insecure-yto=31kte-xiyu4ilo45v+zcd^d8dpi%)lgi_&xq@+h3wqx9-s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -42,6 +56,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'django_filters',
     #local apps
     'users',
     
@@ -86,8 +101,12 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER':'postgres',
+        'PASSWORD':db_password,
+        'HOST':db_host,
+        'PORT':'5432'
     }
 }
 
@@ -133,7 +152,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React frontend
+    "http://localhost:3000",
+    "https://aits-frontend-omega.vercel.app"# React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'
@@ -145,9 +165,20 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
+# settings.py
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Short-lived access token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # Longer-lived refresh token
+    'ROTATE_REFRESH_TOKENS': True,                   # Give new refresh token when refreshing
+    'BLACKLIST_AFTER_ROTATION': True,                # Blacklist old refresh tokens
 }
+
+EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+

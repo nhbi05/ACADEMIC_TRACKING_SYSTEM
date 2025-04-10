@@ -2,6 +2,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+
+
+
 
 class User(AbstractUser):
     # Choices for user roles
@@ -15,14 +19,12 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
     # Method for students to submit issues
-    def submit_issue(self, category, description,Reg_no,Student_no,course_unit,semester,year_of_study):
+    def submit_issue(self, category, description,course_unit,semester,year_of_study):
         # Only students are allowed to submit issues
         if self.role != 'student':
             raise PermissionError("Only students can submit issues")
         # Create and return a new Issue object
         return Issue.objects.create(
-            Student_no = Student_no,
-            Reg_no = Reg_no,
             category=category,
             status='pending',
             description=description,
@@ -31,19 +33,6 @@ class User(AbstractUser):
             year_of_study = year_of_study,
             submitted_by=self  # Set the user who submitted the issue
         )
-
-    # Method for registrars to assign issues to lecturers
-    def assign_issue(self, issue, lecturer):
-        # Only registrars can assign issues
-        if self.role != 'registrar':
-            raise PermissionError("Only Registrar can assign issues to lecturers")
-        # Ensure the lecturer is of the correct role
-        if lecturer.role != 'lecturer':
-            raise ValueError("Issues can only be assigned to lecturers")
-        # Assign the issue to the lecturer and update its status
-        issue.assigned_to = lecturer
-        issue.status = 'in_progress'
-        issue.save()
 
     # Method for lecturers to resolve assigned issues
     def resolve_issue(self, issue):
@@ -91,7 +80,7 @@ class RegistrarProfile(models.Model):
 class Issue(models.Model):
     # Choices for issue status
     STATUS_CHOICES = [
-        ('pending', 'pending'),
+        ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
     ]
@@ -115,8 +104,9 @@ class Issue(models.Model):
         ('Semester 2' , 'Semester 2'),
         
     ]
-    Student_no = models.IntegerField()
-    Reg_no = models.CharField(max_length = 20)
+    issue_id = models.CharField(max_length=20, unique=True, editable=False)
+    #Student_no = models.IntegerField()
+    registration_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField() 
@@ -124,20 +114,28 @@ class Issue(models.Model):
     year_of_study = models.IntegerField( choices= YEAR_OF_STUDY)
     semester = models.CharField(max_length=20, choices= SEMESTER_OF_STUDY)
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  
-    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues") 
+    Name_of_Lecturer = models.CharField(max_length=100,null=True,blank=True) 
     created_at = models.DateTimeField(auto_now_add=True) 
-    resolved_at = models.DateTimeField(null=True, blank=True)  
-    
+    resolved_at = models.DateTimeField(null=True, blank=True) 
+    lecturer_name = models.CharField(max_length=255) 
+    title = models.CharField(max_length=255) 
+    attachments = models.FileField(upload_to="issue_attachments/", blank=True, null=True)
+
+
     def __str__(self):
         # String representation of the issue
         return f"Issue {self.id} - {self.category} ({self.status})"
 
-# Model for notifications related to users
-class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)  # User to whom the notification belongs
-    message = models.TextField()  # Notification message
-    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp when the notification was created
+    #creating an automatic issue_id eg. ISS0001
+    def save(self, *args, **kwargs):
+        if not self.issue_id:
+            last_issue = Issue.objects.order_by('-id').first() #checks last issue once created
+            if last_issue and last_issue.issue_id:
+                last_number = int(last_issue.issue_id.replace('ISS', ''))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+            self.issue_id = f'ISS{new_number:04d}'
+        super().save(*args, **kwargs)
 
-    def __str__(self):
-        # String representation of the notification
-        return f"Notification for {self.user.username}: {self.message}"
+

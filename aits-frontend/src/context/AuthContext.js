@@ -1,40 +1,59 @@
-// src/context/AuthContext.js
-import React, { createContext, useState, useContext } from 'react';
 
+// src/context/AuthContext.js
+
+import React, { createContext, useContext, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser, logoutUser, initAuth } from '../redux/actions/authActions';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(prev => {
-    // This is a quick fix probably use sessions
+  const dispatch = useDispatch();
+  const { user, isAuthenticated, isLoading, error, tokens } = useSelector(state => state.auth);
+  
+  // Initialize auth on app startup
+  useEffect(() => {
+    const initialize = async () => {
+      await dispatch(initAuth());
+    };
+    
+    initialize();
+  }, [dispatch]);
+  
+  // Context login will dispatch Redux action
+  const login = async (credentials, loginType = 'student') => {
     try {
-      return JSON.parse(localStorage.getItem('user'))
-    } catch {}
-    return null
-  });
-  const [token, setToken] = useState(prev => {
+      const result = await dispatch(loginUser(credentials, loginType));
+      return result;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  };
+  
+  // Context logout will dispatch Redux action
+  const logout = async () => {
     try {
-      return JSON.parse(localStorage.getItem('token'))
-    } catch {}
-    return null
-  });
-
-  const login = (user, token) => {
-    setUser(user);
-    setToken(token);
-    localStorage.setItem('user', JSON.stringify(user))
-    localStorage.setItem('token', JSON.stringify(token));
+      const result = await dispatch(logoutUser());
+      return result;
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   };
-
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+  
+  // Value object with everything needed from auth state
+  const authValue = {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    tokens,
+    login,
+    logout
   };
-  // console.log(user ? "Reloading..." : "Bootstarped", {user,token})
-
+  
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={authValue}>
       {children}
     </AuthContext.Provider>
   );

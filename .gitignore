@@ -1,3 +1,4 @@
+__pycache__
 # IDEs and Editors
 .idea/
 .vscode/
@@ -7,6 +8,7 @@
 *.sublime-workspace
 *.sublime-project
 venv/
+*.pyc
 
 # Testing
 .coverage
@@ -25,4 +27,3 @@ yarn-error.log*
 # System Files
 .DS_Store
 Thumbs.db
-__pycache__/
