@@ -59,7 +59,7 @@ const Login = () => {
       dispatch({ type: 'AUTH_FAILURE', payload: "Password is required" });
       return false;
     }
-    if (password.length < 3) {
+    if (password.length < 6) {
       dispatch({ type: 'AUTH_FAILURE', payload: "Password must be at least 6 characters" });
       return false;
     }

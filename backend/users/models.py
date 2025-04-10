@@ -105,7 +105,7 @@ class Issue(models.Model):
         
     ]
     issue_id = models.CharField(max_length=20, unique=True, editable=False)
-    student_no = models.IntegerField()
+    student_no = models.CharField(max_length=20)
     registration_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 

@@ -118,7 +118,6 @@ const navItems = [
 { name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },
 { name: 'View Issues', icon: '📄', path: '/my-issues' },
 { name: 'Create Issue', icon: '➕', path: '/submit-issue' },
-{ name: 'Profile', icon: '👤', path: '/student/profile' },
 ];
 
   return (

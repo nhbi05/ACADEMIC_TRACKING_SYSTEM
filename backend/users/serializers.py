@@ -138,13 +138,12 @@ class IssueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Issue
         fields = [
-            'id', 'title', 'description', 'category', 'status',
+            'id', 'issue_id', 'title', 'description', 'category', 'status',
             'lecturer_name', 'semester', 'year_of_study', 'registration_no',
-            'submitted_by', 'assigned_to', 'attachments', 'programme'
-            'created_at', "student_no"
+            'submitted_by', 'assigned_to', 'attachments', 'programme', 'first_name', 'last_name',
+            'created_at', 'student_no'
         ]
         read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']
-
 class LecturerProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
@@ -152,4 +151,3 @@ class LecturerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = LecturerProfile
         fields = ["first_name", "last_name", "department"]
-

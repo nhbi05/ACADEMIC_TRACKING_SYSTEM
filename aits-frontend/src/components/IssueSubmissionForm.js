@@ -272,6 +272,8 @@ const IssueSubmissionForm = () => {
                     type="text"
                     id="registration_no"
                     name="registration_no"
+                    value={formData.registration_no}
+
                     readOnly
                     className="w-full px-4 py-2 border border-gray-300 rounded-md"
                   />
