@@ -67,7 +67,7 @@ const Register = () => {
         student_profile: {
 
           student_no: formData.student_no,
-          registration_no: formData.registration_no, 
+          registration_no: formData.registration_no, // Added registration number
           college: formData.college,
           programme: formData.programme,
 
@@ -87,7 +87,7 @@ const Register = () => {
       };
     }
 
-    // Prepare the registration data
+    
     const registrationData = {
       username: formData.username,
       email: formData.email,
