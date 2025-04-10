@@ -80,7 +80,7 @@ const Settings = () => {
     }));
   };
   
-  
+  // Toggle password change form
   const togglePasswordForm = () => {
     setAccountSettings(prev => ({
       ...prev,
