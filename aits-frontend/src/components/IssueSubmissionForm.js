@@ -121,7 +121,7 @@ const IssueSubmissionForm = () => {
         registration_no: registrationNo // Keep the registration number
       });
       
-      /
+      // Redirect to issues list after 2 seconds
       setTimeout(() => {
         navigate('/my-issues');
       }, 2000);
@@ -158,7 +158,7 @@ const IssueSubmissionForm = () => {
               Academic Issue Submission Form
             </h3>
             
-            {/* Success Message */}
+            
             {successMessage && (
               <Alert className="mb-6 bg-green-100 border-green-500 text-green-800">
                 <AlertDescription>{successMessage}</AlertDescription>
