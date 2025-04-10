@@ -16,7 +16,7 @@ const Carousel = ({ children }) => {
       setCurrent((prevCurrent) => 
         prevCurrent === length - 1 ? 0 : prevCurrent + 1
       );
-    }, 5000); // Change image every 5 seconds
+    }, 3000); // Change image every 3 seconds
 
     return () => clearInterval(timer);
   }, [length]);
