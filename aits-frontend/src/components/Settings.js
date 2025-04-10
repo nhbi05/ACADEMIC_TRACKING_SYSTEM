@@ -7,7 +7,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const { token, logout } = useAuth();
 
- 
+  // Settings states
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     issueUpdates: true,
@@ -30,7 +30,7 @@ const Settings = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Get auth token helper
+  
   const getAuthToken = () => {
     if (token?.access) {
       return token.access;
