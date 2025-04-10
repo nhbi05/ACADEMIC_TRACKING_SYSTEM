@@ -96,7 +96,7 @@ DATABASES = {
         'NAME': 'railway',
         'USER':'postgres',
         'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
-        'HOST':'postgres-production-cb33.up.railway.app',
+        'HOST':'postgres.railway.internal',
         'PORT':'5432'
     }
 }
