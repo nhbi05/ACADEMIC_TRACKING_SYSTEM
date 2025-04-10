@@ -61,7 +61,7 @@ const IssueSubmissionForm = () => {
     }
   }, [getRegistrationNumber]);
   
-  // Handle form field changes
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -70,7 +70,7 @@ const IssueSubmissionForm = () => {
     });
   };
   
-  // Handle file upload
+  
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
