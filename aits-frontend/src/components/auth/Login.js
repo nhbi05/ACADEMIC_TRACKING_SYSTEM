@@ -95,7 +95,7 @@ const Login = () => {
           </h2>
         </div>
 
-        {/* Login Type Selector */}
+        
         <div className="flex mb-6 border rounded-lg overflow-hidden">
           {["student", "lecturer", "registrar"].map((type) => (
             <button
