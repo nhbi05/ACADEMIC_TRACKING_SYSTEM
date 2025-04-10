@@ -47,7 +47,7 @@ const Settings = () => {
     return null;
   };
   
- 
+  // Handle notification toggle changes
   const handleNotificationChange = (e) => {
     const { name, checked } = e.target;
     setNotificationSettings(prev => ({
@@ -64,7 +64,7 @@ const Settings = () => {
       [name]: checked
     }));
     
-    // Apply dark mode if needed
+    
     if (name === 'darkMode') {
       document.documentElement.classList.toggle('dark', checked);
       localStorage.setItem('darkMode', checked ? 'enabled' : 'disabled');
