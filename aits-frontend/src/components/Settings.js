@@ -71,7 +71,7 @@ const Settings = () => {
     }
   };
   
-  
+  // Handle password fields
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setAccountSettings(prev => ({
@@ -80,7 +80,7 @@ const Settings = () => {
     }));
   };
   
-  // Toggle password change form
+  
   const togglePasswordForm = () => {
     setAccountSettings(prev => ({
       ...prev,
