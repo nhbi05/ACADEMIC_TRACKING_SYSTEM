@@ -96,6 +96,7 @@ const Login = () => {
         </div>
 
         
+        
         <div className="flex mb-6 border rounded-lg overflow-hidden">
           {["student", "lecturer", "registrar"].map((type) => (
             <button
@@ -113,7 +114,7 @@ const Login = () => {
           ))}
         </div>
 
-        {/* Error Alert */}
+        
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertDescription>{error}</AlertDescription>
