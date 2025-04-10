@@ -64,14 +64,14 @@ const Settings = () => {
       [name]: checked
     }));
     
-    
+    // Apply dark mode if needed
     if (name === 'darkMode') {
       document.documentElement.classList.toggle('dark', checked);
       localStorage.setItem('darkMode', checked ? 'enabled' : 'disabled');
     }
   };
   
-  // Handle password fields
+  
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setAccountSettings(prev => ({
