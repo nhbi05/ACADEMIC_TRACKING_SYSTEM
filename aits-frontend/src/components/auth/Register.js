@@ -54,7 +54,7 @@ const Register = () => {
       setPasswordError('');
       console.log("Form data before validation:", formData);
     
-    
+    // Validate passwords match
     if (formData.password !== formData.password2) {
       setPasswordError('Passwords do not match');
       return;
