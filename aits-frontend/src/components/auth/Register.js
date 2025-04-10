@@ -135,7 +135,7 @@ const Register = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
-            {/* Basic Information */}
+            
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
