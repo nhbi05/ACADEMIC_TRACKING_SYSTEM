@@ -31,7 +31,7 @@ const Carousel = ({ children }) => {
               index === current ? "opacity-100" : "opacity-0"
             }`}
           >
-            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="absolute inset-0 bg-black/65"></div>
             <img
               src={image}
               alt={`Slide ${index + 1}`}
