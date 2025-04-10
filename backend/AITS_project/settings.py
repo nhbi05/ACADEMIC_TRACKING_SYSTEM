@@ -10,17 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-import os
+
 from pathlib import Path
 from unittest.mock import DEFAULT
-
-
-
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-SECRET_KEY = os.getenv('SECRET_KEY')
-#secret app info
-db_password =os.getenv('password')
-db_host = os.getenv('host')
 
 
 
@@ -100,14 +92,13 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ait_db',
+        'NAME': 'railway',
         'USER':'postgres',
-        'PASSWORD':db_password,
-        'HOST':db_host,
+        'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+        'HOST':'postgres-production-cb33.up.railway.app',
         'PORT':'5432'
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -175,8 +166,7 @@ EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER ')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = 'raymondsuuna05@gmail.com'
+EMAIL_HOST_PASSWORD = 'zchs eeho jehk cbkg'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
 
