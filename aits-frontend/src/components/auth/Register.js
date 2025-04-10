@@ -38,7 +38,7 @@ const Register = () => {
     };
   }, [dispatch]);
 
-  
+  // Redirect on successful registration
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
@@ -54,7 +54,7 @@ const Register = () => {
       setPasswordError('');
       console.log("Form data before validation:", formData);
     
-    // Validate passwords match
+    
     if (formData.password !== formData.password2) {
       setPasswordError('Passwords do not match');
       return;
