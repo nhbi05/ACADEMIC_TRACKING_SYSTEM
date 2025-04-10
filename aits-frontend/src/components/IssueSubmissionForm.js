@@ -50,7 +50,7 @@ const IssueSubmissionForm = () => {
     registration_no: '' // Will be updated in useEffect
   });
   
-  // Effect to update registration number when profile data or user data loads
+  
   useEffect(() => {
     const regNumber = getRegistrationNumber();
     if (regNumber) {
@@ -61,7 +61,7 @@ const IssueSubmissionForm = () => {
     }
   }, [getRegistrationNumber]);
   
-  
+  // Handle form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -70,7 +70,7 @@ const IssueSubmissionForm = () => {
     });
   };
   
-  
+  // Handle file upload
   const handleFileChange = (e) => {
     setFormData({
       ...formData,
