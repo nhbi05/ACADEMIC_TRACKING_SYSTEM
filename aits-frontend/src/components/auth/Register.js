@@ -1,10 +1,10 @@
-
+// src/components/auth/Register.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
-//import './styles/style_login.css';
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
