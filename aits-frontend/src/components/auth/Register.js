@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
-
+//import './styles/style_login.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  // Get values from Redux store
+  
   const { isLoading, error, successMessage } = useSelector(state => state.auth);
 
   // Clear messages when component unmounts
