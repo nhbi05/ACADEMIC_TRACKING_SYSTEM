@@ -49,3 +49,21 @@ urlpatterns = [
     path('lecturer/resolve_issue/<int:pk>/',LecturerResolveIssueView.as_view(), name='lecturer_resolve_issue'),
     path('lecturer/pending_issues/', LecturerPendingIssuesView.as_view(), name='lecturer_pending_issues'),
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
