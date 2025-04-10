@@ -31,14 +31,14 @@ const Register = () => {
   // Get values from Redux store
   const { isLoading, error, successMessage } = useSelector(state => state.auth);
 
-  
+  // Clear messages when component unmounts
   useEffect(() => {
     return () => {
       dispatch(clearMessages());
     };
   }, [dispatch]);
 
-  // Redirect on successful registration
+  
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => {
