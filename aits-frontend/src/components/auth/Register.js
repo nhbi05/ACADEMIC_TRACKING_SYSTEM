@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
+import Carousel from '../carousel';
 //import './styles/style_login.css';
 
 const Register = () => {
@@ -103,7 +104,8 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <Carousel>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900">Register</h2>
@@ -304,6 +306,7 @@ const Register = () => {
         </form>
       </div>
     </div>
+    </Carousel>
   );
 };
 
