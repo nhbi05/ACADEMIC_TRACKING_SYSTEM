@@ -16,6 +16,7 @@ from unittest.mock import DEFAULT
 
 
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -92,6 +93,7 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
         'NAME': 'railway',
         'USER':'postgres',
         'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
