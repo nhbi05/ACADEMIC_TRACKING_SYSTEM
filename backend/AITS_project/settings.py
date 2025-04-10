@@ -101,12 +101,8 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER':'postgres',
-        'PASSWORD':db_password,
-        'HOST':db_host,
-        'PORT':'5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -153,7 +149,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://aits-frontend-omega.vercel.app"# React frontend
+    #"https://aits-frontend-omega.vercel.app"# React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'
