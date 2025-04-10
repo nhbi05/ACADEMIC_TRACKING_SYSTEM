@@ -60,14 +60,14 @@ const Register = () => {
       return;
     }
   
-    
+     // Create the appropriate profile data based on role
     let profileData = {};
     if (formData.role === 'student') {
       profileData = {
         student_profile: {
 
           student_no: formData.student_no,
-          registration_no: formData.registration_no, // Added registration number
+          registration_no: formData.registration_no, 
           college: formData.college,
           programme: formData.programme,
 
