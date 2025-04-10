@@ -28,10 +28,10 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  
+  // Get values from Redux store
   const { isLoading, error, successMessage } = useSelector(state => state.auth);
 
-  // Clear messages when component unmounts
+  
   useEffect(() => {
     return () => {
       dispatch(clearMessages());
