@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
+// import axios from 'axios';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { token, logout } = useAuth();
 
-  // Settings states
+ 
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
     issueUpdates: true,
