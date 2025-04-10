@@ -92,7 +92,7 @@ const Settings = () => {
     setError(null);
   };
   
-  // Save notification settings
+  
   const saveNotificationSettings = async () => {
     setSaving(true);
     setError(null);
