@@ -3,11 +3,11 @@ option:hover {
     color: white !important;
   }
   
-  select:focus option:hover {
-    background-color: #10b981 !important;
-    color: white !important;
-  }
-  
-  select option:hover {
-    background-color: #10b981 !important;
-  }
+select:focus option:hover {
+  background-color: #10b981 !important;
+  color: white !important;
+}
+
+select option:hover {
+  background-color: #10b981 !important;
+}
