@@ -95,7 +95,8 @@ const Login = () => {
           </h2>
         </div>
 
-        {/* Login Type Selector */}
+        
+        
         <div className="flex mb-6 border rounded-lg overflow-hidden">
           {["student", "lecturer", "registrar"].map((type) => (
             <button
@@ -127,6 +128,7 @@ const Login = () => {
           </Alert>
         )}
 
+        
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>

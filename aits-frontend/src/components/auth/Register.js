@@ -60,7 +60,7 @@ const Register = () => {
       return;
     }
   
-    // Create the appropriate profile data based on role
+     // Create the appropriate profile data based on role
     let profileData = {};
     if (formData.role === 'student') {
       profileData = {
@@ -87,7 +87,7 @@ const Register = () => {
       };
     }
 
-    // Prepare the registration data
+    
     const registrationData = {
       username: formData.username,
       email: formData.email,
@@ -135,7 +135,7 @@ const Register = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
-            {/* Basic Information */}
+            
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
@@ -226,7 +226,7 @@ const Register = () => {
                   <option value="BIT">Bachelor of Information Systems & Technology</option>
                   <option value="BLIS">Bachelor of Library & Information Systems</option>
                 </select>
-                {/*<div className="border border-gray-200 rounded-md p-4">*/}
+               
                   <h3 className="text-lg font-medium text-green-700 mb-3">Student Info</h3>
                   <div className="space-y-4">
                     <div>
