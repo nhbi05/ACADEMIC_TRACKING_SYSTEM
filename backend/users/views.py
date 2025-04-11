@@ -15,7 +15,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
 
-
 User = get_user_model()
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -154,9 +153,14 @@ class ResolveIssueView(APIView):
             )
         
         try:
-            issue = Issue.objects.get(id=issue_id)
-            #the lecturer resolves the issue calling the method from the user model
-            request.user.resolve_issue(issue)
+            issue = Issue.objects.get(id=issue_id, assigned_to=request.user)
+            if issue.status =='resolved':
+                return Response({'error: Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
+
+            issue.status = 'resolved'
+            issue.resolved_by = request.user
+            issue.save()
+
             #send an email notification to the student who submitted the issue
             student_user= issue.submitted_by
             if student_user and student_user.email:
@@ -165,20 +169,14 @@ class ResolveIssueView(APIView):
                     message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
-                    fail_silently=False,
-                    
+                    fail_silently=False,   
                     )
 
                 
-            return Response(
-                {'message': 'Issue resolved successfully'},
-                status=status.HTTP_200_OK
-            )
+            return Response({'message': 'Issue resolved successfully'},status=status.HTTP_200_OK)
         except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
             return Response(
-                {'error': 'Issue not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+                {'error': 'Issue not found or not assigned to you'},status=status.HTTP_404_NOT_FOUND)
 
 class AssignIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -356,37 +354,10 @@ class LecturerIssueDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return Issue.objects.filter(assigned_to=self.request.user)
-
-class LecturerResolveIssueView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, pk):
-        try:
-            issue = Issue.objects.get(pk=pk, assigned_to=request.user)
-            if issue.status == 'resolved':
-                return Response({'error': 'Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            issue.status = 'resolved'
-            issue.save()
-
-            # Notify the student who submitted the issue
-            student_user = issue.submitted_by
-            if student_user and student_user.email:
-                send_mail(
-                    subject="Your Issue Has Been Resolved",
-                    message=f"Dear {student_user.first_name}, your issue titled '{issue.title}' has been resolved.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[student_user.email],
-                    fail_silently=False,
-                )
-
-            return Response({'message': 'Issue resolved successfully'}, status=status.HTTP_200_OK)
-        except Issue.DoesNotExist:
-            return Response({'error': 'Issue not found or not assigned to you'}, status=status.HTTP_404_NOT_FOUND)
-        
-class LecturerPendingIssuesView(generics.ListAPIView):
-    serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated]
+    
+    class LecturerPendingIssuesView(generics.ListAPIView):
+        serializer_class = IssueSerializer
+        permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         #filter issues assigned to the logged in lecturer with a pending status
