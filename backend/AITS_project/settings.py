@@ -10,19 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-import os
+
 from pathlib import Path
 from unittest.mock import DEFAULT
-from dotenv import load_dotenv
-load_dotenv()
 
-
-
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
-SECRET_KEY = os.getenv('SECRET_KEY')
-#secret app info
-db_password =os.getenv('password')
-db_host = os.getenv('host')
 
 
 
@@ -104,12 +95,24 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'railway',
         'USER':'postgres',
-        'PASSWORD':db_password,
-        'HOST':db_host,
+        'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+        'HOST':'postgres.railway.internal',
         'PORT':'5432'
     }
 }
-
+try:
+    import psycopg2
+    conn = psycopg2.connect(
+        dbname=DATABASES['default']['NAME'],
+        user=DATABASES['default']['USER'],
+        password=DATABASES['default']['PASSWORD'],
+        host=DATABASES['default']['HOST'],
+        port=DATABASES['default']['PORT']
+    )
+    print("✅ Database connection successful!")
+    conn.close()
+except Exception as e:
+    print("❌ Could not connect to the database. Error:", e)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -153,7 +156,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://aits-frontend-omega.vercel.app"# React frontend
+    #"https://aits-frontend-omega.vercel.app"# React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'
@@ -177,8 +180,7 @@ EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = 'raymondsuuna05@gmail.com'
+EMAIL_HOST_PASSWORD = 'zchs eeho jehk cbkg'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
 

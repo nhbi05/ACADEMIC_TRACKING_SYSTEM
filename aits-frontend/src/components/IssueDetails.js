@@ -11,7 +11,7 @@ const IssueDetails = () => {
 
   useEffect(() => {
     const fetchIssues = async () => {
-      // Check if token and user are available
+     
       if (!token || !token.access) {
         alert("Token is not available. Please log in.");
         return;

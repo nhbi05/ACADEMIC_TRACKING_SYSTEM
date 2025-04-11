@@ -9,6 +9,7 @@ __pycache__
 *.sublime-project
 venv/
 *.pyc
+commits.py
 
 # Testing
 .coverage
