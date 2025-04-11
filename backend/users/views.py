@@ -29,7 +29,7 @@ class RegisterView(APIView):
                     {
                         "message": "User created successfully",
                         "user_id": user.id,
-                        "username": user.username
+                        "username": user.username,
                     },
                     status=status.HTTP_201_CREATED
                 )
@@ -359,6 +359,7 @@ class LecturerPendingIssuesView(generics.ListAPIView):
         serializer_class = IssueSerializer
         permission_classes = [IsAuthenticated]
 
+    
     def get_queryset(self):
         # filter issues assigned to the logged-in lecturer with a pending status
         return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
