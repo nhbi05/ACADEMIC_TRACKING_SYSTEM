@@ -123,7 +123,7 @@ class Issue(models.Model):
 
 
     def __str__(self):
-        # String representation of the issue
+        
         return f"Issue {self.id} - {self.category} ({self.status})"
 
     #creating an automatic issue_id eg. ISS0001
