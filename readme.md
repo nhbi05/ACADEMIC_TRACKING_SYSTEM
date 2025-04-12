@@ -6,7 +6,7 @@ The **Academic Issue Tracking System (AITS)** is a web application designed to s
 ## 🚀 Features
 - 📝 **Issue Logging**: Students can report academic issues related to courses, grades, or missing records.
 - 📊 **Issue Tracking**: Users can monitor the status of their submitted issues in real time.
-- 👩‍🏫 **Role-Based Access Control (RBAC)**: Different user roles (Student, Lecturer, Administrator) with specific permissions.
+- 👩‍🏫 **Role-Based Access Control (RBAC)**: Different user roles (Student, Lecturer, Registrar) with specific permissions.
 - 🔄 **API Integration**: RESTful APIs built using **Django REST Framework (DRF)**.
 - 🌍 **Modern UI**: Built with **React** and styled using **Tailwind CSS**.
 - 📂 **File Attachments**: Users can upload supporting documents.

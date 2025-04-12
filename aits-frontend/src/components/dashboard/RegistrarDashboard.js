@@ -9,7 +9,6 @@ const RegistrarDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Get data from Redux store with updated selectors
   const { user } = useSelector(state => state.auth);
   const { 
     data: issues = [], 

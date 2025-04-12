@@ -2,10 +2,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { clearMessages } from "../../redux/actions/authActions";
+import { loginUser, clearMessages } from "../../redux/actions/authActions";
 import { Alert, AlertDescription } from "../ui/alert";
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
 import Carousel from "../carousel";
 
 const Login = () => {
@@ -13,14 +12,13 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loginType, setLoginType] = useState("student");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
   const auth = useAuth();
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
   // Get state from Redux store
-  const { isLoading, successMessage, isAuthenticated } = useSelector(
+  const { isLoading, error, successMessage, isAuthenticated } = useSelector(
     (state) => state.auth
   );
 
@@ -54,33 +52,32 @@ const Login = () => {
     }
   }, [isAuthenticated, loginType, navigate]);
 
+  const validateForm = () => {
+    if (!username.trim()) {
+      dispatch({ type: 'AUTH_FAILURE', payload: "Username is required" });
+      return false;
+    }
+    if (!password) {
+      dispatch({ type: 'AUTH_FAILURE', payload: "Password is required" });
+      return false;
+    }
+    if (password.length < 3) {
+      dispatch({ type: 'AUTH_FAILURE', payload: "Password must be at least 6 characters" });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
     try {
-      const response = await axios.post('http://localhost:8000/api/login/', {
-        username,
-        password,
-        // ...other fields
-      });
-      
-      console.log("Auth response:", response.data);
-      
-      // Pass the entire response data to login
-      auth.login(response.data);
-      
-      // Navigate based on role
-      if (response.data.user.role === 'student') {
-        navigate('/student-dashboard');
-      } else if (response.data.user.role === 'lecturer') {
-        navigate('/lecturer-dashboard');
-      } else {
-        navigate('/registrar-dashboard');
-      }
-      
-    } catch (err) {
-      setError(err.response?.data?.error || "Login failed");
+      await dispatch(loginUser({ username, password }, loginType, auth));
     } finally {
       setIsSubmitting(false);
     }

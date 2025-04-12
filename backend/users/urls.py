@@ -16,7 +16,6 @@ from .views import( RegisterView,
                    RegisterCountView,
                    LecturerAssignedIssuesView,
                    LecturerIssueDetailView,
-                   LecturerResolveIssueView,
                    LecturerPendingIssuesView,)
 
 from rest_framework_simplejwt.views import (

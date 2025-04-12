@@ -105,7 +105,7 @@ class Issue(models.Model):
         
     ]
     issue_id = models.CharField(max_length=20, unique=True, editable=False)
-    #Student_no = models.IntegerField()
+    student_no = models.CharField(max_length=20)
     registration_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
@@ -114,7 +114,7 @@ class Issue(models.Model):
     year_of_study = models.IntegerField( choices= YEAR_OF_STUDY)
     semester = models.CharField(max_length=20, choices= SEMESTER_OF_STUDY)
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  
-    Name_of_Lecturer = models.CharField(max_length=100,null=True,blank=True) 
+    assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues") 
     created_at = models.DateTimeField(auto_now_add=True) 
     resolved_at = models.DateTimeField(null=True, blank=True) 
     lecturer_name = models.CharField(max_length=255) 

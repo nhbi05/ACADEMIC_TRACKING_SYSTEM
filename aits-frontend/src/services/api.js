@@ -77,7 +77,7 @@ api.interceptors.response.use(
         }
 
         // Use tokenApi to avoid interceptors
-        const response = await tokenApi.post('/refresh/', { 
+        const response = await tokenApi.post('token/refresh/', { 
           refresh: refreshToken 
         });
         
@@ -122,7 +122,10 @@ export const authService = {
     const response = await api.post('/login/', credentials);
     // Store tokens
     if (response.data.access && response.data.refresh) {
-      authService.setAuthTokens(response.data);
+      localStorage.setItem('access', response.data.access);
+      localStorage.setItem('refresh', response.data.refresh);
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+      
       if (response.data.user) {
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
@@ -154,11 +157,9 @@ export const authService = {
       // Remove auth header
       delete api.defaults.headers.common['Authorization'];
     }
-
   },
-
   
-  // Helper method to store auth tokens
+  // Helper method to store auth tokens - compatible with the new approach
   setAuthTokens: (tokens) => {
     localStorage.setItem('access', tokens.access);
     localStorage.setItem('refresh', tokens.refresh);
@@ -216,7 +217,6 @@ export const authService = {
     }
   }
 };
-
 export const studentService = {
   getProfile: async () => {
     await authService.checkTokenExpiration();
