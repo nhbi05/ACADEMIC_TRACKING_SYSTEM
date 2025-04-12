@@ -76,11 +76,8 @@ const IssueSubmissionForm = () => {
     student_no: ''
   });
   
-<<<<<<< HEAD
   
-=======
   // Effect to update student information when profile data or user data loads
->>>>>>> 070487bbe7d9c72bd1c436e1ab4c5a92c1bde466
   useEffect(() => {
     const studentInfo = getStudentInfo();
     
