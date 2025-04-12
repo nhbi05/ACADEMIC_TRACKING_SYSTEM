@@ -126,7 +126,7 @@ class Issue(models.Model):
         
         return f"Issue {self.id} - {self.category} ({self.status})"
 
-    #creating an automatic issue_id eg. ISS0001
+
     def save(self, *args, **kwargs):
         if not self.issue_id:
             last_issue = Issue.objects.order_by('-id').first() #checks last issue once created
