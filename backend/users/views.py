@@ -23,7 +23,25 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            
+            # Construct email
+            subject = 'Welcome to the Academic Issue Tracking System'
+            if user.role == 'student':
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a student."
+            elif user.role == 'lecturer':
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a lecturer."
+            elif user.role == 'registrar':
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a registrar."
+
+            # Send email
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
             return Response(
                 {"message": "User created successfully", "user": serializer.data}, 
                 status=status.HTTP_201_CREATED
@@ -330,10 +348,16 @@ class RegisterCountView(generics.ListAPIView):
             "pending_issues":pending_issues
         })
         
-        
-        
+#Functionality of lecture dashboard
+class LecturerAssignedIssuesView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
-
+    def get_queryset(self):
+        return Issue.objects.filter(assigned_to=self.request.user).order_by('created_at')
+class LecturerIssueDetailView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Issue.objects.filter(assigned_to=self.request.user)
