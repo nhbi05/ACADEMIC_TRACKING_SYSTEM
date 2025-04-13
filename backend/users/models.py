@@ -76,7 +76,7 @@ class RegistrarProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registrar_profile')
     college = models.CharField(max_length=100)  # College name
      
-# Model for issues submitted by users
+
 class Issue(models.Model):
     # Choices for issue status
     STATUS_CHOICES = [
@@ -123,10 +123,10 @@ class Issue(models.Model):
 
 
     def __str__(self):
-        # String representation of the issue
+        
         return f"Issue {self.id} - {self.category} ({self.status})"
 
-    #creating an automatic issue_id eg. ISS0001
+
     def save(self, *args, **kwargs):
         if not self.issue_id:
             last_issue = Issue.objects.order_by('-id').first() #checks last issue once created
