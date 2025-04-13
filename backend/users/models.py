@@ -76,11 +76,11 @@ class RegistrarProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registrar_profile')
     college = models.CharField(max_length=100)  # College name
      
-# Model for issues submitted by users
+
 class Issue(models.Model):
     # Choices for issue status
     STATUS_CHOICES = [
-        ('pending', 'pending'),
+        ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
     ]
@@ -104,7 +104,8 @@ class Issue(models.Model):
         ('Semester 2' , 'Semester 2'),
         
     ]
-    #Student_no = models.IntegerField()
+    issue_id = models.CharField(max_length=20, unique=True, editable=False)
+    student_no = models.CharField(max_length=20)
     registration_no = models.CharField(max_length = 20)
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
@@ -119,11 +120,22 @@ class Issue(models.Model):
     lecturer_name = models.CharField(max_length=255) 
     title = models.CharField(max_length=255) 
     attachments = models.FileField(upload_to="issue_attachments/", blank=True, null=True)
-    
-    
-    
+
+
     def __str__(self):
-        # String representation of the issue
+        
         return f"Issue {self.id} - {self.category} ({self.status})"
-    
+
+
+    def save(self, *args, **kwargs):
+        if not self.issue_id:
+            last_issue = Issue.objects.order_by('-id').first() #checks last issue once created
+            if last_issue and last_issue.issue_id:
+                last_number = int(last_issue.issue_id.replace('ISS', ''))
+                new_number = last_number + 1
+            else:
+                new_number = 1
+            self.issue_id = f'ISS{new_number:04d}'
+        super().save(*args, **kwargs)
+
 

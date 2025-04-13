@@ -1,3 +1,4 @@
+// src/context/AuthContext.js
 import React, { createContext, useContext, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, logoutUser, initAuth } from '../redux/actions/authActions';

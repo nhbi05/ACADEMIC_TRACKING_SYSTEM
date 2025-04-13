@@ -77,7 +77,7 @@ api.interceptors.response.use(
         }
 
         // Use tokenApi to avoid interceptors
-        const response = await tokenApi.post('/refresh/', { 
+        const response = await tokenApi.post('token/refresh/', { 
           refresh: refreshToken 
         });
         
@@ -122,7 +122,10 @@ export const authService = {
     const response = await api.post('/login/', credentials);
     // Store tokens
     if (response.data.access && response.data.refresh) {
-      authService.setAuthTokens(response.data);
+      localStorage.setItem('access', response.data.access);
+      localStorage.setItem('refresh', response.data.refresh);
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+      
       if (response.data.user) {
         localStorage.setItem('user', JSON.stringify(response.data.user));
       }
@@ -156,7 +159,7 @@ export const authService = {
     }
   },
   
-  // Helper method to store auth tokens
+  // Helper method to store auth tokens - compatible with the new approach
   setAuthTokens: (tokens) => {
     localStorage.setItem('access', tokens.access);
     localStorage.setItem('refresh', tokens.refresh);
@@ -214,9 +217,6 @@ export const authService = {
     }
   }
 };
-
-// Student services
-// Update to studentService in src/services/api.js
 export const studentService = {
   getProfile: async () => {
     await authService.checkTokenExpiration();
@@ -325,5 +325,63 @@ export const registrarService = {
     return response.data;
   }
 };
+
+
+export const lecturerService = {
+  
+  getAssignedIssues: async () => {
+    const response = await axios.get('/api/assigned-issues/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+  getResolvedIssues: async () => {
+    const response = await axios.get('/api/resolved-issues/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  getIssueDetails: async (issueId) => {
+    const response = await axios.get(`/api/issues/${issueId}/`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  resolveIssue: async (issueId) => {
+    const response = await axios.patch(`/api/issues/${issueId}/resolve/`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  getNotifications: async () => {
+    const response = await axios.get('/api/lecturer/notifications/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  },
+
+  markNotificationAsRead: async (notificationId) => {
+    const response = await axios.patch(`/api/lecturer/notifications/${notificationId}/read/`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
+  }
+};
+
 
 export default api;

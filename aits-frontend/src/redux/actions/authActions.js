@@ -5,6 +5,7 @@ import api from '../../services/api';
 // Action Types
 export const AUTH_INITIALIZED = 'AUTH_INITIALIZED';
 export const AUTH_REQUEST = 'AUTH_REQUEST';
+export const REGISTER_REQUEST = 'REGISTER_REQUEST';
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 export const REGISTER_SUCCESS = 'REGISTER_SUCCESS';
 export const AUTH_FAILURE = 'AUTH_FAILURE';
@@ -13,22 +14,24 @@ export const CLEAR_MESSAGES = 'CLEAR_MESSAGES';
 
 // Helper Functions for Token Management
 const saveTokens = (tokens) => {
-  localStorage.setItem('token', JSON.stringify({
-    access: tokens.access,
-    refresh: tokens.refresh
-  }));
+  localStorage.setItem('access', tokens.access);
+  localStorage.setItem('refresh', tokens.refresh);
 };
 
 const getTokens = () => {
   try {
-    return JSON.parse(localStorage.getItem('token'));
+    return {
+      access: localStorage.getItem('access'),
+      refresh: localStorage.getItem('refresh')
+    };
   } catch (error) {
     return null;
   }
 };
 
 const clearTokens = () => {
-  localStorage.removeItem('token');
+  localStorage.removeItem('access');
+  localStorage.removeItem('refresh');
   delete api.defaults.headers.common['Authorization'];
 };
 
@@ -48,6 +51,10 @@ export const authInitialized = (user) => ({
 
 export const loginRequest = () => ({
   type: AUTH_REQUEST
+});
+
+export const registerRequest = () => ({
+  type: REGISTER_REQUEST
 });
 
 export const loginSuccess = (user, tokens) => ({
@@ -102,7 +109,7 @@ export const initAuth = () => async (dispatch) => {
 };
 
 // Login User
-export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
+export const loginUser = (credentials, loginType) => async (dispatch) => {
   dispatch(loginRequest());
   
   try {
@@ -122,11 +129,6 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
     saveTokens(tokens);
     setAuthHeader(tokens.access);
     
-    // If auth object with login function is provided, call it
-    if (auth && typeof auth.login === 'function') {
-      auth.login(user, tokens);
-    }
-    
     // Update Redux state
     dispatch(loginSuccess(user, tokens));
     
@@ -140,13 +142,19 @@ export const loginUser = (credentials, loginType, auth) => async (dispatch) => {
 
 // Register User
 export const registerUser = (userData) => async (dispatch) => {
-  dispatch(loginRequest());
+  console.log('Registering user:', userData);
+  dispatch(registerRequest());
   
   try {
-    await authService.register(userData);
+    // Clear any existing auth headers before registration
+    delete api.defaults.headers.common['Authorization'];
+    
+    const response = await authService.register(userData);
+    console.log('Registration response:', response);
     dispatch(registerSuccess());
     return { success: true };
   } catch (err) {
+    console.error('Registration error:', err);
     let errorMessage = 'Registration failed. Please try again.';
     
     if (err.response?.data) {
@@ -156,7 +164,13 @@ export const registerUser = (userData) => async (dispatch) => {
     }
     
     dispatch(authFailure(errorMessage));
-    return { success: false };
+    return { success: false, error: errorMessage };
+  } finally {
+    // Restore auth header if there was one
+    const accessToken = localStorage.getItem('access');
+    if (accessToken) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    }
   }
 };
 
@@ -166,7 +180,7 @@ export const logoutUser = () => async (dispatch) => {
     // Attempt to call the logout API endpoint
     await authService.logout();
   } catch (error) {
-    // Continue with logout process even if API call fails
+    // Continue with logout process even if API fails
   } finally {
     // Clear tokens and auth header
     clearTokens();

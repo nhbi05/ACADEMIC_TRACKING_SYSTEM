@@ -1,69 +1,125 @@
-// src/components/dashboard/StudentDashboard.js
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { Alert, AlertDescription } from '../ui/alert';
-import { fetchStudentData, fetchIssues } from '../../redux/actions/studentActions';
-//import { logout } from '../../redux/actions/authActions';
-import { logoutUser } from '../../redux/actions/authActions';
+import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const StudentDashboard = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  
-  // Get data from Redux store
-  const { user } = useSelector(state => state.auth);
-  const { 
-    profileData, 
-    loading: profileLoading, 
-    error: profileError 
-  } = useSelector(state => state.student || {});
-  
-  const { 
-    issues, 
-    loading: issuesLoading, 
-    error: issuesError 
-  } = useSelector(state => state.issues || {});
-  
-  // Derived stats based on issues
-  const statsData = {
-    totalIssues: issues?.length || 0,
-    resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0,
-    pendingIssues: issues?.filter(issue => issue.status !== 'resolved').length || 0
-  };
-  
-  // Loading and error states
-  const loading = profileLoading || issuesLoading;
-  const error = profileError || issuesError;
-  useEffect(() => {
-    // Fetch data when component mounts
-    dispatch(fetchStudentData()).catch(err => 
-      console.error('Error fetching profile data:', err)
-    );
-    
-    dispatch(fetchIssues()).catch(err => 
-      console.error('Error fetching issues:', err)
-    );
-  }, [dispatch]);
-  
-  const handleLogout = async () => {
-    try {
-      await dispatch(logoutUser());
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-  
-  
-  const navItems = [
-    { name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },
-    { name: 'View Issues', icon: '📄', path: '/my-issues' },
-    { name: 'Create Issue', icon: '➕', path: '/submit-issue' },
-    { name: 'Profile', icon: '👤', path: '/student/profile' },
+const navigate = useNavigate();
+const { user, logout } = useAuth();
 
-  ];
+const [profileData, setProfileData] = useState(null);
+const [issues, setIssues] = useState([]);
+const [profileLoading, setProfileLoading] = useState(true);
+const [issuesLoading, setIssuesLoading] = useState(true);
+const [error, setError] = useState(null);
+
+// Get token helper - standardized to use localStorage directly
+const getAuthToken = useCallback(() => {
+// Get access token directly from localStorage
+const accessToken = localStorage.getItem('access');
+if (accessToken) {
+  return accessToken;
+}
+return null;
+}, []);
+
+// Fetch student profile data
+useEffect(() => {
+const fetchStudentData = async () => {
+  const accessToken = getAuthToken();
   
+  if (!accessToken) {
+    setError("Authentication token not found. Please log in again.");
+    setProfileLoading(false);
+    return;
+  }
+  
+  try {
+    const response = await axios.get('http://localhost:8000/api/student/profile/', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    setProfileData(response.data);
+  } catch (err) {
+    console.error("Error fetching profile data:", err);
+    
+    // Check if error is due to expired token
+    if (err.response && err.response.status === 401) {
+      setError("Your session has expired. Please log in again.");
+      // Optional: redirect to login
+      // navigate('/login');
+    } else {
+      setError("Failed to load your profile. Please try again.");
+    }
+  } finally {
+    setProfileLoading(false);
+  }
+};
+
+fetchStudentData();
+}, [getAuthToken, navigate]);
+
+// Fetch issues
+useEffect(() => {
+const fetchIssues = async () => {
+  const accessToken = getAuthToken();
+  
+  if (!accessToken) {
+    setIssuesLoading(false);
+    return;
+  }
+  
+  try {
+    const response = await axios.get('http://localhost:8000/api/my-issues/', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    setIssues(response.data);
+  } catch (err) {
+    console.error("Error fetching issues:", err);
+    // Don't set error here to avoid duplicate error messages
+    // if profile fetch already failed
+    if (!error && err.response && err.response.status === 401) {
+      setError("Your session has expired. Please log in again.");
+    }
+  } finally {
+    setIssuesLoading(false);
+  }
+};
+
+fetchIssues();
+}, [getAuthToken, error]);
+
+// Derived stats based on issues
+const statsData = {
+totalIssues: issues?.length || 0,
+resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0,
+pendingIssues: issues?.filter(issue => issue.status !== 'resolved').length || 0
+};
+
+// Loading and error states
+const loading = profileLoading || issuesLoading;
+
+const handleLogout = () => {
+if (window.confirm("Are you sure you want to log out?")) {
+  // Clear tokens from localStorage directly
+  localStorage.removeItem('access');
+  localStorage.removeItem('refresh');
+  localStorage.removeItem('user');
+  // Also use the logout function from context
+  logout();
+  navigate('/login');
+}
+};
+
+const navItems = [
+{ name: 'Dashboard', icon: '🏠', path: '/student-dashboard' },
+{ name: 'View Issues', icon: '📄', path: '/my-issues' },
+{ name: 'Create Issue', icon: '➕', path: '/submit-issue' },
+];
+
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation */}
@@ -84,7 +140,6 @@ const StudentDashboard = () => {
                   <span className="mr-3 text-lg">{item.icon}</span>
                   {item.name}
                 </button>
-
               </li>
             ))}
             
@@ -141,9 +196,17 @@ const StudentDashboard = () => {
         {/* Main Dashboard Content */}
         <main className="p-6">
           {error && (
-            <Alert variant="destructive" className="mb-6">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
+              {error}
+              {error.includes("log in again") && (
+                <button 
+                  onClick={() => navigate('/login')}
+                  className="ml-2 text-red-700 underline"
+                >
+                  Go to Login
+                </button>
+              )}
+            </div>
           )}
           
           {/* Stats Cards */}
@@ -197,7 +260,7 @@ const StudentDashboard = () => {
               <h3 className="text-lg font-medium text-gray-800">Profile Information</h3>
             </div>
             <div className="p-6">
-              {loading ? (
+              {profileLoading ? (
                 <div className="animate-pulse space-y-4">
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -230,10 +293,15 @@ const StudentDashboard = () => {
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-800">Recent Issues</h3>
-              <a href="/my-issues" className="text-sm text-green-600 hover:text-green-500">View all</a>
+              <button 
+                onClick={() => navigate('/my-issues')}
+                className="text-sm text-green-600 hover:text-green-500"
+              >
+                View all
+              </button>
             </div>
             <div className="p-6">
-              {loading ? (
+              {issuesLoading ? (
                 <div className="animate-pulse space-y-4">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -245,16 +313,21 @@ const StudentDashboard = () => {
                     <div key={issue.id} className="py-3">
                       <div className="flex justify-between items-center">
                         <div>
-                          <h4 className="font-medium text-gray-800">{issue.title}</h4>
-                          <p className="text-sm text-gray-600">{issue.description?.substring(0, 100)}...</p>
+                          <h4 className="font-medium text-gray-800">Issue #{issue.id} - {issue.course_unit}</h4>
+                          <p className="text-sm text-gray-600">
+                            {issue.description?.substring(0, 100)}
+                            {issue.description?.length > 100 ? '...' : ''}
+                          </p>
                         </div>
                         <div>
                           <span className={`px-2 py-1 rounded-full text-xs ${
                             issue.status === 'resolved' 
                               ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                              : issue.status === 'in progress'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {issue.status}
+                            {issue.status || 'Pending'}
                           </span>
                         </div>
                       </div>
@@ -270,7 +343,7 @@ const StudentDashboard = () => {
                   <p className="text-gray-500">Create your first issue to get started</p>
                   <button
                     className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                    onClick={() => navigate('/student/issues/create')}
+                    onClick={() => navigate('/submit-issue')}
                   >
                     Create Issue
                   </button>

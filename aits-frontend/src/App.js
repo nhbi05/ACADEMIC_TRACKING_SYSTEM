@@ -4,15 +4,16 @@ import Login from './components/auth/Login';
 import './styles/style_login.css';
 import StudentDashboard from './components/dashboard/StudentDashboard';
 import RegistrarDashboard from './components/dashboard/RegistrarDashboard';
+import LecturerDashboard from './components/dashboard/LecturerDashboard';
 import { AuthProvider } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import React from 'react';
 import IssueSubmissionForm from './components/IssueSubmissionForm';  // Keep IssueSubmissionForm
 import ViewIssues from './components/ViewIssues';  
 import ProtectedRoute from './components/ProtectedRoute';
-//const StudentDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Student Dashboard</h1>;
-const LecturerDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Lecturer Dashboard</h1>;
-//const RegistrarDashboard = () => <h1 className="text-center mt-10 text-3xl text-[#155843]">Registrar Dashboard</h1>;
+import IssueDetails from './components/IssueDetails';
+import Profile from './components/Profile';
+import Settings from './components/Settings';
 
 function App() {
   return (
@@ -28,7 +29,10 @@ function App() {
           <Route path="/my-issues/" element={<ViewIssues />} />
           <Route path="/submit-issue" element={<ProtectedRoute element={<IssueSubmissionForm />} />} />
           <Route path="/student-issues" element={<ProtectedRoute element={<IssueSubmissionForm />} />} />
-         
+          <Route path="/student/issues" element={<ProtectedRoute element={<IssueDetails />} />} />
+          <Route path="/student/profile" element={<ProtectedRoute element={<Profile />} />} />
+          <Route path="/student/issues/create" element={<IssueSubmissionForm />} />
+          <Route path="/student/settings" element={<ProtectedRoute element={<Settings />} />} />
         </Routes>
       </div>
     </AuthProvider>

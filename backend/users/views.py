@@ -13,13 +13,14 @@ from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from django.conf import settings
-
+from django.db.models import Q
 
 User = get_user_model()
 class RegisterView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
+        print("register view")
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             try:
@@ -28,7 +29,7 @@ class RegisterView(APIView):
                     {
                         "message": "User created successfully",
                         "user_id": user.id,
-                        "username": user.username
+                        "username": user.username,
                     },
                     status=status.HTTP_201_CREATED
                 )
@@ -43,35 +44,38 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data['username']  # Use username instead of email
+            username = serializer.validated_data['username']
             password = serializer.validated_data['password']
-            login_type = serializer.validated_data.get('loginType')  # Use get() for optional field
+            login_type = serializer.validated_data.get('loginType')
             
-            # Find user by username
             try:
-                user = User.objects.get(username=username)  # Find user by username instead of email
-                # Authenticate with username and password
+                user = User.objects.get(username=username)
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
                 if authenticated_user is not None:
-                    # Optional role check
                     if login_type and authenticated_user.role != login_type:
                         return Response({'error': 'Invalid role for this login type'}, 
                                        status=status.HTTP_403_FORBIDDEN)
                     
                     refresh = RefreshToken.for_user(authenticated_user)
+                    access_token = refresh.access_token
+                    
+                    # Add custom claims to the token
+                    access_token['username'] = authenticated_user.username
+                    access_token['role'] = authenticated_user.role
+
                     return Response({
                         'refresh': str(refresh),
-                        'access': str(refresh.access_token),
+                        'access': str(access_token),
+                        'token_type': 'Bearer',
                         'user': {
-                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
                             'first_name': authenticated_user.first_name,
                             'last_name': authenticated_user.last_name,
-                                                }
+                        }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
@@ -149,9 +153,14 @@ class ResolveIssueView(APIView):
             )
         
         try:
-            issue = Issue.objects.get(id=issue_id)
-            #the lecturer resolves the issue calling the method from the user model
-            request.user.resolve_issue(issue)
+            issue = Issue.objects.get(id=issue_id, assigned_to=request.user)
+            if issue.status =='resolved':
+                return Response({'error: Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
+
+            issue.status = 'resolved'
+            issue.resolved_by = request.user
+            issue.save()
+
             #send an email notification to the student who submitted the issue
             student_user= issue.submitted_by
             if student_user and student_user.email:
@@ -160,20 +169,14 @@ class ResolveIssueView(APIView):
                     message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
-                    fail_silently=False,
-                    
+                    fail_silently=False,   
                     )
 
                 
-            return Response(
-                {'message': 'Issue resolved successfully'},
-                status=status.HTTP_200_OK
-            )
+            return Response({'message': 'Issue resolved successfully'},status=status.HTTP_200_OK)
         except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
             return Response(
-                {'error': 'Issue not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+                {'error': 'Issue not found or not assigned to you'},status=status.HTTP_404_NOT_FOUND)
 
 class AssignIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -227,16 +230,36 @@ class StudentIssueView(generics.ListAPIView):
     permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
+        print("query view")
         return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
 
+class LecturerSearchView(generics.ListAPIView):
+    
+    #API endpoint for searching lecturers by name.
+    
+    serializer_class = LecturerProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        return User.objects.filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query),
+            role='lecturer'
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ResolvedIssuesView(generics.ListAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(student=self.request.user,status='resolved')
+        return Issue.objects.filter(submitted_by=self.request.user, status='resolved')
+
 
 
 class IssueDetailView(generics.RetrieveAPIView):
@@ -315,8 +338,46 @@ class RegisterCountView(generics.ListAPIView):
             "resolved_issues":resolved_issues,
             "pending_issues":pending_issues
         })
-        
-        
-        
 
+   #Functinality of lecture dashboard      
+
+class LecturerAssignedIssuesView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(assigned_to=self.request.user).order_by('created_at')
+        
+class LecturerIssueDetailView(generics.RetrieveAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(assigned_to=self.request.user)
+    
+class LecturerPendingIssuesView(generics.ListAPIView):
+        serializer_class = IssueSerializer
+        permission_classes = [IsAuthenticated]
+        
+        def get_queryset(self):
+            # filter issues assigned to the logged-in lecturer with a pending status
+            return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
+    
+class LecturerResolvedIssuesView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue,object.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_at')
+    
+def notify_lecturer(issue):
+    lecturer = issue.assigned_to
+    if lecturer and lecturer.email:
+        send_mail(
+            subject="New Issue Assigned",
+            message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[lecturer.email],
+            fail_silently=False,
+        )
 

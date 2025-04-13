@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
+import Carousel from '../carousel';
 //import './styles/style_login.css';
 
 const Register = () => {
@@ -51,7 +52,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setPasswordError('');
+      setPasswordError('');
+      console.log("Form data before validation:", formData);
     
     // Validate passwords match
     if (formData.password !== formData.password2) {
@@ -59,7 +61,7 @@ const Register = () => {
       return;
     }
   
-    // Create the appropriate profile data based on role
+     // Create the appropriate profile data based on role
     let profileData = {};
     if (formData.role === 'student') {
       profileData = {
@@ -86,7 +88,7 @@ const Register = () => {
       };
     }
 
-    // Prepare the registration data
+    
     const registrationData = {
       username: formData.username,
       email: formData.email,
@@ -102,7 +104,8 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <Carousel>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900">Register</h2>
@@ -134,7 +137,7 @@ const Register = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
-            {/* Basic Information */}
+            
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
@@ -225,7 +228,7 @@ const Register = () => {
                   <option value="BIT">Bachelor of Information Systems & Technology</option>
                   <option value="BLIS">Bachelor of Library & Information Systems</option>
                 </select>
-                {/*<div className="border border-gray-200 rounded-md p-4">*/}
+               
                   <h3 className="text-lg font-medium text-green-700 mb-3">Student Info</h3>
                   <div className="space-y-4">
                     <div>
@@ -303,6 +306,7 @@ const Register = () => {
         </form>
       </div>
     </div>
+    </Carousel>
   );
 };
 

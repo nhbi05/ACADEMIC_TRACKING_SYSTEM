@@ -10,8 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+
 from pathlib import Path
 from unittest.mock import DEFAULT
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,14 +89,37 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
+}"""
 
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER':'postgres',
+        'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+        'HOST':'postgres.railway.internal',
+        'PORT':'5432'
+    }
+}
+try:
+    import psycopg2
+    conn = psycopg2.connect(
+        dbname=DATABASES['default']['NAME'],
+        user=DATABASES['default']['USER'],
+        password=DATABASES['default']['PASSWORD'],
+        host=DATABASES['default']['HOST'],
+        port=DATABASES['default']['PORT']
+    )
+    print("✅ Database connection successful!")
+    conn.close()
+except Exception as e:
+    print("❌ Could not connect to the database. Error:", e)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -136,7 +163,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://aits-frontend-omega.vercel.app"# React frontend
+    #"https://aits-frontend-omega.vercel.app"# React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'
@@ -163,5 +190,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'raymondsuuna05@gmail.com'
 EMAIL_HOST_PASSWORD = 'zchs eeho jehk cbkg'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
 
