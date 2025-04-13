@@ -16,7 +16,7 @@ const Carousel = ({ children }) => {
       setCurrent((prevCurrent) => 
         prevCurrent === length - 1 ? 0 : prevCurrent + 1
       );
-    }, 5000); // Change image every 5 seconds
+    }, 4000); // Change image every 4 seconds
 
     return () => clearInterval(timer);
   }, [length]);
@@ -31,7 +31,7 @@ const Carousel = ({ children }) => {
               index === current ? "opacity-100" : "opacity-0"
             }`}
           >
-            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="absolute inset-0 bg-black/65"></div>
             <img
               src={image}
               alt={`Slide ${index + 1}`}

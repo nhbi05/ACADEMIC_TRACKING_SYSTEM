@@ -358,11 +358,10 @@ class LecturerIssueDetailView(generics.RetrieveAPIView):
 class LecturerPendingIssuesView(generics.ListAPIView):
         serializer_class = IssueSerializer
         permission_classes = [IsAuthenticated]
-
-    
-    def get_queryset(self):
-        # filter issues assigned to the logged-in lecturer with a pending status
-        return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
+        
+        def get_queryset(self):
+            # filter issues assigned to the logged-in lecturer with a pending status
+            return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
     
 class LecturerResolvedIssuesView(generics.ListAPIView):
     serializer_class = IssueSerializer
