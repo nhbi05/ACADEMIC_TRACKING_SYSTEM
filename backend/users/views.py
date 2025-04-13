@@ -334,3 +334,34 @@ class RegisterCountView(generics.ListAPIView):
         
 
 
+
+    def get_queryset(self):
+        return Issue.objects.filter(assigned_to=self.request.user)
+    
+class LecturerPendingIssuesView(generics.ListAPIView):
+        serializer_class = IssueSerializer
+        permission_classes = [IsAuthenticated]
+        
+        def get_queryset(self):
+            # filter issues assigned to the logged-in lecturer with a pending status
+            return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
+    
+class LecturerResolvedIssuesView(generics.ListAPIView):
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue,object.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_at')
+    
+def notify_lecturer(issue):
+    lecturer = issue.assigned_to
+    if lecturer and lecturer.email:
+        send_mail(
+            subject="New Issue Assigned",
+            message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[lecturer.email],
+            fail_silently=False,
+        )
+
+
