@@ -110,7 +110,7 @@ class Issue(models.Model):
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField() 
-    course_unit = models.TextField(max_length=100) 
+    #course_unit = models.CharField(max_length=100,null=True, blank=True) 
     year_of_study = models.IntegerField( choices= YEAR_OF_STUDY)
     semester = models.CharField(max_length=20, choices= SEMESTER_OF_STUDY)
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  

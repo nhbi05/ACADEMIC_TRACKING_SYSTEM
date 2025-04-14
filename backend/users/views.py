@@ -122,6 +122,7 @@ class SubmitIssueView(APIView):
             )
         # Automatically include student details in the request data
         request_data = request.data.copy()
+        student_profile = request.user.student_profile
         request_data['first_name'] = request.user.first_name
         request_data['last_name'] = request.user.last_name
         request_data['registration_no'] = student_profile.registration_no # From student profile
@@ -143,6 +144,7 @@ class SubmitIssueView(APIView):
 
                 )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):
