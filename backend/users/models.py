@@ -44,7 +44,6 @@ class User(AbstractUser):
         issue.resolved_at = timezone.now()
         issue.save()
 
-# Profile model for students, linked to the User model
 """SO HERE I JUST CHANGED STUDENT_ID TO NO N THEN ALSO REGISTRATION NO"""
 class StudentProfile(models.Model):
     PROGRAMME_CHOICES =[
