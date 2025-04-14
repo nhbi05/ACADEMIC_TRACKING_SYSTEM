@@ -23,7 +23,7 @@ class User(AbstractUser):
         # Only students are allowed to submit issues
         if self.role != 'student':
             raise PermissionError("Only students can submit issues")
-        # Create and return a new Issue object
+        
         return Issue.objects.create(
             category=category,
             status='pending',
