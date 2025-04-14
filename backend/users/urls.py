@@ -16,7 +16,9 @@ from .views import( RegisterView,
                    RegisterCountView,
                    LecturerAssignedIssuesView,
                    LecturerIssueDetailView,
-                   LecturerPendingIssuesView,)
+                   LecturerPendingIssuesView,
+                   #LecturerResolvedIssueView
+                   )
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -45,7 +47,7 @@ urlpatterns = [
     path('Registrar_issue_counts/',RegisterCountView.as_view(),name='Registrar_issue_counts'),
     path('assigned-issues/', LecturerAssignedIssuesView.as_view(), name='lecturer_assigned_issues'),
     path('lecturer/issue/<int:pk>/',LecturerIssueDetailView.as_view(), name='lecturer_issue_detail'),
-    path('lecturer/resolve_issue/<int:pk>/',LecturerResolveIssueView.as_view(), name='lecturer_resolve_issue'),
+    #path('lecturer/resolve_issue/<int:pk>/',LecturerResolvedIssueView.as_view(), name='lecturer_resolve_issue'),
     path('lecturer/pending_issues/', LecturerPendingIssuesView.as_view(), name='lecturer_pending_issues'),
 ]
 
