@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 
 
 class User(AbstractUser):
-    # Choices for user roles
+    
     ROLE_CHOICES = [
         ('student', 'Student'),
         ('lecturer', 'Lecturer'),
@@ -23,7 +23,7 @@ class User(AbstractUser):
         # Only students are allowed to submit issues
         if self.role != 'student':
             raise PermissionError("Only students can submit issues")
-        
+        # Create and return a new Issue object
         return Issue.objects.create(
             category=category,
             status='pending',
@@ -34,7 +34,7 @@ class User(AbstractUser):
             submitted_by=self  # Set the user who submitted the issue
         )
 
-    
+    # Method for lecturers to resolve assigned issues
     def resolve_issue(self, issue):
         if self.role != 'lecturer':
             raise PermissionError("Only lecturers can resolve issues")
@@ -43,6 +43,7 @@ class User(AbstractUser):
         issue.status = 'resolved'
         issue.resolved_at = timezone.now()
         issue.save()
+
 
 """SO HERE I JUST CHANGED STUDENT_ID TO NO N THEN ALSO REGISTRATION NO"""
 class StudentProfile(models.Model):
