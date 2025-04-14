@@ -34,7 +34,7 @@ class User(AbstractUser):
             submitted_by=self  # Set the user who submitted the issue
         )
 
-    # Method for lecturers to resolve assigned issues
+    
     def resolve_issue(self, issue):
         if self.role != 'lecturer':
             raise PermissionError("Only lecturers can resolve issues")
