@@ -344,11 +344,7 @@ export const lecturerService = {
     return response.data;
   },
   getResolvedIssues: async () => {
-    const response = await api.get('/resolved-issues/', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
+    const response = await api.get('/resolved-issues/');
     return response.data;
   },
 
@@ -362,11 +358,7 @@ export const lecturerService = {
   },
 
   resolveIssue: async (issueId) => {
-    const response = await api.patch(`/api/issues/${issueId}/resolve/`, {}, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
+    const response = await api.post("/resolve-issue/", { issueId });
     return response.data;
   },
 

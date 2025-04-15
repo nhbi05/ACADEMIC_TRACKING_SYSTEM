@@ -17,6 +17,8 @@ export const resolveIssue = (issueId) => async (dispatch) => {
   try {
     await lecturerService.resolveIssue(issueId);
     dispatch({ type: 'RESOLVE_ISSUE_SUCCESS', payload: issueId });
+    await dispatch(fetchResolvedIssues())
+    await dispatch(fetchAssignedIssues());
   } catch (error) {
     dispatch({ type: 'RESOLVE_ISSUE_FAILURE', payload: error.message });
   }

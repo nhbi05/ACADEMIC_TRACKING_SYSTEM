@@ -6,7 +6,7 @@ from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-from .models import Issue,User
+from .models import Issue,User, StudentProfile
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer, UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
@@ -14,6 +14,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 User = get_user_model()
 class RegisterView(APIView):
@@ -87,7 +89,8 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.student_profile
+        return get_object_or_404(StudentProfile, user=self.request.user)
+
 
 # View for retrieving the lecturer profile
 class LecturerProfileView(generics.RetrieveUpdateAPIView):
@@ -145,7 +148,8 @@ class SubmitIssueView(APIView):
 class ResolveIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def post(self, request, issue_id):
+    def post(self, request, *args, **kwargs):
+        # validated_data = IssueSerializer(data=request.data, partial=True).is_valid(raise_exception=True)
         if request.user.role != 'lecturer':
             return Response(
                 {'error': 'Only lecturers can resolve issues'},
@@ -153,12 +157,13 @@ class ResolveIssueView(APIView):
             )
         
         try:
-            issue = Issue.objects.get(id=issue_id, assigned_to=request.user)
+            issue = Issue.objects.get(id=request.data["issueId"], assigned_to=request.user)
             if issue.status =='resolved':
                 return Response({'error: Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
 
             issue.status = 'resolved'
             issue.resolved_by = request.user
+            issue.resolved_at = timezone.now()
             issue.save()
 
             #send an email notification to the student who submitted the issue
@@ -261,7 +266,7 @@ class ResolvedIssuesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(submitted_by=self.request.user, status='resolved')
+        return Issue.objects.filter(Q(assigned_to=self.request.user) | Q(submitted_by=self.request.user), status='resolved')
 
 class UsersView(generics.ListAPIView):
     serializer_class = UserSerializer
