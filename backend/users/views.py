@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
 from .models import Issue,User
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer, UserSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
@@ -189,7 +189,7 @@ class AssignIssueView(APIView):
             )
         
         lecturer_id = request.data.get('lecturer_id')
-        if not lecturer_id:
+        if not lecturer_id and lecturer_id is not None:
             return Response(
                 {'error': 'Lecturer ID is required'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -197,10 +197,13 @@ class AssignIssueView(APIView):
             
         try:
             issue = Issue.objects.get(id=issue_id)
-            lecturer = User.objects.get(id=lecturer_id, role='lecturer')
-            request.user.assign_issue(issue, lecturer)
+            lecturer = User.objects.get(id=lecturer_id, role='lecturer') if lecturer_id else None
+            # FixMe:
+            # request.user.assign_issue(issue, lecturer)
+            issue.assigned_to = lecturer
+            issue.save()
             #send email notification to lecturer
-            if lecturer.email:
+            if lecturer_id and lecturer.email:
                 send_mail(
                     subject= "New Issue Assigned",
                     message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
@@ -260,6 +263,12 @@ class ResolvedIssuesView(generics.ListAPIView):
     def get_queryset(self):
         return Issue.objects.filter(submitted_by=self.request.user, status='resolved')
 
+class UsersView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.all()
 
 
 class IssueDetailView(generics.RetrieveAPIView):

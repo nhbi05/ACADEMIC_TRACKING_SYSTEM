@@ -18,6 +18,7 @@ from .views import( RegisterView,
                    LecturerIssueDetailView,
                    LecturerPendingIssuesView,
                    #LecturerResolvedIssueView
+                   UsersView,
                    )
 
 from rest_framework_simplejwt.views import (
@@ -49,6 +50,7 @@ urlpatterns = [
     path('lecturer/issue/<int:pk>/',LecturerIssueDetailView.as_view(), name='lecturer_issue_detail'),
     #path('lecturer/resolve_issue/<int:pk>/',LecturerResolvedIssueView.as_view(), name='lecturer_resolve_issue'),
     path('lecturer/pending_issues/', LecturerPendingIssuesView.as_view(), name='lecturer_pending_issues'),
+    path('users/', UsersView.as_view(), name='users'),
 ]
 
 
