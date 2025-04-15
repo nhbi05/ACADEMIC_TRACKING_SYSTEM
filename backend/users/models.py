@@ -61,16 +61,18 @@ class StudentProfile(models.Model):
 
 
 class Department(models.Model):
-    DEPARTMENT_CHOICES =[
-        ('CS','Department of Computer Science'),
-        ('IS','Department of Information Systems'),
-        ('DIT','Department of Information Technology'),
-        ('NET','Department of Networks'),
-        ('RAM','Department of Records and Archives Management'),
-        ('LIS','Department of Library & Information Science'),
+    DEPARTMENT_CHOICES = [
+        ('CS', 'Department of Computer Science'),
+        ('IS', 'Department of Information Systems'),
+        ('DIT', 'Department of Information Technology'),
+        ('NET', 'Department of Networks'),
+        ('RAM', 'Department of Records and Archives Management'),
+        ('LIS', 'Department of Library & Information Science'),
     ]
-    name = models.CharField(max_length=100,choices=DEPARTMENT_CHOICES) 
-
+    name = models.CharField(max_length=100, choices=DEPARTMENT_CHOICES, unique=True)
+    
+    def __str__(self):
+        return self.get_name_display()
 
 # Profile model for lecturers, linked to the User model
 class LecturerProfile(models.Model):
