@@ -10,17 +10,19 @@ const RegistrarDashboard = () => {
   const navigate = useNavigate();
   
   const { user } = useSelector(state => state.auth);
-  const { 
-    data: issues = [], 
-    loading: issuesLoading = true, 
-    error: issuesError = null 
-  } = useSelector(state => state.registrar.issues);
+  const registrarState = useSelector(state => state.registrar || {});
+  const issuesState = registrarState.issues || {};
   
-  const { 
-    totalIssues = 0, 
-    pendingIssues = 0, 
-    resolvedIssues = 0 
-  } = useSelector(state => state.registrar.stats);
+  // Safely extract data with fallbacks
+  const issues = Array.isArray(issuesState.data) ? issuesState.data : [];
+  const issuesLoading = issuesState.loading !== false;  // Default to true unless explicitly false
+  const issuesError = issuesState.error || null;
+  
+  // Safely extract stats with fallbacks
+  const stats = registrarState.stats || {};
+  const totalIssues = stats.totalIssues || 0;
+  const pendingIssues = stats.pendingIssues || 0;
+  const resolvedIssues = stats.resolvedIssues || 0;
   
   useEffect(() => {
     // Fetch issues with stats
@@ -45,7 +47,7 @@ const RegistrarDashboard = () => {
     { name: 'Dashboard', icon: '🏠', path: '/registrar-dashboard' },
     { name: 'Manage Students', icon: '👥', path: '/manage-students' },
     { name: 'Manage Issues', icon: '📋', path: '/manage-issues' },
-      ];
+  ];
   
   return (
     <div className="flex h-screen bg-green-50">
@@ -188,7 +190,7 @@ const RegistrarDashboard = () => {
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                       <tr>
                         <th scope="col" className="px-4 py-3">Name</th>
-                        <th scope="col" className="px-4 py-3">Course</th>
+                        <th scope="col" className="px-4 py-3">Programme</th>
                         <th scope="col" className="px-4 py-3">Reg. No</th>
                         <th scope="col" className="px-4 py-3">Assigned To</th>
                         <th scope="col" className="px-4 py-3">Status</th>
@@ -197,17 +199,17 @@ const RegistrarDashboard = () => {
                     <tbody>
                       {issues.slice(0, 5).map(issue => (
                         <tr key={issue.id} className="border-b hover:bg-gray-100">
-                          <td className="px-4 py-3">{issue.first_name}</td>
-                          <td className="px-4 py-3">{issue.programme}</td>
-                          <td className="px-4 py-3">{issue.registration_no}</td>
-                          <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td>
+                          <td className="px-4 py-3">{`${issue.first_name || ''} ${issue.last_name || ''}`}</td>
+                          <td className="px-4 py-3">{issue.programme || 'N/A'}</td>
+                          <td className="px-4 py-3">{issue.registration_no || 'N/A'}</td>
+                          <td className="px-4 py-3">{issue.lecturer_name || 'Unassigned'}</td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded-full text-xs ${
                               issue.status === 'resolved' 
                                 ? 'bg-green-100 text-green-800' 
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                              {issue.status}
+                              {issue.status || 'pending'}
                             </span>
                           </td>
                         </tr>

@@ -73,7 +73,8 @@ const IssueSubmissionForm = () => {
     first_name: '',
     last_name: '',
     programme: '',
-    student_no: ''
+    student_no: '',
+    course_unit: ''
   });
   
   
@@ -131,6 +132,8 @@ const IssueSubmissionForm = () => {
     issueData.append('semester', formData.semester);
     issueData.append('year_of_study', formData.year_of_study);
     issueData.append('registration_no', registrationNo);
+    issueData.append('course_unit', formData.course_unit);
+
     
     // Add student information - backend might not need these as they're
     // associated with the user, but including them for completeness
@@ -160,7 +163,9 @@ const IssueSubmissionForm = () => {
         first_name: formData.first_name,
         last_name: formData.last_name,
         programme: formData.programme,
-        student_no: formData.student_no
+        student_no: formData.student_no,
+        course_unit: formData.course_unit
+
       });
       
       // Redirect to issues list after 2 seconds
@@ -354,6 +359,21 @@ const IssueSubmissionForm = () => {
                   required
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Enter a brief title for your issue"
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Issue Course Unit *
+                </label>
+                <input
+                  type="text"
+                  id="course_unit"
+                  name="course_unit"
+                  value={formData.course_unit}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Course Unit"
                 />
               </div>
               

@@ -108,16 +108,18 @@ class IssueSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='submitted_by.last_name', read_only=True)
     registration_no = serializers.CharField(source='submitted_by.student_profile.registration_no', read_only=True)
     student_no = serializers.CharField(source='submitted_by.student_profile.student_no', read_only=True)
+    programme = serializers.CharField(source='submitted_by.student_profile.programme', read_only=True)
+
 
     class Meta:
         model = Issue
         fields = [
-            'id', 'issue_id','category', 'status', 'description', 'course_unit', 
-            'year_of_study', 'semester', 'submitted_by', 'name_of_lecturer', 
+            'id', 'issue_id','category', 'status', 'description',  
+            'year_of_study', 'semester', 'submitted_by', 'lecturer_name', 
             'created_at', 'resolved_at', 'first_name', 'last_name', 
-            'registration_no', 'student_no'
+            'registration_no', 'student_no',"title","course_unit","programme"
         ]
         read_only_fields = [
             'status', 'submitted_by', 'created_at', 'resolved_at', 
-            'first_name', 'last_name', 'registration_no', 'student_no'
+            'first_name', 'last_name', 'registration_no', 'student_no',"programme"
         ]  # These fields CANNOT be modified manually

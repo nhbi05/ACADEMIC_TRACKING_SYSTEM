@@ -56,13 +56,20 @@ class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     registration_no = models.CharField(max_length=50,unique=True)  # Unique student identifier
     student_no =models.CharField(max_length=50,unique=True) 
-    programme = models.CharField(max_length=100,choices=PROGRAMME_CHOICES)  # Programme name
+    programme = models.CharField(max_length=100,choices=PROGRAMME_CHOICES) 
     
 
 
 class Department(models.Model):
-   # department_id=models.IntegerField(primary_key=True)
-    name= models.CharField(max_length=100)
+    DEPARTMENT_CHOICES =[
+        ('CS','Department of Computer Science'),
+        ('IS','Department of Information Systems'),
+        ('DIT','Department of Information Technology'),
+        ('NET','Department of Networks'),
+        ('RAM','Department of Records and Archives Management'),
+        ('LIS','Department of Library & Information Science'),
+    ]
+    name = models.CharField(max_length=100,choices=DEPARTMENT_CHOICES) 
 
 
 # Profile model for lecturers, linked to the User model
@@ -110,7 +117,7 @@ class Issue(models.Model):
     category = models.CharField(max_length=100,choices=CATEGORY_CHOICES)  
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
     description = models.TextField() 
-    course_unit = models.TextField(max_length=100) 
+    course_unit = models.CharField(max_length=100) 
     year_of_study = models.IntegerField( choices= YEAR_OF_STUDY)
     semester = models.CharField(max_length=20, choices= SEMESTER_OF_STUDY)
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="submitted_issues")  

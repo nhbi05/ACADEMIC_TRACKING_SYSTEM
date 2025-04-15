@@ -15,6 +15,12 @@ export const REGISTRAR_DATA_REQUEST = 'REGISTRAR_DATA_REQUEST';
 export const REGISTRAR_DATA_SUCCESS = 'REGISTRAR_DATA_SUCCESS';
 export const REGISTRAR_DATA_FAILURE = 'REGISTRAR_DATA_FAILURE';
 
+// Action Types
+export const FETCH_LECTURERS_REQUEST = 'FETCH_LECTURERS_REQUEST';
+export const FETCH_LECTURERS_SUCCESS = 'FETCH_LECTURERS_SUCCESS';
+export const FETCH_LECTURERS_FAILURE = 'FETCH_LECTURERS_FAILURE';
+
+
 // Action Creators for fetchAllIssues
 export const fetchIssuesRequest = () => ({
   type: FETCH_ISSUES_REQUEST
@@ -127,6 +133,34 @@ export const generateReport = (reportParams) => async () => {
     return await registrarService.generateReport(reportParams);
   } catch (error) {
     console.error('Report generation failed:', error);
+    throw error;
+  }
+};
+
+export const fetchLecturersRequest = () => ({
+  type: FETCH_LECTURERS_REQUEST
+});
+
+export const fetchLecturersSuccess = (data) => ({
+  type: FETCH_LECTURERS_SUCCESS,
+  payload: data
+});
+
+export const fetchLecturersFailure = (error) => ({
+  type: FETCH_LECTURERS_FAILURE,
+  payload: error
+});
+
+// Thunk Action Creator
+export const fetchLecturers = () => async (dispatch) => {
+  dispatch(fetchLecturersRequest());
+  try {
+    const data = await registrarService.getLecturers();
+    dispatch(fetchLecturersSuccess(data));
+    return data;
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || 'Failed to fetch lecturers';
+    dispatch(fetchLecturersFailure(errorMessage));
     throw error;
   }
 };
