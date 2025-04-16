@@ -11,22 +11,6 @@ const RegistrarDashboard = () => {
   const navigate = useNavigate();
 
   const { user } = useSelector(state => state.auth);
-<<<<<<< HEAD
-  const registrarState = useSelector(state => state.registrar || {});
-  const issuesState = registrarState.issues || {};
-  
-  // Safely extract data with fallbacks
-  const issues = Array.isArray(issuesState.data) ? issuesState.data : [];
-  const issuesLoading = issuesState.loading !== false;  // Default to true unless explicitly false
-  const issuesError = issuesState.error || null;
-  
-  // Safely extract stats with fallbacks
-  const stats = registrarState.stats || {};
-  const totalIssues = stats.totalIssues || 0;
-  const pendingIssues = stats.pendingIssues || 0;
-  const resolvedIssues = stats.resolvedIssues || 0;
-  
-=======
   const {
     data: issues = [],
     loading: issuesLoading = true,
@@ -35,6 +19,7 @@ const RegistrarDashboard = () => {
   const [users, setUsers] = useState(null);
 
   useEffect(() => {
+    // eslint-disable-next-line
     const users = authService.fetchUsers()
       .then(users => setUsers(users))
       .catch(error => {
@@ -49,7 +34,6 @@ const RegistrarDashboard = () => {
     resolvedIssues = 0
   } = useSelector(state => state.registrar.stats);
 
->>>>>>> 8011f9bb1fe6a8efdc3f0e82512f92dc3ccacb69
   useEffect(() => {
     // Fetch issues with stats
     dispatch(fetchAllIssues())
@@ -83,11 +67,6 @@ const RegistrarDashboard = () => {
     { name: 'Manage Students', icon: '👥', path: '/manage-students' },
     { name: 'Manage Issues', icon: '📋', path: '/manage-issues' },
   ];
-<<<<<<< HEAD
-  
-=======
-
->>>>>>> 8011f9bb1fe6a8efdc3f0e82512f92dc3ccacb69
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation */}
@@ -238,19 +217,6 @@ const RegistrarDashboard = () => {
                     <tbody>
                       {issues.slice(0, 5).map(issue => (
                         <tr key={issue.id} className="border-b hover:bg-gray-100">
-<<<<<<< HEAD
-                          <td className="px-4 py-3">{`${issue.first_name || ''} ${issue.last_name || ''}`}</td>
-                          <td className="px-4 py-3">{issue.programme || 'N/A'}</td>
-                          <td className="px-4 py-3">{issue.registration_no || 'N/A'}</td>
-                          <td className="px-4 py-3">{issue.lecturer_name || 'Unassigned'}</td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              issue.status === 'resolved' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {issue.status || 'pending'}
-=======
                           <td className="px-4 py-3">{issue.first_name}</td>
                           <td className="px-4 py-3">{issue.programme}</td>
                           <td className="px-4 py-3">{issue.registration_no}</td>
@@ -262,7 +228,6 @@ const RegistrarDashboard = () => {
                               : 'bg-yellow-100 text-yellow-800'
                               }`}>
                               {issue.status}
->>>>>>> 8011f9bb1fe6a8efdc3f0e82512f92dc3ccacb69
                             </span>
                           </td>
                         </tr>
