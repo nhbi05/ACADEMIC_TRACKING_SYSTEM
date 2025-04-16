@@ -119,12 +119,10 @@ class IssueSerializer(serializers.ModelSerializer):
             'created_at', 'resolved_at', 'first_name', 'last_name', 
             'registration_no', 'student_no',"title","course_unit","programme"
         ]
-<<<<<<< HEAD
         read_only_fields = [
             'status', 'submitted_by', 'created_at', 'resolved_at', 
             'first_name', 'last_name', 'registration_no', 'student_no',"programme"
         ]  # These fields CANNOT be modified manually
-=======
         read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']
 class LecturerProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)
@@ -138,4 +136,3 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
->>>>>>> 8011f9bb1fe6a8efdc3f0e82512f92dc3ccacb69
