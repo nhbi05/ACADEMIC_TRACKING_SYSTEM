@@ -4,6 +4,7 @@ const initialState = {
     notifications: [], // List of notifications for the lecturer
     error: null, // Error messages
     loading: false, // Loading state for API calls
+    resolvedIssues: [], // List of resolved issues
   };
   
   const LecturerReducer = (state = initialState, action) => {
@@ -27,19 +28,31 @@ const initialState = {
           loading: false,
           error: null,
         };
-      case 'FETCH_ASSIGNED_ISSUES_SUCCESS':
-        return {
-          ...state,
-          issues: action.payload,
-          loading: false,
-        };
-      case 'FETCH_ASSIGNED_ISSUES_FAILURE':
-        return {
-          ...state,
-          loading: false,
-          error: action.payload,
-        };
-  
+        case 'FETCH_ASSIGNED_ISSUES_SUCCESS':
+          return {
+            ...state,
+            issues: action.payload,
+            loading: false,
+          };
+        case 'FETCH_ASSIGNED_ISSUES_FAILURE':
+          return {
+            ...state,
+            loading: false,
+            error: action.payload,
+          };
+          case 'FETCH_RESOLVED_ISSUES_SUCCESS':
+            return {
+              ...state,
+              resolvedIssues: action.payload,
+              loading: false,
+            };
+          case 'FETCH_RESOLVED_ISSUES_FAILURE':
+            return {
+              ...state,
+              loading: false,
+              error: action.payload,
+            };
+      
       // Fetch Issue Details
       case 'FETCH_ISSUE_DETAILS_REQUEST':
         return {

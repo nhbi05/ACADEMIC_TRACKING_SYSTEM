@@ -20,6 +20,7 @@ from .views import( RegisterView,
                    LecturerIssueDetailView,
                    LecturerPendingIssuesView,
                    #LecturerResolvedIssueView
+                   UsersView,
                    )
 
 
@@ -55,5 +56,9 @@ urlpatterns = [
     path('lecturer/issue/<int:pk>/',LecturerIssueDetailView.as_view(), name='lecturer_issue_detail'),
     #path('lecturer/resolve_issue/<int:pk>/',LecturerResolvedIssueView.as_view(), name='lecturer_resolve_issue'),
     path('lecturer/pending_issues/', LecturerPendingIssuesView.as_view(), name='lecturer_pending_issues'),
+<<<<<<< HEAD
 
+=======
+    path('users/', UsersView.as_view(), name='users'),
+>>>>>>> 8011f9bb1fe6a8efdc3f0e82512f92dc3ccacb69
 ]

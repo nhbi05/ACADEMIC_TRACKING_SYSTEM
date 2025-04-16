@@ -215,6 +215,12 @@ export const authService = {
     } catch (error) {
       return null;
     }
+  },
+
+  fetchUsers: async () => {
+    await authService.checkTokenExpiration();
+    const response = await api.get('/users/');
+    return response.data;
   }
 };
 export const studentService = {
@@ -330,7 +336,7 @@ export const registrarService = {
 export const lecturerService = {
   
   getAssignedIssues: async () => {
-    const response = await axios.get('/api/assigned-issues/', {
+    const response = await api.get('/assigned-issues/', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access')}`,
       },
@@ -338,16 +344,12 @@ export const lecturerService = {
     return response.data;
   },
   getResolvedIssues: async () => {
-    const response = await axios.get('/api/resolved-issues/', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
+    const response = await api.get('/resolved-issues/');
     return response.data;
   },
 
   getIssueDetails: async (issueId) => {
-    const response = await axios.get(`/api/issues/${issueId}/`, {
+    const response = await api.get(`/api/issues/${issueId}/`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access')}`,
       },
@@ -356,16 +358,12 @@ export const lecturerService = {
   },
 
   resolveIssue: async (issueId) => {
-    const response = await axios.patch(`/api/issues/${issueId}/resolve/`, {}, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
+    const response = await api.post("/resolve-issue/", { issueId });
     return response.data;
   },
 
   getNotifications: async () => {
-    const response = await axios.get('/api/lecturer/notifications/', {
+    const response = await api.get('/api/lecturer/notifications/', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access')}`,
       },
@@ -374,7 +372,7 @@ export const lecturerService = {
   },
 
   markNotificationAsRead: async (notificationId) => {
-    const response = await axios.patch(`/api/lecturer/notifications/${notificationId}/read/`, {}, {
+    const response = await api.patch(`/api/lecturer/notifications/${notificationId}/read/`, {}, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('access')}`,
       },
