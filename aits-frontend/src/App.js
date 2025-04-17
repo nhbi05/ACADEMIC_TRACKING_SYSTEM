@@ -14,6 +14,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import IssueDetails from './components/IssueDetails';
 import Profile from './components/Profile';
 import Settings from './components/Settings';
+import ManageIssues from './components/ManageIssues';
+
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
           <Route path="/student/issues" element={<ProtectedRoute element={<IssueDetails />} />} />
           <Route path="/student/profile" element={<ProtectedRoute element={<Profile />} />} />
           <Route path="/student/issues/create" element={<IssueSubmissionForm />} />
+          <Route path="/manage-issues" element={<ManageIssues />} />
+
           <Route path="/student/settings" element={<ProtectedRoute element={<Settings />} />} />
         </Routes>
       </div>
