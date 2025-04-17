@@ -48,9 +48,7 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('registrar/issues/', RegistrarIssueView.as_view(), name='registrar_issues'),
     path('Registrar_issue_counts/',RegisterCountView.as_view(),name='Registrar_issue_counts'),
-
     path('search-lecturers/', LecturerSearchView.as_view(), name='search-lecturers'),#lecturer in the database
-
     path('assigned-issues/', LecturerAssignedIssuesView.as_view(), name='lecturer_assigned_issues'),
     path('lecturer/issue/<int:pk>/',LecturerIssueDetailView.as_view(), name='lecturer_issue_detail'),
     #path('lecturer/resolve_issue/<int:pk>/',LecturerResolvedIssueView.as_view(), name='lecturer_resolve_issue'),

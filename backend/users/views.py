@@ -318,8 +318,10 @@ class RegistrarIssueView(generics.ListAPIView):
     def get_queryset(self):
         return Issue.objects.all().order_by('created_at')
     #filtering capabalities
-    filter_backends= [DjangoFilterBackend,filters.SearchFilter]
-    filterset_fields= ['status','category']
+    
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['status', 'category']  # Add programme
+    search_fields = ['first_name', 'last_name', 'registration_no']  # Add search fields
 
     # Method for registrars to assign issues to lecturers
     def assign_issue(self, issue, lecturer):
