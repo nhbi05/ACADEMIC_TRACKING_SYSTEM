@@ -142,8 +142,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    #"https://aits-frontend-omega.vercel.app"# React frontend
+    #"http://localhost:3000",
+    "https://aits-frontend-omega.vercel.app" # React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'
