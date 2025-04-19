@@ -71,14 +71,14 @@ class LecturerProfile(models.Model):
     department = models.ForeignKey(Department,on_delete=models.SET_NULL,null=True,blank=True,related_name='lecturer_profile')  # Department name
 
 
-# Profile model for registrars, linked to the User model
+
 class RegistrarProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registrar_profile')
     college = models.CharField(max_length=100)  # College name
      
 
 class Issue(models.Model):
-    # Choices for issue status
+    
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
