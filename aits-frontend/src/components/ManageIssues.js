@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-// Corrected import paths to ensure they're within the src directory
 import { logoutUser } from '../redux/actions/authActions';
 import { 
   fetchAllIssues, 
   fetchLecturers, 
   assignIssue 
 } from '../redux/actions/registrarActions';
-// Using a more common UI library path or importing directly
 import { Alert, AlertDescription } from './ui/alert';
 
 const ManageIssues = () => {
@@ -20,6 +18,7 @@ const ManageIssues = () => {
   const registrarState = useSelector(state => state.registrar || {});
   const issuesState = registrarState.issues || {};
   const assignmentState = registrarState.assignIssue || {};
+  const lecturersState = registrarState.lecturers || {};
   
   // Local state for filtering and assignments
   const [filteredIssues, setFilteredIssues] = useState([]);
@@ -33,11 +32,10 @@ const ManageIssues = () => {
     lecturerId: '',
     isModalOpen: false
   });
-  const [lecturers, setLecturers] = useState([]);
-
+  
   // Extract data from Redux with fallbacks
-  // eslint-disable-next-line
   const issues = Array.isArray(issuesState.data) ? issuesState.data : [];
+  const lecturers = Array.isArray(lecturersState.data) ? lecturersState.data : [];
   const issuesLoading = issuesState.loading !== false;
   const issuesError = issuesState.error || null;
   
@@ -47,11 +45,6 @@ const ManageIssues = () => {
       .catch(err => console.error('Error fetching issues:', err));
     
     dispatch(fetchLecturers())
-      .then(response => {
-        if (response && Array.isArray(response.lecturers)) {
-          setLecturers(response.lecturers);
-        }
-      })
       .catch(err => console.error('Error fetching lecturers:', err));
   }, [dispatch]);
   
@@ -88,6 +81,15 @@ const ManageIssues = () => {
     }
   }, [issues, filters]);
 
+  // Reset the assignment success flag when closing the modal
+  useEffect(() => {
+    if (!assignmentData.isModalOpen && assignmentState.success) {
+      setTimeout(() => {
+        dispatch({ type: 'RESET_ASSIGNMENT_SUCCESS' });
+      }, 0);
+    }
+  }, [assignmentData.isModalOpen, assignmentState.success, dispatch]);
+
   // Handle filter changes
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -99,9 +101,16 @@ const ManageIssues = () => {
 
   // Open assignment modal
   const openAssignModal = (issueId) => {
+    // Find the issue to get its current assigned lecturer (if any)
+    const issue = issues.find(i => i.id === issueId);
+    
+    // If the issue has an assigned_to value (user ID), find the corresponding lecturer
+    // in the lecturers array to get the user ID
+    const currentLecturerId = issue?.assigned_to || '';
+    
     setAssignmentData({
       issueId,
-      lecturerId: '',
+      lecturerId: currentLecturerId,
       isModalOpen: true
     });
   };
@@ -131,9 +140,9 @@ const ManageIssues = () => {
     }
     
     try {
+      // Send the lecturer identifier to the backend
+      // The backend expects 'lecturer' rather than 'lecturer_id'
       await dispatch(assignIssue(assignmentData.issueId, assignmentData.lecturerId));
-      // Refresh issues list after assignment
-      dispatch(fetchAllIssues());
       closeAssignModal();
     } catch (error) {
       console.error('Failed to assign issue:', error);
@@ -145,7 +154,7 @@ const ManageIssues = () => {
 
   return (
     <div className="flex h-screen bg-green-50">
-      {/* Sidebar Navigation - Keeping the same sidebar from your RegistrarDashboard */}
+      {/* Sidebar Navigation */}
       <div className="w-64 bg-white shadow-md">
         <div className="p-6">
           <h1 className="text-2xl font-bold text-green-700">AITS</h1>
@@ -331,6 +340,7 @@ const ManageIssues = () => {
                         <th scope="col" className="px-4 py-3">Programme</th>
                         <th scope="col" className="px-4 py-3">Reg. No</th>
                         <th scope="col" className="px-4 py-3">Issue Type</th>
+                        <th scope="col" className="px-4 py-3">Course Lecturer</th>
                         <th scope="col" className="px-4 py-3">Assigned To</th>
                         <th scope="col" className="px-4 py-3">Status</th>
                         <th scope="col" className="px-4 py-3">Actions</th>
@@ -342,8 +352,12 @@ const ManageIssues = () => {
                           <td className="px-4 py-3">{`${issue.first_name || ''} ${issue.last_name || ''}`}</td>
                           <td className="px-4 py-3">{issue.programme || 'N/A'}</td>
                           <td className="px-4 py-3">{issue.registration_no || 'N/A'}</td>
-                          <td className="px-4 py-3">{issue.issue_type || 'General'}</td>
-                          <td className="px-4 py-3">{issue.lecturer_name || 'Unassigned'}</td>
+                          <td className="px-4 py-3">{issue.category || 'General'}</td>
+                          <td className="px-4 py-3">{issue.lecturer_name || 'Not specified'}</td>
+                          <td className="px-4 py-3">
+                            {issue.assigned_to_name || 
+                             (issue.assigned_to ? 'Assigned' : 'Unassigned')}
+                          </td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded-full text-xs ${
                               issue.status === 'resolved' 
@@ -363,7 +377,7 @@ const ManageIssues = () => {
                               className="text-sm text-green-600 hover:text-green-800"
                               disabled={issue.status === 'resolved'}
                             >
-                              {issue.lecturer_name ? 'Reassign' : 'Assign'}
+                              {issue.assigned_to ? 'Reassign' : 'Assign'}
                             </button>
                           </td>
                         </tr>
@@ -391,8 +405,9 @@ const ManageIssues = () => {
                 
                 <div className="mb-4">
                   <label htmlFor="lecturer" className="block text-sm font-medium text-gray-700 mb-1">
-                    Select Lecturer
+                    Select Lecturer to Handle Issue
                   </label>
+                 {/* Inside the Assignment Modal */}
                   <select
                     id="lecturer"
                     value={assignmentData.lecturerId}
@@ -401,8 +416,11 @@ const ManageIssues = () => {
                   >
                     <option value="">-- Select a Lecturer --</option>
                     {lecturers.map(lecturer => (
-                      <option key={lecturer.id} value={lecturer.id}>
-                        {`${lecturer.first_name} ${lecturer.last_name}`}
+                      <option 
+                        key={lecturer.user ? lecturer.user.id : lecturer.id} 
+                        value={lecturer.user ? lecturer.user.id : lecturer.id}
+                      >
+                        {`${lecturer.user ? lecturer.user.first_name : lecturer.first_name} ${lecturer.user ? lecturer.user.last_name : lecturer.last_name}`}
                       </option>
                     ))}
                   </select>

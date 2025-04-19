@@ -20,8 +20,8 @@ const Register = () => {
     department: '',
     student_no: '',        
     //year_level: 1,
-    programme: '' ,      
-    registration_no:""
+    programme: '',      
+    registration_no: ""
   });
 
   const [passwordError, setPasswordError] = useState('');
@@ -52,8 +52,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-      setPasswordError('');
-      console.log("Form data before validation:", formData);
+    setPasswordError('');
+    console.log("Form data before validation:", formData);
     
     // Validate passwords match
     if (formData.password !== formData.password2) {
@@ -61,17 +61,15 @@ const Register = () => {
       return;
     }
   
-     // Create the appropriate profile data based on role
+    // Create the appropriate profile data based on role
     let profileData = {};
     if (formData.role === 'student') {
       profileData = {
         student_profile: {
-
           student_no: formData.student_no,
           registration_no: formData.registration_no, // Added registration number
           college: formData.college,
           programme: formData.programme,
-
         }
       };
     } else if (formData.role === 'lecturer') {
@@ -88,7 +86,6 @@ const Register = () => {
       };
     }
 
-    
     const registrationData = {
       username: formData.username,
       email: formData.email,
@@ -254,21 +251,25 @@ const Register = () => {
                       />
                     </div>
                   </div>
-                {/*</div>*/}
-                
               </div>
             )}
 
             {formData.role === 'lecturer' && (
               <div className="space-y-4">
-                <input
-                  type="text"
+                <select
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Department"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                />
+                >
+                  <option value="">Select a department</option>
+                  <option value="CS">Department of Computer Science</option>
+                  <option value="IS">Department of Information Systems</option>
+                  <option value="DIT">Department of Information Technology</option>
+                  <option value="NET">Department of Networks</option>
+                  <option value="RAM">Department of Records and Archives Management</option>
+                  <option value="LIS">Department of Library & Information Science</option>
+                </select>
               </div>
             )}
 

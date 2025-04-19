@@ -240,20 +240,6 @@ export const studentService = {
 
 // Issue services
 
-// Notification services
-export const notificationService = {
-  getAll: async () => {
-    await authService.checkTokenExpiration();
-    const response = await api.get('/notifications/');
-    return response.data;
-  },
-
-  markAsRead: async (notificationId) => {
-    await authService.checkTokenExpiration();
-    const response = await api.post(`/notifications/${notificationId}/mark-read/`);
-    return response.data;
-  },
-};
 
 export const registrarService = {
   // Get registrar profile information
@@ -279,11 +265,15 @@ export const registrarService = {
     };
   },
   
-  // Assign an issue to a specific lecturer
+  // Assign an issue to a specific lecturer - FIXED
   assignIssue: async (issueId, lecturerId) => {
     await authService.checkTokenExpiration();
+    
+    // Log the data being sent for debugging
+    console.log(`Assigning issue ${issueId} to lecturer ${lecturerId}`);
+    
     const response = await api.post(`/assign-issue/${issueId}/`, { 
-      lecturer_id: lecturerId 
+      lecturer: lecturerId  // Changed from lecturer_id to lecturer to match backend expectation
     });
     return response.data;
   },
@@ -323,6 +313,18 @@ export const registrarService = {
     await authService.checkTokenExpiration();
     const response = await api.get('/resolved-issues/');
     return response.data;
+  },
+  
+  getLecturers: async () => {
+    await authService.checkTokenExpiration();
+    try {
+      const response = await api.get('/search-lecturers/');
+      console.log("Lecturers API response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching lecturers:", error);
+      throw error;
+    }
   }
 };
 
