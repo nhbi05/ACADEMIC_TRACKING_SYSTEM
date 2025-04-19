@@ -193,7 +193,11 @@ class AssignIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        lecturer_id = request.data.get('lecturer_id')
+        # Get lecturer ID from request data
+        lecturer_id = request.data.get('lecturer')
+        
+        print(f"Received assignment request - Issue ID: {issue_id}, Lecturer ID: {lecturer_id}, Data: {request.data}")
+        
         if not lecturer_id:
             return Response(
                 {'error': 'Lecturer ID is required'},
@@ -202,35 +206,51 @@ class AssignIssueView(APIView):
             
         try:
             issue = Issue.objects.get(id=issue_id)
-            lecturer = User.objects.get(id=lecturer_id, role='lecturer')
-            request.user.assign_issue(issue, lecturer)
-            #send email notification to lecturer
+            
+            # Make sure lecturer_id is an integer
+            try:
+                lecturer_id = int(lecturer_id)
+                lecturer = User.objects.get(id=lecturer_id, role='lecturer')
+            except (ValueError, User.DoesNotExist):
+                return Response(
+                    {'error': f'Lecturer not found with ID {lecturer_id}'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Assign the issue
+            issue.assigned_to = lecturer
+            issue.status = 'assigned'
+            issue.save()
+            
+            # Send email notification (if needed)
             if lecturer.email:
                 send_mail(
-                    subject= "New Issue Assigned",
-                    message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
+                    subject="New Issue Assigned",
+                    message=f"Dear {lecturer.first_name}, you have been assigned a new issue: {issue.title}",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[lecturer.email],
                     fail_silently=False,
-                    
                 )
+                
             return Response(
-                {'message': 'Issue assigned successfully'},
+                {
+                    'message': 'Issue assigned successfully',
+                    'assigned_to': {
+                        'id': lecturer.id,
+                        'name': f"{lecturer.first_name} {lecturer.last_name}"
+                    }
+                },
                 status=status.HTTP_200_OK
             )
-        except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
+            
+        except Issue.DoesNotExist:
             return Response(
                 {'error': 'Issue not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        except User.DoesNotExist:  # Fixed typo in DoesNotExist
-            return Response(
-                {'error': 'Lecturer not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
 #functionality of the students dashboard
 
+    
 class LecturerSearchView(generics.ListAPIView):
     serializer_class = LecturerProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -391,4 +411,19 @@ def notify_lecturer(issue):
             fail_silently=False,
         )
 
+class DebugRequestView(APIView):
+    """
+    A simple view that echoes back request data for debugging purposes.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        return Response({
+            'headers': dict(request.headers),
+            'method': request.method,
+            'path': request.path,
+            'data': request.data,
+            'query_params': request.query_params,
+            'user': request.user.username
+        }, status=status.HTTP_200_OK)
 
