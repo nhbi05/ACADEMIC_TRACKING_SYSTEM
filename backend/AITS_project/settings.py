@@ -28,9 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-yto=31kte-xiyu4ilo45v+zcd^d8dpi%)lgi_&xq@+h3wqx9-s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["https://academictrackingsystem-production2.up.railway.app"]
 
 
 # Application definition
@@ -89,13 +89,6 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-"""DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}"""
-
 
 DATABASES = {
     'default': {
@@ -107,19 +100,6 @@ DATABASES = {
         'PORT':'5432'
     }
 }
-try:
-    import psycopg2
-    conn = psycopg2.connect(
-        dbname=DATABASES['default']['NAME'],
-        user=DATABASES['default']['USER'],
-        password=DATABASES['default']['PASSWORD'],
-        host=DATABASES['default']['HOST'],
-        port=DATABASES['default']['PORT']
-    )
-    print("✅ Database connection successful!")
-    conn.close()
-except Exception as e:
-    print("❌ Could not connect to the database. Error:", e)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -162,8 +142,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    #"https://aits-frontend-omega.vercel.app"# React frontend
+    #"http://localhost:3000",
+    "https://aits-frontend-omega.vercel.app" # React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'

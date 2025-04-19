@@ -6,76 +6,82 @@ from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-from .models import Issue,User
+from django.db.models import Q
+
+#from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
+from .models import Issue,User,LecturerProfile
 from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Q
+
 
 User = get_user_model()
 class RegisterView(APIView):
-    permission_classes = [AllowAny]
-    
     def post(self, request):
-        print("register view")
         serializer = RegisterSerializer(data=request.data)
+        print(request.data)
         if serializer.is_valid():
-            try:
-                user = serializer.save()
-                return Response(
-                    {
-                        "message": "User created successfully",
-                        "user_id": user.id,
-                        "username": user.username,
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-            except Exception as e:
-                return Response(
-                    {"error": str(e)},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            user = serializer.save()
+            
+            # Construct email
+            subject = 'Welcome to the Academic Issue Tracking System'
+            if user.role == 'student':
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a student."
+            elif user.role == 'lecturer':
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a lecturer."
+            elif user.role == 'registrar':
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a registrar."
+
+            # Send email
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+            return Response(
+                {"message": "User created successfully", "user": serializer.data}, 
+                status=status.HTTP_201_CREATED
+            )
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data['username']
+            username = serializer.validated_data['username']  # Use username instead of email
             password = serializer.validated_data['password']
-            login_type = serializer.validated_data.get('loginType')
+            login_type = serializer.validated_data.get('loginType')  # Use get() for optional field
             
+            # Find user by username
             try:
-                user = User.objects.get(username=username)
+                user = User.objects.get(username=username)  # Find user by username instead of email
+                # Authenticate with username and password
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
                 if authenticated_user is not None:
+                    # Optional role check
                     if login_type and authenticated_user.role != login_type:
                         return Response({'error': 'Invalid role for this login type'}, 
                                        status=status.HTTP_403_FORBIDDEN)
                     
                     refresh = RefreshToken.for_user(authenticated_user)
-                    access_token = refresh.access_token
-                    
-                    # Add custom claims to the token
-                    access_token['username'] = authenticated_user.username
-                    access_token['role'] = authenticated_user.role
-
                     return Response({
                         'refresh': str(refresh),
-                        'access': str(access_token),
-                        'token_type': 'Bearer',
+                        'access': str(refresh.access_token),
                         'user': {
+                
                             'id': authenticated_user.id,
                             'username': authenticated_user.username,
                             'email': authenticated_user.email,
                             'role': authenticated_user.role,
                             'first_name': authenticated_user.first_name,
                             'last_name': authenticated_user.last_name,
-                        }
+                                                }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
             except User.DoesNotExist:
@@ -105,42 +111,41 @@ class RegistrarProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user.registrar_profile
 
-# Example views.py modification
-
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def post(self, request, *args, **kwargs):
-        # Print the incoming request data
-        print("Incoming request data:", request.data)
-
-        serializer = IssueSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            print("Serializer validated data:", serializer.validated_data)  # Debugging
-
-            serializer.validated_data['submitted_by'] = request.user
-            
-            # Check if registration_no is missing, then get it from the student's profile
-            if not serializer.validated_data.get('registration_no') and hasattr(request.user, 'student_profile'):
-                serializer.validated_data['registration_no'] = request.user.student_profile.registration_no
-
-            # Save the issue
-            issue = serializer.save()
-            print("Created issue:", issue)  # Debugging
-
+    def post(self, request):
+        if request.user.role != 'student':
             return Response(
-                IssueSerializer(issue).data,
-                status=status.HTTP_201_CREATED
+                {'error': 'Only students can submit issues'},
+                status=status.HTTP_403_FORBIDDEN
             )
-        
-        # Print validation errors if serializer is not valid
-        print("Validation errors:", serializer.errors)  # Debugging
+        # Automatically include student details in the request data
+        request_data = request.data.copy()
+        student_profile = request.user.student_profile
+        request_data['first_name'] = request.user.first_name
+        request_data['last_name'] = request.user.last_name
+        request_data['registration_no'] = student_profile.registration_no # From student profile
+        request_data['student_no'] = student_profile.student_no  # From student profile
 
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer = IssueSerializer(data=request.data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save(submitted_by=request.user)
+            #Get the registrar's email
+            registrar= User.objects.filter(role='registrar').first()
+            if registrar and registrar.email:
+                #send email notification to registrar
+                send_mail(
+                    subject="New Issue Submitted",
+                    message=f"A new issue has been submitted by {request.user.first_name}",
+                    from_email= settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[registrar.email],
+                    fail_silently=False,        
+
+                )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -153,14 +158,9 @@ class ResolveIssueView(APIView):
             )
         
         try:
-            issue = Issue.objects.get(id=issue_id, assigned_to=request.user)
-            if issue.status =='resolved':
-                return Response({'error: Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
-
-            issue.status = 'resolved'
-            issue.resolved_by = request.user
-            issue.save()
-
+            issue = Issue.objects.get(id=issue_id)
+            #the lecturer resolves the issue calling the method from the user model
+            request.user.resolve_issue(issue)
             #send an email notification to the student who submitted the issue
             student_user= issue.submitted_by
             if student_user and student_user.email:
@@ -169,14 +169,20 @@ class ResolveIssueView(APIView):
                     message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
-                    fail_silently=False,   
+                    fail_silently=False,
+                    
                     )
 
                 
-            return Response({'message': 'Issue resolved successfully'},status=status.HTTP_200_OK)
+            return Response(
+                {'message': 'Issue resolved successfully'},
+                status=status.HTTP_200_OK
+            )
         except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
             return Response(
-                {'error': 'Issue not found or not assigned to you'},status=status.HTTP_404_NOT_FOUND)
+                {'error': 'Issue not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 class AssignIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -225,42 +231,47 @@ class AssignIssueView(APIView):
             )
 
 #functionality of the students dashboard
-class StudentIssueView(generics.ListAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
-
-    def get_queryset(self):
-        print("query view")
-        return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
 
 class LecturerSearchView(generics.ListAPIView):
-    
-    #API endpoint for searching lecturers by name.
-    
     serializer_class = LecturerProfileSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         query = self.request.GET.get('q', '')
-        return User.objects.filter(
-            Q(first_name__icontains=query) | Q(last_name__icontains=query),
+
+        # Get all users who are lecturers and match the search query
+        matching_lecturers = User.objects.filter(
             role='lecturer'
+        ).filter(
+            Q(first_name__icontains=query) | Q(last_name__icontains=query)
         )
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        # Return the related LecturerProfile objects
+        return LecturerProfile.objects.filter(user__in=matching_lecturers)
+
+class StudentIssueView(generics.ListAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
+
+    def get_queryset(self):
+        return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
+
 
 
 class ResolvedIssuesView(generics.ListAPIView):
-    serializer_class = IssueSerializer
-    permission_classes = [IsAuthenticated]
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(submitted_by=self.request.user, status='resolved')
+        return Issue.objects.filter(student=self.request.user,status='resolved')
 
+class CreateIssueView(generics.CreateAPIView):
+    serializer_class=IssueSerializer
+    permission_classes=[IsAuthenticated]
 
+    def perform_create(self,serializer):
+        #O11 serializer.save(student=self.request.use
+        serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
     queryset = Issue.objects.all()
@@ -338,17 +349,15 @@ class RegisterCountView(generics.ListAPIView):
             "resolved_issues":resolved_issues,
             "pending_issues":pending_issues
         })
-
-   #Functinality of lecture dashboard      
-
+        
+#Functionality of lecture dashboard
 class LecturerAssignedIssuesView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Issue.objects.filter(assigned_to=self.request.user).order_by('created_at')
-        
-class LecturerIssueDetailView(generics.RetrieveAPIView):
+class LecturerIssueDetailView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
@@ -380,4 +389,5 @@ def notify_lecturer(issue):
             recipient_list=[lecturer.email],
             fail_silently=False,
         )
+
 
