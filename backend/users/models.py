@@ -18,7 +18,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
-    # Method for students to submit issues
+    
     def submit_issue(self, category, description,course_unit,semester,year_of_study):
         # Only students are allowed to submit issues
         if self.role != 'student':
