@@ -183,6 +183,7 @@ class ResolveIssueView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+# views.py (corrected)
 class AssignIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -193,61 +194,55 @@ class AssignIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        # Get lecturer ID from request data
-        lecturer_id = request.data.get('lecturer')
+        user_id = request.data.get('user_id')
         
-        print(f"Received assignment request - Issue ID: {issue_id}, Lecturer ID: {lecturer_id}, Data: {request.data}")
-        
-        if not lecturer_id:
+        # Validate user_id exists and is a number
+        if not user_id:
             return Response(
-                {'error': 'Lecturer ID is required'},
+                {'error': 'Lecturer User ID is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            user_id = int(user_id)  # Convert to integer
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'User ID must be a valid integer'},
                 status=status.HTTP_400_BAD_REQUEST
             )
             
         try:
             issue = Issue.objects.get(id=issue_id)
-            
-            # Make sure lecturer_id is an integer
-            try:
-                lecturer_id = int(lecturer_id)
-                lecturer = User.objects.get(id=lecturer_id, role='lecturer')
-            except (ValueError, User.DoesNotExist):
-                return Response(
-                    {'error': f'Lecturer not found with ID {lecturer_id}'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            
-            # Assign the issue
+            lecturer = User.objects.get(
+                id=user_id, 
+                role='lecturer',
+                lecturer_profile__isnull=False
+            )
+                
             issue.assigned_to = lecturer
-            issue.status = 'assigned'
+            issue.status = 'assigned'  # Set to assigned, not in_progress
             issue.save()
             
-            # Send email notification (if needed)
-            if lecturer.email:
-                send_mail(
-                    subject="New Issue Assigned",
-                    message=f"Dear {lecturer.first_name}, you have been assigned a new issue: {issue.title}",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[lecturer.email],
-                    fail_silently=False,
-                )
-                
-            return Response(
-                {
-                    'message': 'Issue assigned successfully',
-                    'assigned_to': {
-                        'id': lecturer.id,
-                        'name': f"{lecturer.first_name} {lecturer.last_name}"
-                    }
-                },
-                status=status.HTTP_200_OK
-            )
+            return Response({
+                'message': 'Issue assigned successfully',
+                'assigned_to': {
+                    'id': lecturer.id,
+                    'name': f"{lecturer.first_name} {lecturer.last_name}",
+                    'department': lecturer.lecturer_profile.department if hasattr(lecturer, 'lecturer_profile') else ''
+                }
+            }, status=status.HTTP_200_OK)
             
         except Issue.DoesNotExist:
             return Response(
                 {'error': 'Issue not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Lecturer not found or not properly registered'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
 #functionality of the students dashboard
 
     
