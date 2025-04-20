@@ -96,24 +96,25 @@ export const fetchAllIssues = () => async (dispatch) => {
 
 // Assign an issue to a specific lecturer or staff
 // Assign an issue to a specific lecturer or staff
-export const assignIssue = (issueId, lecturerId) => async (dispatch) => {
+// assignIssue.js
+// In registrarActions.js, update the assignIssue function
+export const assignIssue = (issueId, assignedTo) => async (dispatch) => {
   dispatch(assignIssueRequest());
   
   try {
-    console.log(`Assigning issue ${issueId} to lecturer ID: ${lecturerId}`); // Debug logging
-    const data = await registrarService.assignIssue(issueId, lecturerId);
+    // Ensure issueId and assignedTo are integers
+    const parsedIssueId = parseInt(issueId, 10);
+    const parsedAssignedTo = parseInt(assignedTo, 10);
+    
+    const data = await registrarService.assignIssue(parsedIssueId, parsedAssignedTo);
     dispatch(assignIssueSuccess(data));
-    // After successful assignment, refresh the issues list
-    dispatch(fetchAllIssues());
     return data;
   } catch (error) {
-    console.error("Assignment error:", error); // Debug logging
-    const errorMessage = error.response?.data?.message || 'Failed to assign issue';
+    const errorMessage = error.response?.data?.error || 'Failed to assign issue';
     dispatch(assignIssueFailure(errorMessage));
     throw error;
   }
 };
-
 // Fetch registrar dashboard data
 export const fetchRegistrarData = () => async (dispatch) => {
   dispatch(fetchRegistrarDataRequest());

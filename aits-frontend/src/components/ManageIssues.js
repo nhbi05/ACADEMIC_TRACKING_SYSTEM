@@ -47,7 +47,14 @@ const ManageIssues = () => {
     dispatch(fetchLecturers())
       .catch(err => console.error('Error fetching lecturers:', err));
   }, [dispatch]);
-  
+
+
+  useEffect(() => {
+    if (lecturers.length > 0) {
+      console.log("First lecturer object:", lecturers[0]);
+      console.log("Lecturer IDs:", lecturers.map(l => l.id));
+    }
+  }, [lecturers]);
   // Update filtered issues when issues or filters change
   useEffect(() => {
     if (issues.length > 0) {
@@ -124,15 +131,34 @@ const ManageIssues = () => {
     });
   };
 
+ // When selecting a lecturer from the dropdown
+ const handleLecturerChange = (e) => {
+  // Get the value
+  let selectedValue = e.target.value;
+  
+  // Convert to integer only if it's not empty string
+  if (selectedValue !== '') {
+    selectedValue = parseInt(selectedValue, 10);
+    
+    // Check if conversion was successful
+    if (isNaN(selectedValue)) {
+      console.error("Failed to convert lecturer ID to number:", e.target.value);
+      return;
+    }
+  } else {
+    // If empty string, keep it as empty string
+    selectedValue = '';
+  }
+  
+  console.log("Selected lecturer ID:", selectedValue, typeof selectedValue);
+  
+  setAssignmentData(prev => ({
+    ...prev,
+    lecturerId: selectedValue
+  }));
+};
   // Handle lecturer selection
-  const handleLecturerChange = (e) => {
-    setAssignmentData(prev => ({
-      ...prev,
-      lecturerId: e.target.value
-    }));
-  };
-
-  // Submit assignment
+  // Handle lecturer selection
   const handleAssignSubmit = async () => {
     if (!assignmentData.lecturerId) {
       alert('Please select a lecturer');
@@ -140,15 +166,36 @@ const ManageIssues = () => {
     }
     
     try {
-      // Send the lecturer identifier to the backend
-      // The backend expects 'lecturer' rather than 'lecturer_id'
+      // Add logging to see what's being sent
+      console.log("Submitting assignment with data:", { 
+        issueId: assignmentData.issueId,
+        lecturerId: assignmentData.lecturerId
+      });
+      
       await dispatch(assignIssue(assignmentData.issueId, assignmentData.lecturerId));
+      // Refresh the issues list after assignment
+      dispatch(fetchAllIssues());
       closeAssignModal();
     } catch (error) {
       console.error('Failed to assign issue:', error);
+      alert(`Assignment failed: ${error.response?.data?.error || error.message}`);
     }
   };
-
+ // After fetching lecturers
+useEffect(() => {
+  if (lecturers.length > 0) {
+    // Filter out lecturers without IDs
+    const validLecturers = lecturers.filter(l => l.id !== undefined);
+    
+    if (validLecturers.length === 0) {
+      console.warn("No lecturers with valid IDs found!");
+    } else {
+      console.log(`Loaded ${validLecturers.length} valid lecturers`);
+      console.log("First lecturer:", validLecturers[0]);
+      console.log("Lecturer IDs:", validLecturers.map(l => l.id));
+    }
+  }
+}, [lecturers]);
   // Get unique programmes for filter dropdown
   const uniqueProgrammes = [...new Set(issues.map(issue => issue.programme).filter(Boolean))];
 
@@ -398,52 +445,53 @@ const ManageIssues = () => {
           </div>
           
           {/* Assignment Modal */}
-          {assignmentData.isModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-xl font-semibold mb-4">Assign Issue to Lecturer</h2>
-                
-                <div className="mb-4">
-                  <label htmlFor="lecturer" className="block text-sm font-medium text-gray-700 mb-1">
-                    Select Lecturer to Handle Issue
-                  </label>
-                 {/* Inside the Assignment Modal */}
-                  <select
-                    id="lecturer"
-                    value={assignmentData.lecturerId}
-                    onChange={handleLecturerChange}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">-- Select a Lecturer --</option>
-                    {lecturers.map(lecturer => (
-                      <option 
-                        key={lecturer.user ? lecturer.user.id : lecturer.id} 
-                        value={lecturer.user ? lecturer.user.id : lecturer.id}
-                      >
-                        {`${lecturer.user ? lecturer.user.first_name : lecturer.first_name} ${lecturer.user ? lecturer.user.last_name : lecturer.last_name}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={closeAssignModal}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAssignSubmit}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                    disabled={!assignmentData.lecturerId}
-                  >
-                    Assign Issue
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Assignment Modal */}
+{assignmentData.isModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <h2 className="text-xl font-semibold mb-4">Assign Issue to Lecturer</h2>
+      
+      <div className="mb-4">
+        <label htmlFor="lecturer" className="block text-sm font-medium text-gray-700 mb-1">
+          Select Lecturer to Handle Issue
+        </label>
+        <select
+  id="lecturer"
+  value={assignmentData.lecturerId || ''}  // Always ensure value is not undefined
+  onChange={handleLecturerChange}
+  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+>
+  <option value="">-- Select a Lecturer --</option>
+  {lecturers
+    .filter(lecturer => lecturer.id !== undefined)  // Only show lecturers with IDs
+    .map((lecturer) => (
+      <option key={lecturer.id} value={lecturer.id}>
+        {`${lecturer.first_name || ''} ${lecturer.last_name || ''}`}
+      </option>
+    ))
+  }
+</select>
+      </div>
+      
+      <div className="flex justify-end space-x-3">      
+        <button
+          onClick={closeAssignModal}
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleAssignSubmit}
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+          disabled={!assignmentData.lecturerId}
+        >
+          Assign Issue
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+    
         </main>
       </div>
     </div>

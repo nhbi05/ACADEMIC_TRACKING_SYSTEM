@@ -265,19 +265,26 @@ export const registrarService = {
     };
   },
   
-  // Assign an issue to a specific lecturer - FIXED
-  assignIssue: async (issueId, lecturerId) => {
-    await authService.checkTokenExpiration();
-    
-    // Log the data being sent for debugging
-    console.log(`Assigning issue ${issueId} to lecturer ${lecturerId}`);
-    
-    const response = await api.post(`/assign-issue/${issueId}/`, { 
-      lecturer: lecturerId  // Changed from lecturer_id to lecturer to match backend expectation
+assignIssue: async (issueId, lecturerId) => {
+  await authService.checkTokenExpiration();
+  
+  // Ensure both issueId and lecturerId are integers
+  const parsedIssueId = parseInt(issueId, 10);
+  const parsedLecturerId = parseInt(lecturerId, 10);
+  
+  console.log(`Assigning issue ${parsedIssueId} to lecturer ID:`, parsedLecturerId);
+  console.log("Request payload:", { user_id: parsedLecturerId });
+  
+  try {
+    const response = await api.post(`/assign-issue/${parsedIssueId}/`, {
+      user_id: parsedLecturerId
     });
     return response.data;
-  },
-
+  } catch (error) {
+    console.error("Assignment API error:", error.response?.data || error.message);
+    throw error;
+  }
+},
   // Get dashboard data
   getDashboardData: async () => {
     await authService.checkTokenExpiration();
@@ -330,58 +337,70 @@ export const registrarService = {
 
 
 export const lecturerService = {
-  
+  // Get all issues assigned to the logged-in lecturer
   getAssignedIssues: async () => {
-    const response = await axios.get('/api/assigned-issues/', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.get('/lecturer/assigned-issues/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching assigned issues:', error);
+      throw error;
+    }
   },
+
+  // Get resolved issues for the logged-in lecturer
   getResolvedIssues: async () => {
-    const response = await axios.get('/api/resolved-issues/', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.get('/lecturer/resolved-issues/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching resolved issues:', error);
+      throw error;
+    }
   },
 
-  getIssueDetails: async (issueId) => {
-    const response = await axios.get(`/api/issues/${issueId}/`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-    return response.data;
-  },
-
+  // Mark an issue as resolved
   resolveIssue: async (issueId) => {
-    const response = await axios.patch(`/api/issues/${issueId}/resolve/`, {}, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.post(`/api/issues/${issueId}/resolve/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error resolving issue:', error);
+      throw error;
+    }
   },
 
+  // Get detailed information about a specific issue
+  getIssueDetails: async (issueId) => {
+    try {
+      const response = await api.get(`/issues/${issueId}/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching issue details:', error);
+      throw error;
+    }
+  },
+
+  // Get notifications for the lecturer
   getNotifications: async () => {
-    const response = await axios.get('/api/lecturer/notifications/', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.get('/lecturer/notifications/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
   },
 
+  // Mark a notification as read
   markNotificationAsRead: async (notificationId) => {
-    const response = await axios.patch(`/api/lecturer/notifications/${notificationId}/read/`, {}, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('access')}`,
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.post(`/notifications/${notificationId}/read/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
   }
 };
 
