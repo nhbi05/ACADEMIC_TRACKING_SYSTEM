@@ -1,20 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logoutUser } from '../../redux/actions/authActions';
-import { fetchAssignedIssues, fetchResolvedIssues } from '../../redux/actions/LecturerActions';
+import { fetchAssignedIssues, fetchResolvedIssues, resolveIssue } from '../../redux/actions/LecturerActions';
 
 const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   // Destructure issues from the Redux state
-  const { loading, issues, resolvedIssues, error } = useSelector(state => state.lecturer || { loading: false, issues: [], resolvedIssues: [], error: null });
+  const { loading, issues, resolvedIssues, error } = useSelector(state => {
+    return state.lecturer || {
+      loading: false, issues: [], resolvedIssues: [], error: null
+    }
+  });
 
   useEffect(() => {
     dispatch(fetchAssignedIssues());  // Fetch assigned issues
     dispatch(fetchResolvedIssues()); // Fetch resolved issues
   }, [dispatch]);
+
+  const handleResolve = async (issueId) => {
+    try {
+      await dispatch(resolveIssue(issueId));
+      // console.log({loading, error})
+    } catch (error) {
+      console.error('Failed: to resolve Issue', { issueId, error });
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -27,7 +39,6 @@ const LecturerDashboard = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
-
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation */}
@@ -75,7 +86,7 @@ const LecturerDashboard = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Assigned Issues</h3>
-              <p className="text-2xl font-bold text-green-600">{issues.filter(issue => issue.status === 'Assigned').length}</p>
+              <p className="text-2xl font-bold text-green-600">{issues.length}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Resolved Issues</h3>
@@ -89,19 +100,25 @@ const LecturerDashboard = () => {
             <table className="min-w-full bg-white shadow rounded-lg">
               <thead>
                 <tr>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Course Code</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue Type</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue ID</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">status</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">resolve_issue</th>
                 </tr>
               </thead>
               <tbody>
-                {issues.filter(issue => issue.status === 'Assigned').map(issue => (
+                {issues.map(issue => (
                   <tr key={issue.id} className="border-t">
+                    <td className="px-4 py-2 text-sm text-gray-700">#{issue.id}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.course_code}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.issue_type}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.programme}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.category}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">
+                      <ResolveButton onClick={handleResolve} issue={issue} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -109,14 +126,14 @@ const LecturerDashboard = () => {
           </div>
 
           {/* Resolved Issues Table */}
-          <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
+          {/* <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow rounded-lg">
               <thead>
                 <tr>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Course Code</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue Type</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
                   <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
                 </tr>
               </thead>
@@ -124,18 +141,34 @@ const LecturerDashboard = () => {
                 {resolvedIssues.map(issue => (
                   <tr key={issue.id} className="border-t">
                     <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.course_code}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.issue_type}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.programme}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.category}</td>
                     <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </div> */}
         </main>
       </div>
     </div>
   );
 };
+
+function ResolveButton({ issue, onClick }) {
+  const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve")
+
+  return <button
+    className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
+    onClick={(e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (issue.status === "resolved") return;
+      setResolveText("✅")
+      if (!onClick(issue.id)) setResolveText("❌")
+    }}>
+    {resolveText}
+  </button>
+}
 
 export default LecturerDashboard;
