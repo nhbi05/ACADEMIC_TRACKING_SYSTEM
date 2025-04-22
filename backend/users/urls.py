@@ -20,7 +20,7 @@ from .views import( RegisterView,
                    LecturerIssueDetailView,
                    LecturerPendingIssuesView,
                    DebugRequestView,
-                   #LecturerResolvedIssueView
+                   LecturerResolvedIssuesView
                    )
 
 
@@ -60,6 +60,7 @@ urlpatterns = [
     path('lecturer/issue/<int:pk>/',LecturerIssueDetailView.as_view(), name='lecturer_issue_detail'),
     path('lecturer/pending_issues/', LecturerPendingIssuesView.as_view(), name='lecturer_pending_issues'),
     path('resolve-issue/', ResolveIssueView.as_view(), name='resolve_issue'),
+    path('lecturer/resolved-issues/', LecturerResolvedIssuesView.as_view(), name='lecturer_resolved_issues'),
     
     path('api/debug-request/', DebugRequestView.as_view(), name='debug-request'),
 ]

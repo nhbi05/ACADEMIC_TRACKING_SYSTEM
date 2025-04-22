@@ -340,7 +340,7 @@ export const lecturerService = {
   // Get all issues assigned to the logged-in lecturer
   getAssignedIssues: async () => {
     try {
-      const response = await api.get('/lecturer/assigned-issues/');
+      const response = await api.get('/assigned-issues/');
       return response.data;
     } catch (error) {
       console.error('Error fetching assigned issues:', error);
@@ -360,15 +360,16 @@ export const lecturerService = {
   },
 
   // Mark an issue as resolved
-  resolveIssue: async (issueId) => {
-    try {
-      const response = await api.post(`/api/issues/${issueId}/resolve/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error resolving issue:', error);
-      throw error;
-    }
-  },
+ // Update this function to match your URL pattern
+resolveIssue: async (issueId) => {
+  try {
+    const response = await api.post(`/resolve-issue/`, { issue_id: issueId });
+    return response.data;
+  } catch (error) {
+    console.error('Error resolving issue:', error);
+    throw error;
+  }
+},
 
   // Get detailed information about a specific issue
   getIssueDetails: async (issueId) => {

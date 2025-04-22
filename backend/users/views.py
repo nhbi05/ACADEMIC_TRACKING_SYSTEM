@@ -323,7 +323,6 @@ class LogoutView(APIView):
 
 
 #functionality for Registrar dashboard
-
 class RegistrarIssueView(generics.ListAPIView):
     # API endpoint for registrar to view all submitted issues and filter all submitted issues
     
@@ -348,7 +347,7 @@ class RegistrarIssueView(generics.ListAPIView):
             raise ValueError("Issues can only be assigned to lecturers")
         # Assign the issue to the lecturer and update its status
         issue.assigned_to = lecturer
-        issue.status = 'in_progress'
+        issue.status = 'assigned'
         issue.save()
 
      #viewing Issue statistics 
@@ -365,6 +364,9 @@ class RegisterCountView(generics.ListAPIView):
             "resolved_issues":resolved_issues,
             "pending_issues":pending_issues
         })
+
+
+
         
 #Functionality of lecture dashboard
 class LecturerAssignedIssuesView(generics.ListAPIView):
@@ -372,7 +374,7 @@ class LecturerAssignedIssuesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(assigned_to=self.request.user).order_by('created_at')
+        return Issue.objects.filter(assigned_to=self.request.user, status='resolved').order_by('resolved_at')
 class LecturerIssueDetailView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
@@ -385,26 +387,24 @@ class LecturerPendingIssuesView(generics.ListAPIView):
         permission_classes = [IsAuthenticated]
         
         def get_queryset(self):
-            # filter issues assigned to the logged-in lecturer with a pending status
-            return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
+            return Issue.objects.filter(assigned_to=self.request.user).order_by('-created_at')
     
 class LecturerResolvedIssuesView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue,object.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_at')
-    
-def notify_lecturer(issue):
-    lecturer = issue.assigned_to
-    if lecturer and lecturer.email:
-        send_mail(
-            subject="New Issue Assigned",
-            message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[lecturer.email],
-            fail_silently=False,
-        )
+        return Issue.objects.filter(assigned_to=self.request.user, status='resolved').order_by('resolved_at')       
+    def notify_lecturer(issue):
+        lecturer = issue.assigned_to
+        if lecturer and lecturer.email:
+            send_mail(
+                subject="New Issue Assigned",
+                message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[lecturer.email],
+                fail_silently=False,
+            )
 
 class DebugRequestView(APIView):
     """
