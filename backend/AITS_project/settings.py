@@ -89,15 +89,14 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
-"""DATABASES = {
+"""
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'railway',
@@ -107,6 +106,9 @@ DATABASES = {
         'PORT':'5432'
     }
 }
+
+
+"""
 try:
     import psycopg2
     conn = psycopg2.connect(
@@ -162,7 +164,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    #"http://localhost:3000",
     "https://aits-frontend-omega.vercel.app" # React frontend
 ]
 
