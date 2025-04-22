@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 
 
 class User(AbstractUser):
-    # Choices for user roles
+    
     ROLE_CHOICES = [
         ('student', 'Student'),
         ('lecturer', 'Lecturer'),
