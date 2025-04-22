@@ -7,12 +7,12 @@ import { fetchAssignedIssues, fetchResolvedIssues, resolveIssue } from '../../re
 const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('assigned'); // 'assigned' or 'resolved'
-  const [selectedIssue, setSelectedIssue] = useState(null);
-
   // Destructure issues from the Redux state
-  const { loading, issues = [], resolvedIssues = [], error } = useSelector(state => state.lecturer || {});
-  const { user } = useSelector(state => state.auth || {});
+  const { loading, issues, resolvedIssues, error } = useSelector(state => {
+    return state.lecturer || {
+      loading: false, issues: [], resolvedIssues: [], error: null
+    }
+  });
 
   useEffect(() => {
     console.log("Fetching lecturer issues...");
@@ -20,19 +20,15 @@ const LecturerDashboard = () => {
     dispatch(fetchResolvedIssues()); // Fetch resolved issues
   }, [dispatch]);
 
-  useEffect(() => {
-    // Log the data we're receiving for debugging
-    console.log("Assigned issues:", issues);
-    console.log("Resolved issues:", resolvedIssues);
-  }, [issues, resolvedIssues]);
-  useEffect(() => {
-    // Log the data we're receiving for debugging
-    console.log("Assigned issues:", issues);
-    if (issues.length > 0) {
-      console.log("Sample issue object:", issues[0]);
+  const handleResolve = async (issueId) => {
+    try {
+      await dispatch(resolveIssue(issueId));
+      // console.log({loading, error})
+    } catch (error) {
+      console.error('Failed: to resolve Issue', { issueId, error });
     }
-    console.log("Resolved issues:", resolvedIssues);
-  }, [issues, resolvedIssues]);
+  }
+
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser());
@@ -42,44 +38,8 @@ const LecturerDashboard = () => {
     }
   };
 
-  const handleResolveIssue = (issueId) => {
-    if (window.confirm('Are you sure you want to mark this issue as resolved?')) {
-      dispatch(resolveIssue(issueId));
-    }
-  };
-
-  const handleViewDetails = (issue) => {
-    setSelectedIssue(issue);
-  };
-
-  const closeDetailsModal = () => {
-    setSelectedIssue(null);
-  };
-
-  // Filter for assigned issues (case insensitive matching for status)
-  const assignedIssues = issues.filter(issue => 
-    issue.status && issue.status.toLowerCase() === 'assigned' || 
-    issue.status && issue.status.toLowerCase() === 'in_progress'
-  );
-
-  if (loading) return (
-    <div className="flex justify-center items-center h-screen bg-green-50">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading...</p>
-      </div>
-    </div>
-  );
-  
-  if (error) return (
-    <div className="flex justify-center items-center h-screen bg-green-50">
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong className="font-bold">Error: </strong>
-        <span className="block sm:inline">{error}</span>
-      </div>
-    </div>
-  );
-
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation */}
@@ -150,7 +110,7 @@ const LecturerDashboard = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Assigned Issues</h3>
-              <p className="text-2xl font-bold text-green-600">{assignedIssues.length}</p>
+              <p className="text-2xl font-bold text-green-600">{issues.length}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Resolved Issues</h3>
@@ -158,106 +118,61 @@ const LecturerDashboard = () => {
             </div>
           </div>
 
-          {/* Tab Content */}
-          {activeTab === 'assigned' ? (
-            <>
-              <h3 className="text-lg font-semibold mb-4">Assigned Issues</h3>
-              {assignedIssues.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full bg-white shadow rounded-lg">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Course Code</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue Type</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {assignedIssues.map(issue => (
-                        <tr key={issue.id} className="border-t">
-                          <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no || issue.registration_no}</td>
-<td className="px-4 py-2 text-sm text-gray-700">{issue.course_unit || issue.course_code || 'N/A'}</td>
-<td className="px-4 py-2 text-sm text-gray-700">{issue.category || issue.issue_type || 'N/A'}</td>
-                          <td className="px-4 py-2 text-sm text-gray-700">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              issue.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {issue.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-2 text-sm text-gray-700">
-                            <button 
-                              onClick={() => handleViewDetails(issue)} 
-                              className="mr-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                            >
-                              Details
-                            </button>
-                            <button 
-                              onClick={() => handleResolveIssue(issue.id)} 
-                              className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                            >
-                              Resolve
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="bg-white p-6 text-center shadow rounded-lg">
-                  <div className="text-gray-400 text-4xl mb-3">📄</div>
-                  <h4 className="text-lg font-medium text-gray-800 mb-1">No Assigned Issues</h4>
-                  <p className="text-gray-500">You don't have any issues assigned to you at the moment.</p>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
-              {resolvedIssues.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full bg-white shadow rounded-lg">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Course Code</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue Type</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Resolved Date</th>
-                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {resolvedIssues.map(issue => (
-                        <tr key={issue.id} className="border-t">
-                          <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no || issue.registration_no}</td>
-                          <td className="px-4 py-2 text-sm text-gray-700">{issue.course_code}</td>
-                          <td className="px-4 py-2 text-sm text-gray-700">{issue.issue_type || issue.category}</td>
-                          <td className="px-4 py-2 text-sm text-gray-700">{issue.resolved_at ? new Date(issue.resolved_at).toLocaleDateString() : 'N/A'}</td>
-                          <td className="px-4 py-2 text-sm text-gray-700">
-                            <button 
-                              onClick={() => handleViewDetails(issue)}
-                              className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                            >
-                              Details
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="bg-white p-6 text-center shadow rounded-lg">
-                  <div className="text-gray-400 text-4xl mb-3">✅</div>
-                  <h4 className="text-lg font-medium text-gray-800 mb-1">No Resolved Issues</h4>
-                  <p className="text-gray-500">You haven't resolved any issues yet.</p>
-                </div>
-              )}
-            </>
-          )}
+          {/* Assigned Issues Table */}
+          <h3 className="text-lg font-semibold mb-4">Assigned Issues</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow rounded-lg">
+              <thead>
+                <tr>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue ID</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">status</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">resolve_issue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {issues.map(issue => (
+                  <tr key={issue.id} className="border-t">
+                    <td className="px-4 py-2 text-sm text-gray-700">#{issue.id}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.programme}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.category}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">
+                      <ResolveButton onClick={handleResolve} issue={issue} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Resolved Issues Table */}
+          {/* <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow rounded-lg">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
+                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resolvedIssues.map(issue => (
+                  <tr key={issue.id} className="border-t">
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.programme}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.category}</td>
+                    <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div> */}
         </main>
       </div>
 
@@ -331,5 +246,21 @@ const LecturerDashboard = () => {
     </div>
   );
 };
+
+function ResolveButton({ issue, onClick }) {
+  const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve")
+
+  return <button
+    className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
+    onClick={(e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (issue.status === "resolved") return;
+      setResolveText("✅")
+      if (!onClick(issue.id)) setResolveText("❌")
+    }}>
+    {resolveText}
+  </button>
+}
 
 export default LecturerDashboard;

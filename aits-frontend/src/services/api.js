@@ -337,71 +337,50 @@ assignIssue: async (issueId, lecturerId) => {
 
 
 export const lecturerService = {
-  // Get all issues assigned to the logged-in lecturer
+  
   getAssignedIssues: async () => {
-    try {
-      const response = await api.get('/assigned-issues/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching assigned issues:', error);
-      throw error;
-    }
-  },
-
-  // Get resolved issues for the logged-in lecturer
-  getResolvedIssues: async () => {
-    try {
-      const response = await api.get('/lecturer/resolved-issues/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching resolved issues:', error);
-      throw error;
-    }
-  },
-
-  // Mark an issue as resolved
- // Update this function to match your URL pattern
-resolveIssue: async (issueId) => {
-  try {
-    const response = await api.post(`/resolve-issue/`, { issue_id: issueId });
+    const response = await api.get('/assigned-issues/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
     return response.data;
-  } catch (error) {
-    console.error('Error resolving issue:', error);
-    throw error;
-  }
-},
+  },
+  getResolvedIssues: async () => {
+    const response = await api.get('/resolved-issues/');
+    return response.data;
+  },
 
-  // Get detailed information about a specific issue
   getIssueDetails: async (issueId) => {
-    try {
-      const response = await api.get(`/issues/${issueId}/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching issue details:', error);
-      throw error;
-    }
+    const response = await api.get(`/api/issues/${issueId}/`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
   },
 
-  // Get notifications for the lecturer
+  resolveIssue: async (issueId) => {
+    const response = await api.post("/resolve-issue/", { issueId });
+    return response.data;
+  },
+
   getNotifications: async () => {
-    try {
-      const response = await api.get('/lecturer/notifications/');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      throw error;
-    }
+    const response = await api.get('/api/lecturer/notifications/', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
   },
 
-  // Mark a notification as read
   markNotificationAsRead: async (notificationId) => {
-    try {
-      const response = await api.post(`/notifications/${notificationId}/read/`);
-      return response.data;
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-      throw error;
-    }
+    const response = await api.patch(`/api/lecturer/notifications/${notificationId}/read/`, {}, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access')}`,
+      },
+    });
+    return response.data;
   }
 };
 

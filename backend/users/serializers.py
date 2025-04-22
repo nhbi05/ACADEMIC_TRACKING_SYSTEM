@@ -25,6 +25,12 @@ class LecturerProfileSerializer(serializers.ModelSerializer):
         model = LecturerProfile  # Specify the model to serialize
         fields = ["id","first_name","last_name",'department']  # Fields to include in the serialized output
 
+
+class UserSerializer(serializers.ModelSerializer):
+     class Meta:
+         model = User
+         fields = '__all__'
+
 # Serializer for the RegistrarProfile model
 class RegistrarProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name', read_only=True)#his should appear in the profile as read only

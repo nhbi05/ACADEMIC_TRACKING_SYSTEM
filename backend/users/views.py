@@ -1,16 +1,20 @@
 from email import message
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
+from .models import Issue,User
+from .models import Issue,User, StudentProfile
 from rest_framework.response import Response
 from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
 from django.db.models import Q
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
 
 #from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
 from .models import Issue,User,LecturerProfile
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer,UserSerializer
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
@@ -92,7 +96,7 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.student_profile
+         return get_object_or_404(StudentProfile, user=self.request.user)
 
 # View for retrieving the lecturer profile
 class LecturerProfileView(generics.RetrieveUpdateAPIView):
@@ -149,7 +153,8 @@ class SubmitIssueView(APIView):
 class ResolveIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def post(self, request, issue_id):
+    def post(self, request, *args, **kwargs):
+        # validated_data = IssueSerializer(data=request.data, partial=True).is_valid(raise_exception=True)
         if request.user.role != 'lecturer':
             return Response(
                 {'error': 'Only lecturers can resolve issues'},
@@ -157,9 +162,15 @@ class ResolveIssueView(APIView):
             )
         
         try:
-            issue = Issue.objects.get(id=issue_id)
-            #the lecturer resolves the issue calling the method from the user model
-            request.user.resolve_issue(issue)
+            issue = Issue.objects.get(id=request.data["issueId"], assigned_to=request.user)
+            if issue.status =='resolved':
+                return Response({'error: Issue is already resolved'}, status=status.HTTP_400_BAD_REQUEST)
+
+            issue.status = 'resolved'
+            issue.resolved_by = request.user
+            issue.resolved_at = timezone.now()
+            issue.save()
+
             #send an email notification to the student who submitted the issue
             student_user= issue.submitted_by
             if student_user and student_user.email:
@@ -168,20 +179,15 @@ class ResolveIssueView(APIView):
                     message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
-                    fail_silently=False,
-                    
+                    fail_silently=False,   
                     )
 
                 
-            return Response(
-                {'message': 'Issue resolved successfully'},
-                status=status.HTTP_200_OK
-            )
+            return Response({'message': 'Issue resolved successfully'},status=status.HTTP_200_OK)
         except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
             return Response(
-                {'error': 'Issue not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+                {'error': 'Issue not found or not assigned to you'},status=status.HTTP_404_NOT_FOUND)
+
 
 # views.py (corrected)
 class AssignIssueView(APIView):
@@ -273,11 +279,11 @@ class StudentIssueView(generics.ListAPIView):
 
 
 class ResolvedIssuesView(generics.ListAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(student=self.request.user,status='resolved')
+        return Issue.objects.filter(Q(assigned_to=self.request.user) | Q(submitted_by=self.request.user), status='resolved')
 
 class CreateIssueView(generics.CreateAPIView):
     serializer_class=IssueSerializer
@@ -374,8 +380,8 @@ class LecturerAssignedIssuesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue.objects.filter(assigned_to=self.request.user, status='resolved').order_by('resolved_at')
-class LecturerIssueDetailView(generics.ListAPIView):
+        return Issue.objects.filter(assigned_to=self.request.user).order_by('created_at')
+class LecturerIssueDetailView(generics.RetrieveAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
@@ -406,6 +412,13 @@ class LecturerResolvedIssuesView(generics.ListAPIView):
                 fail_silently=False,
             )
 
+class UsersView(generics.ListAPIView):
+     serializer_class = UserSerializer
+     permission_classes = [IsAuthenticated]
+ 
+     def get_queryset(self):
+         return User.objects.all()
+     
 class DebugRequestView(APIView):
     """
     A simple view that echoes back request data for debugging purposes.

@@ -20,7 +20,8 @@ from .views import( RegisterView,
                    LecturerIssueDetailView,
                    LecturerPendingIssuesView,
                    DebugRequestView,
-                   LecturerResolvedIssuesView
+                   UsersView,
+                   #LecturerResolvedIssueView
                    )
 
 
@@ -32,6 +33,7 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
+
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
 
@@ -63,4 +65,5 @@ urlpatterns = [
     path('lecturer/resolved-issues/', LecturerResolvedIssuesView.as_view(), name='lecturer_resolved_issues'),
     
     path('api/debug-request/', DebugRequestView.as_view(), name='debug-request'),
+    path('users/', UsersView.as_view(), name='users'),
 ]
