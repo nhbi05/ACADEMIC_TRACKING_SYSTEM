@@ -384,5 +384,7 @@ export const lecturerService = {
   }
 };
 
+// Add a test call to your debug endpoint
+
 
 export default api;
