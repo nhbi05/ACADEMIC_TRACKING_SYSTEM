@@ -7,7 +7,7 @@ const IssueDetails = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const { token, user } = useAuth();
-  const navigate = useNavigate();
+  const navigat = useNavigate();
 
   useEffect(() => {
     const fetchIssues = async () => {
