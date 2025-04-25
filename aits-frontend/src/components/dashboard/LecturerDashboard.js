@@ -27,7 +27,7 @@ const LecturerDashboard = () => {
   });
 
   // Log the extracted data for debugging
-  console.log('Issues from state:', issues);
+  console.log('Issues from state:', issue);
   console.log('Resolved issues from state:', resolvedIssues);
 
   useEffect(() => {
