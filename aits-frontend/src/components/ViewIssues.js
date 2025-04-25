@@ -29,10 +29,12 @@ const ViewIssues = () => {
 
   const filteredIssues = issues?.filter(issue => {
     const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
-    const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         (issue.description && issue.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = 
+      (issue.title && issue.title.toLowerCase().includes(searchTerm.toLowerCase())) || 
+      (issue.description && issue.description.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesStatus && matchesSearch;
   });
+ 
 
   return (
     // Changed the background to light green for the entire component

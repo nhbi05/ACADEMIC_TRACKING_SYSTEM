@@ -30,7 +30,7 @@ const Settings = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Get auth token helper
+  
   const getAuthToken = () => {
     if (token?.access) {
       return token.access;
@@ -92,7 +92,7 @@ const Settings = () => {
     setError(null);
   };
   
-  // Save notification settings
+  
   const saveNotificationSettings = async () => {
     setSaving(true);
     setError(null);

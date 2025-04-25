@@ -18,11 +18,18 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
 # Serializer for the LecturerProfile model
 class LecturerProfileSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='user.id',read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     class Meta:
         model = LecturerProfile  # Specify the model to serialize
-        fields = ["first_name","last_name",'department']  # Fields to include in the serialized output
+        fields = ["id","first_name","last_name",'department']  # Fields to include in the serialized output
+
+
+class UserSerializer(serializers.ModelSerializer):
+     class Meta:
+         model = User
+         fields = '__all__'
 
 # Serializer for the RegistrarProfile model
 class RegistrarProfileSerializer(serializers.ModelSerializer):
@@ -106,34 +113,20 @@ class IssueSerializer(serializers.ModelSerializer):
     # Auto-fetch student details from User and StudentProfile
     first_name = serializers.CharField(source='submitted_by.first_name', read_only=True)
     last_name = serializers.CharField(source='submitted_by.last_name', read_only=True)
-    registration_number = serializers.CharField(source='submitted_by.student_profile.registration_no', read_only=True)
+    registration_no = serializers.CharField(source='submitted_by.student_profile.registration_no', read_only=True)
     student_no = serializers.CharField(source='submitted_by.student_profile.student_no', read_only=True)
+    programme = serializers.CharField(source='submitted_by.student_profile.programme', read_only=True)
+
 
     class Meta:
         model = Issue
         fields = [
-            'id', 'title', 'description', 'category', 'status',
-            'lecturer_name', 'semester', 'year_of_study', 'registration_no',
-            'submitted_by', 'assigned_to', 'attachments', 
-            'created_at', 
+            'id', 'issue_id','category', 'status', 'description', "title",
+            'year_of_study', 'semester', 'submitted_by', 'lecturer_name', 
+            'created_at', 'resolved_at', 'first_name', 'last_name', 
+            'registration_no', 'student_no',"title","course_unit","programme"
         ]
-        read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']
-
-class LecturerProfileSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(source='user.first_name', read_only=True)
-    last_name = serializers.CharField(source='user.last_name', read_only=True)
-
-    class Meta:
-        model = LecturerProfile
-        fields = ["first_name", "last_name", "department"]
-
-class IssueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Issue
-        fields = [
-            'id', 'title', 'description', 'category', 'status',
-            'lecturer_name', 'semester', 'year_of_study', 'registration_no',
-            'submitted_by', 'assigned_to', 'attachments', 
-            'created_at', 
-        ]
-        read_only_fields = ['submitted_by', 'assigned_to', 'status', 'created_at']
+        read_only_fields = [
+            'status', 'submitted_by', 'created_at', 'resolved_at', 
+            'first_name', 'last_name', 'registration_no', 'student_no',"programme"
+        ]  # These fields CANNOT be modified manually

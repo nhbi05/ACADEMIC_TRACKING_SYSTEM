@@ -6,9 +6,9 @@ export const fetchResolvedIssues = () => async (dispatch) => {
 
   try {
     const resolvedIssues = await lecturerService.getResolvedIssues();
-    dispatch({ type: 'FETCH_ISSUES_SUCCESS', payload: resolvedIssues });
+    dispatch({ type: 'FETCH_RESOLVED_ISSUES_SUCCESS', payload: resolvedIssues });
   } catch (error) {
-    dispatch({ type: 'FETCH_ISSUES_FAILURE', payload: error.message });
+    dispatch({ type: 'FETCH_RESOLVED_ISSUES_FAILURE', payload: error.message });
   }
 };
 
@@ -17,21 +17,26 @@ export const resolveIssue = (issueId) => async (dispatch) => {
   try {
     await lecturerService.resolveIssue(issueId);
     dispatch({ type: 'RESOLVE_ISSUE_SUCCESS', payload: issueId });
+    await dispatch(fetchResolvedIssues())
+    await dispatch(fetchAssignedIssues());
   } catch (error) {
     dispatch({ type: 'RESOLVE_ISSUE_FAILURE', payload: error.message });
   }
 };
 
 // Action to fetch all assigned issues for the lecturer
+// In your LecturerActions.js
 export const fetchAssignedIssues = () => async (dispatch) => {
   try {
+    console.log('Starting to fetch assigned issues');
     const issues = await lecturerService.getAssignedIssues();
+    console.log('Fetched assigned issues:', issues);
     dispatch({ type: 'FETCH_ASSIGNED_ISSUES_SUCCESS', payload: issues });
   } catch (error) {
+    console.error('Error fetching assigned issues:', error);
     dispatch({ type: 'FETCH_ASSIGNED_ISSUES_FAILURE', payload: error.message });
   }
 };
-
 // Action to fetch issue details
 export const fetchIssueDetails = (issueId) => async (dispatch) => {
   try {

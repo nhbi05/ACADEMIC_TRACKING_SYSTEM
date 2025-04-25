@@ -1,7 +1,6 @@
 // src/redux/actions/registrarActions.js
 import { registrarService } from '../../services/api';
 
-
 // Action Types
 export const FETCH_ISSUES_REQUEST = 'FETCH_ISSUES_REQUEST';
 export const FETCH_ISSUES_SUCCESS = 'FETCH_ISSUES_SUCCESS';
@@ -14,6 +13,10 @@ export const ASSIGN_ISSUE_FAILURE = 'ASSIGN_ISSUE_FAILURE';
 export const REGISTRAR_DATA_REQUEST = 'REGISTRAR_DATA_REQUEST';
 export const REGISTRAR_DATA_SUCCESS = 'REGISTRAR_DATA_SUCCESS';
 export const REGISTRAR_DATA_FAILURE = 'REGISTRAR_DATA_FAILURE';
+
+export const FETCH_LECTURERS_REQUEST = 'FETCH_LECTURERS_REQUEST';
+export const FETCH_LECTURERS_SUCCESS = 'FETCH_LECTURERS_SUCCESS';
+export const FETCH_LECTURERS_FAILURE = 'FETCH_LECTURERS_FAILURE';
 
 // Action Creators for fetchAllIssues
 export const fetchIssuesRequest = () => ({
@@ -60,6 +63,21 @@ export const fetchRegistrarDataFailure = (error) => ({
   payload: error
 });
 
+// Action Creators for fetchLecturers
+export const fetchLecturersRequest = () => ({
+  type: FETCH_LECTURERS_REQUEST
+});
+
+export const fetchLecturersSuccess = (data) => ({
+  type: FETCH_LECTURERS_SUCCESS,
+  payload: data
+});
+
+export const fetchLecturersFailure = (error) => ({
+  type: FETCH_LECTURERS_FAILURE,
+  payload: error
+});
+
 // Thunk Action Creators
 
 // Fetch all academic issues
@@ -77,20 +95,26 @@ export const fetchAllIssues = () => async (dispatch) => {
 };
 
 // Assign an issue to a specific lecturer or staff
+// Assign an issue to a specific lecturer or staff
+// assignIssue.js
+// In registrarActions.js, update the assignIssue function
 export const assignIssue = (issueId, assignedTo) => async (dispatch) => {
   dispatch(assignIssueRequest());
   
   try {
-    const data = await registrarService.assignIssue(issueId, assignedTo);
+    // Ensure issueId and assignedTo are integers
+    const parsedIssueId = parseInt(issueId, 10);
+    const parsedAssignedTo = parseInt(assignedTo, 10);
+    
+    const data = await registrarService.assignIssue(parsedIssueId, parsedAssignedTo);
     dispatch(assignIssueSuccess(data));
     return data;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to assign issue';
+    const errorMessage = error.response?.data?.error || 'Failed to assign issue';
     dispatch(assignIssueFailure(errorMessage));
     throw error;
   }
 };
-
 // Fetch registrar dashboard data
 export const fetchRegistrarData = () => async (dispatch) => {
   dispatch(fetchRegistrarDataRequest());
@@ -106,27 +130,22 @@ export const fetchRegistrarData = () => async (dispatch) => {
   }
 };
 
-// Filter issues based on criteria
-export const filterIssues = (filters) => async (dispatch) => {
-  dispatch(fetchIssuesRequest());
+
+export const fetchLecturers = () => async (dispatch) => {
+  dispatch({ type: FETCH_LECTURERS_REQUEST });
   
   try {
-    const data = await registrarService.filterIssues(filters);
-    dispatch(fetchIssuesSuccess(data));
-    return data;
+    const response = await registrarService.getLecturers();
+    dispatch({
+      type: FETCH_LECTURERS_SUCCESS,
+      payload: response
+    });
+    return response;
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Failed to filter issues';
-    dispatch(fetchIssuesFailure(errorMessage));
-    throw error;
-  }
-};
-
-// Generate a report
-export const generateReport = (reportParams) => async () => {
-  try {
-    return await registrarService.generateReport(reportParams);
-  } catch (error) {
-    console.error('Report generation failed:', error);
+    dispatch({
+      type: FETCH_LECTURERS_FAILURE,
+      payload: error.message
+    });
     throw error;
   }
 };

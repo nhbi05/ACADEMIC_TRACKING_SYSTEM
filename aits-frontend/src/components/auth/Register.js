@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearMessages } from '../../redux/actions/authActions';
 import { Alert, AlertDescription } from '../ui/alert';
+import Carousel from '../carousel';
 //import './styles/style_login.css';
 
 const Register = () => {
@@ -19,8 +20,8 @@ const Register = () => {
     department: '',
     student_no: '',        
     //year_level: 1,
-    programme: '' ,      
-    registration_no:""
+    programme: '',      
+    registration_no: ""
   });
 
   const [passwordError, setPasswordError] = useState('');
@@ -51,8 +52,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-      setPasswordError('');
-      console.log("Form data before validation:", formData);
+    setPasswordError('');
+    console.log("Form data before validation:", formData);
     
     // Validate passwords match
     if (formData.password !== formData.password2) {
@@ -65,12 +66,10 @@ const Register = () => {
     if (formData.role === 'student') {
       profileData = {
         student_profile: {
-
           student_no: formData.student_no,
           registration_no: formData.registration_no, // Added registration number
           college: formData.college,
           programme: formData.programme,
-
         }
       };
     } else if (formData.role === 'lecturer') {
@@ -87,7 +86,6 @@ const Register = () => {
       };
     }
 
-    // Prepare the registration data
     const registrationData = {
       username: formData.username,
       email: formData.email,
@@ -103,7 +101,8 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-green-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <Carousel>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
           <h2 className="text-3xl font-extrabold text-gray-900">Register</h2>
@@ -135,7 +134,7 @@ const Register = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
-            {/* Basic Information */}
+            
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
@@ -226,7 +225,7 @@ const Register = () => {
                   <option value="BIT">Bachelor of Information Systems & Technology</option>
                   <option value="BLIS">Bachelor of Library & Information Systems</option>
                 </select>
-                {/*<div className="border border-gray-200 rounded-md p-4">*/}
+               
                   <h3 className="text-lg font-medium text-green-700 mb-3">Student Info</h3>
                   <div className="space-y-4">
                     <div>
@@ -252,21 +251,25 @@ const Register = () => {
                       />
                     </div>
                   </div>
-                {/*</div>*/}
-                
               </div>
             )}
 
             {formData.role === 'lecturer' && (
               <div className="space-y-4">
-                <input
-                  type="text"
+                <select
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
-                  placeholder="Department"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                />
+                >
+                  <option value="">Select a department</option>
+                  <option value="CS">Department of Computer Science</option>
+                  <option value="IS">Department of Information Systems</option>
+                  <option value="DIT">Department of Information Technology</option>
+                  <option value="NET">Department of Networks</option>
+                  <option value="RAM">Department of Records and Archives Management</option>
+                  <option value="LIS">Department of Library & Information Science</option>
+                </select>
               </div>
             )}
 
@@ -304,6 +307,7 @@ const Register = () => {
         </form>
       </div>
     </div>
+    </Carousel>
   );
 };
 
