@@ -10,7 +10,7 @@ const RegistrarDashboard = () => {
   const navigate = useNavigate();
   
   const { user } = useSelector(state => state.auth);
-  const registrarState = useSelector(state => state.registrar || {});
+  const registrarState = useSelector(state => state.registra || {});
   const issuesState = registrarState.issues || {};
   
   // Safely extract data with fallbacks
