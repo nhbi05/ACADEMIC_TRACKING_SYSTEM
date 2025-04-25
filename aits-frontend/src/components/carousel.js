@@ -9,7 +9,7 @@ const images = [
 
 const Carousel = ({ children }) => {
   const [current, setCurrent] = useState(0);
-  const length = images.length;
+  const length = image.length;
 
   useEffect(() => {
     const timer = setInterval(() => {
