@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from './ui/alert';
 
 const IssueSubmissionForm = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const navigate = useNavigat();
   
   // Get the submission state from redux
   const { submitting, error } = useSelector(state => state.issues || {});
