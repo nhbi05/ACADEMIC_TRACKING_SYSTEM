@@ -13,7 +13,7 @@ export const Alert = ({ variant = "default", children }) => {
   };
 
   return (
-    <div className={`${baseStyles} ${variantStyles[variant]}`}>
+    <div className={`${baseStyle} ${variantStyles[variant]}`}>
       {children}
     </div>
   );
