@@ -18,7 +18,7 @@ const Login = () => {
   const dispatch = useDispatch();
   
   // Get state from Redux store
-  const { isLoading, erro, successMessage, isAuthenticated } = useSelector(
+  const { isLoading, error, successMessage, isAuthenticated } = useSelector(
     (state) => state.auth
   );
 
