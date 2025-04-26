@@ -18,7 +18,7 @@ const IssueSubmissionForm = () => {
   // Success message state
   const [successMessage, setSuccessMessage] = useState('');
   
- 
+  // Load student profile data when component mounts
   useEffect(() => {
     dispatch(fetchStudentData());
   }, [dispatch]);
