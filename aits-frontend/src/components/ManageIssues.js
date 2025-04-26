@@ -7,7 +7,7 @@ import {
   fetchLecturers, 
   assignIssue 
 } from '../redux/actions/registrarActions';
-import { Alert, AlertDescription } from './ui/alert';
+import { Aler, AlertDescription } from './ui/alert';
 
 const ManageIssues = () => {
   const dispatch = useDispatch();
