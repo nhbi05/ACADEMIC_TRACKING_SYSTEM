@@ -12,10 +12,10 @@ const IssueSubmissionForm = () => {
   const { submitting, error } = useSelector(state => state.issues || {});
   // Get user from auth reducer
   const user = useSelector(state => state.auth.user);
-  
+  // Get student profile data from student reducer
   const { profileData } = useSelector(state => state.student || {});
   
-  // Success message state
+
   const [successMessage, setSuccessMessage] = useState('');
   
   // Load student profile data when component mounts
