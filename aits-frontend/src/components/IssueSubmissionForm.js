@@ -8,7 +8,7 @@ const IssueSubmissionForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Get the submission state from redux
+  
   const { submitting, error } = useSelector(state => state.issues || {});
   // Get user from auth reducer
   const user = useSelector(state => state.auth.user);
