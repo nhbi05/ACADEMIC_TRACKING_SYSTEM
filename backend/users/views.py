@@ -8,17 +8,18 @@ from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-from django.db.models import Q
-from django.utils import timezone
-from django.shortcuts import get_object_or_404
 
-#from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
-from .models import Issue,User,LecturerProfile
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer,UserSerializer
+from .models import Issue,User, StudentProfile
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer, UserSerializer
+
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from django.conf import settings
+
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -96,7 +97,10 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-         return get_object_or_404(StudentProfile, user=self.request.user)
+
+        return get_object_or_404(StudentProfile, user=self.request.user)
+
+
 
 # View for retrieving the lecturer profile
 class LecturerProfileView(generics.RetrieveUpdateAPIView):
@@ -200,10 +204,10 @@ class AssignIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        user_id = request.data.get('user_id')
-        
-        # Validate user_id exists and is a number
-        if not user_id:
+
+        lecturer_id = request.data.get('lecturer_id')
+        if not lecturer_id and lecturer_id is not None:
+
             return Response(
                 {'error': 'Lecturer User ID is required'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -219,10 +223,25 @@ class AssignIssueView(APIView):
             
         try:
             issue = Issue.objects.get(id=issue_id)
-            lecturer = User.objects.get(
-                id=user_id, 
-                role='lecturer',
-                lecturer_profile__isnull=False
+
+            lecturer = User.objects.get(id=lecturer_id, role='lecturer') if lecturer_id else None
+            # FixMe:
+            # request.user.assign_issue(issue, lecturer)
+            issue.assigned_to = lecturer
+            issue.save()
+            #send email notification to lecturer
+            if lecturer_id and lecturer.email:
+                send_mail(
+                    subject= "New Issue Assigned",
+                    message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[lecturer.email],
+                    fail_silently=False,
+                    
+                )
+            return Response(
+                {'message': 'Issue assigned successfully'},
+                status=status.HTTP_200_OK
             )
                 
             issue.assigned_to = lecturer
@@ -285,9 +304,14 @@ class ResolvedIssuesView(generics.ListAPIView):
     def get_queryset(self):
         return Issue.objects.filter(Q(assigned_to=self.request.user) | Q(submitted_by=self.request.user), status='resolved')
 
-class CreateIssueView(generics.CreateAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
+
+class UsersView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.all()
+
 
     def perform_create(self,serializer):
         #O11 serializer.save(student=self.request.use
