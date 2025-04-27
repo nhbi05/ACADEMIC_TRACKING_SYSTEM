@@ -297,7 +297,7 @@ class StudentIssueView(generics.ListAPIView):
 
 
 
-class ResolvedIssuesView(generics.ListAPIView):
+class ResolvedIssuesView(generics.ListAPIView): #if the issue is solved
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
