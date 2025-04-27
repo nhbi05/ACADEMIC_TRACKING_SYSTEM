@@ -151,7 +151,7 @@ class SubmitIssueView(APIView):
 
                 )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print(serializer.errors)
+        print(serializer.errors) #return error if any
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):
