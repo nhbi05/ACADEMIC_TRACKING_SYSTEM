@@ -317,7 +317,7 @@ class UsersView(generics.ListAPIView):
         #O11 serializer.save(student=self.request.use 
         serializer.save()
 
-class IssueDetailView(generics.RetrieveAPIView):
+class IssueDetailView(generics.RetrieveAPIView):# view the details of issue created
     queryset = Issue.objects.all()
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
