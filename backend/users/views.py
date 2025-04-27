@@ -38,7 +38,7 @@ class RegisterView(APIView):
                 message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a lecturer."
             elif user.role == 'registrar':
                 message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a registrar."
-            # Send email
+            # Send email on registering into the system
             send_mail(
                 subject,
                 message,
