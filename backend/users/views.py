@@ -314,7 +314,7 @@ class UsersView(generics.ListAPIView):
 
 
     def perform_create(self,serializer):
-        #O11 serializer.save(student=self.request.use
+        #O11 serializer.save(student=self.request.use where to be used 
         serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
