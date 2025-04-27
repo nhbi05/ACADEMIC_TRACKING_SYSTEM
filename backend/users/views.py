@@ -288,7 +288,7 @@ class LecturerSearchView(generics.ListAPIView):
         # Return the related LecturerProfile objects
         return LecturerProfile.objects.filter(user__in=matching_lecturers)
 
-class StudentIssueView(generics.ListAPIView): #
+class StudentIssueView(generics.ListAPIView): 
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
