@@ -305,7 +305,7 @@ class ResolvedIssuesView(generics.ListAPIView):
         return Issue.objects.filter(Q(assigned_to=self.request.user) | Q(submitted_by=self.request.user), status='resolved')
 
 
-class UsersView(generics.ListAPIView): #this view is not used anywhere
+class UsersView(generics.ListAPIView): 
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
