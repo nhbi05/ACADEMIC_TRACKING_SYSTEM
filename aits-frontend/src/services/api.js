@@ -239,10 +239,13 @@ export const studentService = {
   // Add the createIssue method
   createIssue: async (issueData) => {
     await authService.checkTokenExpiration();
-    const response = await api.post('/submit-issue/', issueData);
+    const response = await api.post('/submit-issue/', issueData, {
+      headers: {
+        'Content-Type': undefined // This will remove the default content-type
+      }
+    });
     return response.data;
-  }
-};
+  }};
 
 // Issue services
 

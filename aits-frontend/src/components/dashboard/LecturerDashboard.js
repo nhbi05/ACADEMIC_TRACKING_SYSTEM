@@ -128,62 +128,89 @@ const LecturerDashboard = () => {
             </div>
           </div>
 
+          {/* Display the appropriate content based on active tab */}
+          {activeTab === 'assigned' ? (
+            <>
+              {/* Assigned Issues Table */}
+              <h3 className="text-lg font-semibold mb-4">Assigned Issues</h3>
+              {!hasAssignedIssues ? (
+                <p className="text-center py-4 bg-white shadow rounded">No assigned issues found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white shadow rounded-lg">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue ID</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Attachments</th>
 
-          {/* Assigned Issues Table */}
-          <h3 className="text-lg font-semibold mb-4">Assigned Issues</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white shadow rounded-lg">
-              <thead>
-                <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue ID</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">status</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">resolve_issue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {issues.map(issue => (
-                  <tr key={issue.id} className="border-t">
-                    <td className="px-4 py-2 text-sm text-gray-700">#{issue.id}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.programme}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.category}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">
-                      <ResolveButton onClick={handleResolve} issue={issue} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Resolved Issues Table */}
-          {/* <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white shadow rounded-lg">
-              <thead>
-                <tr>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
-                  <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resolvedIssues.map(issue => (
-                  <tr key={issue.id} className="border-t">
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.programme}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.category}</td>
-                    <td className="px-4 py-2 text-sm text-gray-700">{issue.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div> */}
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Resolve</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {issues.map(issue => (
+                        <tr 
+                          key={issue.id || issue.issue_id} 
+                          className="border-t cursor-pointer hover:bg-gray-50"
+                          onClick={() => openDetailsModal(issue)}
+                        >
+                          <td className="px-4 py-2 text-sm text-gray-700">#{issue.issue_id || issue.id}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.programme || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.category || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.attachments || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.status || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">
+                            <ResolveButton onClick={(id) => handleResolve(id)} issue={issue} />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Resolved Issues Table */}
+              <h3 className="text-lg font-semibold mb-4">Resolved Issues</h3>
+              {!hasResolvedIssues ? (
+                <p className="text-center py-4 bg-white shadow rounded">No resolved issues found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white shadow rounded-lg">
+                    <thead>
+                      <tr>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Issue ID</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {resolvedIssues.map(issue => (
+                        <tr 
+                          key={issue.id || issue.issue_id} 
+                          className="border-t cursor-pointer hover:bg-gray-50"
+                          onClick={() => openDetailsModal(issue)}
+                        >
+                          <td className="px-4 py-2 text-sm text-gray-700">#{issue.issue_id || issue.id}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.programme || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.category || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.status || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
         </main>
       </div>
 

@@ -442,6 +442,7 @@ const IssueSubmissionForm = () => {
                   name="attachments"
                   onChange={handleFileChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  accept=".pdf,.jpg,.jpeg,.png" 
                 />
                 <p className="text-sm text-gray-500 mt-1">
                   Upload any relevant documents (PDF, images, etc.)
