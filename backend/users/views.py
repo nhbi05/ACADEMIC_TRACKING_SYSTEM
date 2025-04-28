@@ -11,6 +11,8 @@ from django.utils.decorators import method_decorator
 from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view, parser_classes
 
 #from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
 from .models import Issue,User,LecturerProfile
@@ -114,6 +116,7 @@ class RegistrarProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user.registrar_profile
 
+
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -148,6 +151,15 @@ class SubmitIssueView(APIView):
                 )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @api_view(['POST'])
+    @parser_classes([MultiPartParser, FormParser])
+    def submit_issue(request):
+        serializer = IssueSerializer(data=request.data)
+        if serializer.is_valid():
+            # Add the current user as the submitter
+            issue = serializer.save(submitted_by=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):

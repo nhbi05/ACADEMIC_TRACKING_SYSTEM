@@ -178,6 +178,8 @@ const LecturerDashboard = () => {
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Student No</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
+                        <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Attachments</th>
+
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Resolve</th>
                       </tr>
@@ -193,6 +195,7 @@ const LecturerDashboard = () => {
                           <td className="px-4 py-2 text-sm text-gray-700">{issue.student_no || 'N/A'}</td>
                           <td className="px-4 py-2 text-sm text-gray-700">{issue.programme || 'N/A'}</td>
                           <td className="px-4 py-2 text-sm text-gray-700">{issue.category || 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm text-gray-700">{issue.attachments || 'N/A'}</td>
                           <td className="px-4 py-2 text-sm text-gray-700">{issue.status || 'N/A'}</td>
                           <td className="px-4 py-2 text-sm text-gray-700">
                             <ResolveButton onClick={(id) => handleResolve(id)} issue={issue} />
