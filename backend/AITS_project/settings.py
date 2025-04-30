@@ -107,25 +107,35 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
+
+}"""
 
 
 
+#DATABASES = {
+    #'default': {
+       # 'ENGINE': 'django.db.backends.postgresql',
+       # 'NAME': 'railway',
+       # 'USER':'postgres',
+       # 'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+       # 'HOST':'postgres.railway.internal',
+       # 'PORT':'5432'
+   # }
+#}
+#try:
+    #import psycopg2
+    #conn = psycopg2.connect(
+    #    dbname=DATABASES['default']['NAME'],
+     #   user=DATABASES['default']['USER'],
+      #  password=DATABASES['default']['PASSWORD'],
+      #  host=DATABASES['default']['HOST'],
+        #port=DATABASES['default']['PORT']
+  #  )
+  #  print("✅ Database connection successful!")
+   # conn.close()
+#except Exception as e:
+ #   print("❌ Could not connect to the database. Error:", e)
 
-try:
-    import psycopg2
-    conn = psycopg2.connect(
-        dbname=DATABASES['default']['NAME'],
-        user=DATABASES['default']['USER'],
-        password=DATABASES['default']['PASSWORD'],
-        host=DATABASES['default']['HOST'],
-        port=DATABASES['default']['PORT']
-    )
-    print("✅ Database connection successful!")
-    conn.close()
-except Exception as e:
-    print("❌ Could not connect to the database. Error:", e)
-"""
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

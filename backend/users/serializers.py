@@ -2,6 +2,10 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import StudentProfile, LecturerProfile, RegistrarProfile, Issue
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.response import Response
+from rest_framework import status
 
 # Get the custom User model
 User = get_user_model()
@@ -124,9 +128,11 @@ class IssueSerializer(serializers.ModelSerializer):
             'id', 'issue_id','category', 'status', 'description', "title",
             'year_of_study', 'semester', 'submitted_by', 'lecturer_name', 
             'created_at', 'resolved_at', 'first_name', 'last_name', 
-            'registration_no', 'student_no',"title","course_unit","programme"
+            'registration_no', 'student_no',"title","course_unit","programme","attachments"
         ]
         read_only_fields = [
             'status', 'submitted_by', 'created_at', 'resolved_at', 
             'first_name', 'last_name', 'registration_no', 'student_no',"programme"
         ]  # These fields CANNOT be modified manually
+   
+

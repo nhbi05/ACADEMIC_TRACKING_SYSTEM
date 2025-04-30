@@ -215,6 +215,12 @@ export const authService = {
     } catch (error) {
       return null;
     }
+  },
+
+  fetchUsers: async () => {
+    await authService.checkTokenExpiration();
+    const response = await api.get('/users/');
+    return response.data;
   }
 };
 export const studentService = {
@@ -233,10 +239,13 @@ export const studentService = {
   // Add the createIssue method
   createIssue: async (issueData) => {
     await authService.checkTokenExpiration();
-    const response = await api.post('/submit-issue/', issueData);
+    const response = await api.post('/submit-issue/', issueData, {
+      headers: {
+        'Content-Type': undefined // This will remove the default content-type
+      }
+    });
     return response.data;
-  }
-};
+  }};
 
 // Issue services
 
