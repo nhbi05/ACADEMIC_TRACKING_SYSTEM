@@ -2,7 +2,7 @@ from email import message
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from .models import Issue,User
-from .models import Issue,User, StudentProfile
+from .models import Issue,User, StudentProfile, LecturerProfile
 from rest_framework.response import Response
 from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
