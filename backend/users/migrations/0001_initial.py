@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='LecturerProfile',
+            name='LecturerProfile'
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('department', models.CharField(choices=[('CS', 'Department of Computer Science'), ('IS', 'Department of Information Systems'), ('DIT', 'Department of Information Technology'), ('NET', 'Department of Networks'), ('RAM', 'Department of Records and Archives Management'), ('LIS', 'Department of Library & Information Science')], max_length=100)),
