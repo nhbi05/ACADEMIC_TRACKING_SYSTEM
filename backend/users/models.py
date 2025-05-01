@@ -74,7 +74,7 @@ class LecturerProfile(models.Model):
 
 class RegistrarProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='registrar_profile')
-    college = models.CharField(max_length=100)  # College name
+    college = models.CharField(max_length=100)  # Name of college
 
 
 class Issue(models.Model):
