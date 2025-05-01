@@ -48,7 +48,7 @@ class StudentProfile(models.Model):
     PROGRAMME_CHOICES = [
         ('BSCS', 'Bachelor of Science in Computer Science'),
         ('BSSE', 'Bachelor of Science in Software Engineering'),
-        ('BIT', 'Bachelor of Information Systems & Technology'),
+        ('BIST', 'Bachelor of Information Systems & Technology'),
         ('BLIS', 'Bachelor of Library & Information Systems'),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
