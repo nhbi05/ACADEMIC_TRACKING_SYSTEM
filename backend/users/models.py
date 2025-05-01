@@ -116,7 +116,7 @@ class Issue(models.Model):
     assigned_to = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="assigned_issues")
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
-    lecturer_name = models.CharField(max_length=255)
+    lecturer_name = models.CharField(max_length=255)''''''''''
     title = models.CharField(max_length=255)
     attachments = models.FileField(upload_to="issue_attachments/", blank=True, null=True)
 
