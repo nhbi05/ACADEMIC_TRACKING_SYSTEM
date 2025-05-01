@@ -13,4 +13,4 @@ from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'AITS_project.settings')
 
-application = get_asgi_application(git 
+application = get_asgi_application(git)
