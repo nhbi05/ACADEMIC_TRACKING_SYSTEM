@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 # Get the custom User model
-User = get_user_model()
+User = get_user_model(
 
 # Serializer for the StudentProfile model
 class StudentProfileSerializer(serializers.ModelSerializer):
