@@ -27,7 +27,7 @@ class User(AbstractUser):
             status='pending',
             description=description,
             course_unit=course_unit,
-            semester=semester,
+            semester=semester
             year_of_study=year_of_study,
             submitted_by=self  # Set the user who submitted the issue
         )
