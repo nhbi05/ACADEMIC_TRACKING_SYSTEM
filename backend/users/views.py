@@ -28,7 +28,7 @@ from django.utils import timezone
 
 
 User = get_user_model()
-class RegisterView(APIView)
+class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         print(request.data)
