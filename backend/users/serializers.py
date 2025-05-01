@@ -123,7 +123,7 @@ class IssueSerializer(serializers.ModelSerializer):
 
 
     class Meta:
-        model = Issue
+        model = Issue # Specify the model to serialize
         fields = [
             'id', 'issue_id','category', 'status', 'description', "title",
             'year_of_study', 'semester', 'submitted_by', 'lecturer_name', 
