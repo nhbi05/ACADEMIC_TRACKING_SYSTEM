@@ -63,7 +63,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             username = serializer.validated_data['username']  # Use username instead of email
-            password = serializer.validted_data['password']
+            password = serializer.validated_data['password']
             login_type = serializer.validated_data.get('loginType')  # Use get() for optional field
             
             # Find user by username
