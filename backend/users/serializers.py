@@ -61,7 +61,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}  # Ensure password is write-only
         }
 
-    # Validate the data before creating a user
+    # Validating the data before creating a user
     def validate(self, data):
         # Check if passwords match
         if data['password'] != data['password2']:
