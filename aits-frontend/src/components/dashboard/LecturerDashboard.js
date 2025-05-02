@@ -7,7 +7,18 @@ import { fetchAssignedIssues, fetchResolvedIssues, resolveIssue } from '../../re
 const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  
+  // Add the missing useState variables
+  const [activeTab, setActiveTab] = useState('assigned');
+  const [selectedIssue, setSelectedIssue] = useState(null);
+  
+  // Get user from Redux state
+  const { user } = useSelector(state => state.auth || { user: null });
+  
+  // Log the entire lecturer state for debugging
+  const lecturerState = useSelector(state => state.lecturer);
+  console.log('Full lecturer state:', lecturerState);
+  
   // Destructure issues from the Redux state
   const { loading, issues, resolvedIssues, error } = useSelector(state => {
     return state.lecturer || {
@@ -15,6 +26,9 @@ const LecturerDashboard = () => {
     }
   });
 
+  // Log the extracted data for debugging
+  console.log('Issues from state:', issues);
+  console.log('Resolved issues from state:', resolvedIssues);
 
   useEffect(() => {
     console.log("Fetching lecturer issues...");
@@ -29,13 +43,30 @@ const LecturerDashboard = () => {
 
   const handleResolve = async (issueId) => {
     try {
+      console.log('Attempting to resolve issue ID:', issueId);
       await dispatch(resolveIssue(issueId));
-      // console.log({loading, error})
+      console.log('Issue resolved successfully');
+      return true; // Return true on success for the resolve button
     } catch (error) {
-      console.error('Failed: to resolve Issue', { issueId, error });
+      console.error('Failed to resolve Issue', { issueId, error });
+      return false; // Return false on error for the resolve button
     }
   }
-
+  
+  // Add the missing functions
+  const handleResolveIssue = (issueId) => {
+    return handleResolve(issueId);
+  };
+  
+  const closeDetailsModal = () => {
+    setSelectedIssue(null);
+  };
+  
+  // Function to open the details modal
+  const openDetailsModal = (issue) => {
+    console.log('Opening details for issue:', issue);
+    setSelectedIssue(issue);
+  };
 
   const handleLogout = async () => {
     try {
@@ -48,6 +79,10 @@ const LecturerDashboard = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
+  
+  // Handle empty issues array
+  const hasAssignedIssues = issues && issues.length > 0;
+  const hasResolvedIssues = resolvedIssues && resolvedIssues.length > 0;
 
   return (
     <div className="flex h-screen bg-green-50">
@@ -119,8 +154,7 @@ const LecturerDashboard = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Assigned Issues</h3>
-
-              <p className="text-2xl font-bold text-green-600">{issues.length}</p>
+              <p className="text-2xl font-bold text-green-600">{issues ? issues.length : 0}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Resolved Issues</h3>
@@ -287,9 +321,7 @@ const LecturerDashboard = () => {
 };
 
 function ResolveButton({ issue, onClick }) {
-
-  const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve")
-
+  const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve");
 
   return <button
     className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
@@ -297,14 +329,13 @@ function ResolveButton({ issue, onClick }) {
       e.stopPropagation();
       e.preventDefault();
       if (issue.status === "resolved") return;
-
-      setResolveText("✅")
-      if (!onClick(issue.id)) setResolveText("❌")
+      setResolveText("✅");
+      // Use the issue.id or issue.issue_id, whichever is available
+      const issueId = issue.id || issue.issue_id;
+      if (!onClick(issueId)) setResolveText("❌");
     }}>
     {resolveText}
   </button>
 }
 
-
 export default LecturerDashboard;
-
