@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-yto=31kte-xiyu4ilo45v+zcd^d8dpi%)lgi_&xq@+h3wqx9-s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -159,7 +159,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    #"https://aits-frontend-omega.vercel.app"# React frontend
+    "https://aits-frontend-omega.vercel.app" # React frontend
 ]
 
 AUTH_USER_MODEL= 'users.User'

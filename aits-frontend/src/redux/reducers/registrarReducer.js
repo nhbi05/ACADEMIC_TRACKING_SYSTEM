@@ -7,7 +7,11 @@ import {
   ASSIGN_ISSUE_FAILURE,
   REGISTRAR_DATA_REQUEST,
   REGISTRAR_DATA_SUCCESS,
-  REGISTRAR_DATA_FAILURE
+  REGISTRAR_DATA_FAILURE,
+ FETCH_LECTURERS_REQUEST,
+ FETCH_LECTURERS_SUCCESS,
+ FETCH_LECTURERS_FAILURE
+
 } from '../actions/registrarActions';
 
 // Initial state for the registrar-related data
@@ -132,6 +136,35 @@ export default function registrarReducer(state = initialState, action) {
         }
       };
       
+     // Add these new cases for handling lecturers
+    case FETCH_LECTURERS_REQUEST:
+      return {
+        ...state,
+        lecturers: {
+          ...state.lecturers,
+          loading: true,
+          error: null
+        }
+      };
+    case FETCH_LECTURERS_SUCCESS:
+      return {
+        ...state,
+        lecturers: {
+          data: action.payload,
+          loading: false,
+          error: null
+        }
+      };
+    case FETCH_LECTURERS_FAILURE:
+      return {
+        ...state,
+        lecturers: {
+          ...state.lecturers,
+          loading: false,
+          error: action.payload
+        }
+      };
+
     default:
       return state;
   }

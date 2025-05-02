@@ -210,7 +210,7 @@ const RegistrarDashboard = () => {
                         <th scope="col" className="px-4 py-3">Name</th>
                         <th scope="col" className="px-4 py-3">Programme</th>
                         <th scope="col" className="px-4 py-3">Reg. No</th>
-                        <th scope="col" className="px-4 py-3">Assigned To</th>
+                        <th scope="col" className="px-4 py-3">Lecturer Name</th>
                         <th scope="col" className="px-4 py-3">Status</th>
                       </tr>
                     </thead>

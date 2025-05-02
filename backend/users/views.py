@@ -1,13 +1,22 @@
 from email import message
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
+from .models import Issue,User
+from .models import Issue,User, StudentProfile
 from rest_framework.response import Response
 from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
-from .models import Issue,User, StudentProfile
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer, UserSerializer
+from django.db.models import Q
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import api_view, parser_classes
+
+#from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
+from .models import Issue,User,LecturerProfile
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer,UserSerializer
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
@@ -91,8 +100,7 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return get_object_or_404(StudentProfile, user=self.request.user)
-
+         return get_object_or_404(StudentProfile, user=self.request.user)
 
 # View for retrieving the lecturer profile
 class LecturerProfileView(generics.RetrieveUpdateAPIView):
@@ -109,6 +117,7 @@ class RegistrarProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user.registrar_profile
+
 
 class SubmitIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -145,6 +154,15 @@ class SubmitIssueView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @api_view(['POST'])
+    @parser_classes([MultiPartParser, FormParser])
+    def submit_issue(request):
+        serializer = IssueSerializer(data=request.data)
+        if serializer.is_valid():
+            # Add the current user as the submitter
+            issue = serializer.save(submitted_by=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):
     permission_classes = [IsAuthenticated]
@@ -175,21 +193,17 @@ class ResolveIssueView(APIView):
                     message=(f"Hello {student_user.first_name},your issue has been successfully resolved "),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[student_user.email],
-                    fail_silently=False,
-                    
+                    fail_silently=False,   
                     )
 
                 
-            return Response(
-                {'message': 'Issue resolved successfully'},
-                status=status.HTTP_200_OK
-            )
+            return Response({'message': 'Issue resolved successfully'},status=status.HTTP_200_OK)
         except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
             return Response(
-                {'error': 'Issue not found'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+                {'error': 'Issue not found or not assigned to you'},status=status.HTTP_404_NOT_FOUND)
 
+
+# views.py (corrected)
 class AssignIssueView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -200,47 +214,58 @@ class AssignIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        lecturer_id = request.data.get('lecturer_id')
-        if not lecturer_id and lecturer_id is not None:
+        user_id = request.data.get('user_id')
+        
+        # Validate user_id exists and is a number
+        if not user_id:
             return Response(
-                {'error': 'Lecturer ID is required'},
+                {'error': 'Lecturer User ID is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            user_id = int(user_id)  # Convert to integer
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'User ID must be a valid integer'},
                 status=status.HTTP_400_BAD_REQUEST
             )
             
         try:
             issue = Issue.objects.get(id=issue_id)
-            lecturer = User.objects.get(id=lecturer_id, role='lecturer') if lecturer_id else None
-            # FixMe:
-            # request.user.assign_issue(issue, lecturer)
-            issue.assigned_to = lecturer
-            issue.save()
-            #send email notification to lecturer
-            if lecturer_id and lecturer.email:
-                send_mail(
-                    subject= "New Issue Assigned",
-                    message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[lecturer.email],
-                    fail_silently=False,
-                    
-                )
-            return Response(
-                {'message': 'Issue assigned successfully'},
-                status=status.HTTP_200_OK
+            lecturer = User.objects.get(
+                id=user_id, 
+                role='lecturer',
+                lecturer_profile__isnull=False
             )
-        except Issue.DoesNotExist:  # Fixed typo in DoesNotExist
+                
+            issue.assigned_to = lecturer
+            issue.status = 'assigned'  # Set to assigned, not in_progress
+            issue.save()
+            
+            return Response({
+                'message': 'Issue assigned successfully',
+                'assigned_to': {
+                    'id': lecturer.id,
+                    'name': f"{lecturer.first_name} {lecturer.last_name}",
+                    'department': lecturer.lecturer_profile.department if hasattr(lecturer, 'lecturer_profile') else ''
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Issue.DoesNotExist:
             return Response(
                 {'error': 'Issue not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        except User.DoesNotExist:  # Fixed typo in DoesNotExist
+        except User.DoesNotExist:
             return Response(
-                {'error': 'Lecturer not found'},
+                {'error': 'Lecturer not found or not properly registered'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
 #functionality of the students dashboard
 
+    
 class LecturerSearchView(generics.ListAPIView):
     serializer_class = LecturerProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -268,8 +293,8 @@ class StudentIssueView(generics.ListAPIView):
 
 
 class ResolvedIssuesView(generics.ListAPIView):
-    serializer_class=IssueSerializer
-    permission_classes=[IsAuthenticated]
+    serializer_class = IssueSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Issue.objects.filter(Q(assigned_to=self.request.user) | Q(submitted_by=self.request.user), status='resolved')
@@ -321,7 +346,6 @@ class LogoutView(APIView):
 
 
 #functionality for Registrar dashboard
-
 class RegistrarIssueView(generics.ListAPIView):
     # API endpoint for registrar to view all submitted issues and filter all submitted issues
     
@@ -331,8 +355,10 @@ class RegistrarIssueView(generics.ListAPIView):
     def get_queryset(self):
         return Issue.objects.all().order_by('created_at')
     #filtering capabalities
-    filter_backends= [DjangoFilterBackend,filters.SearchFilter]
-    filterset_fields= ['status','category']
+    
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['status', 'category']  # Add programme
+    search_fields = ['first_name', 'last_name', 'registration_no']  # Add search fields
 
     # Method for registrars to assign issues to lecturers
     def assign_issue(self, issue, lecturer):
@@ -344,7 +370,7 @@ class RegistrarIssueView(generics.ListAPIView):
             raise ValueError("Issues can only be assigned to lecturers")
         # Assign the issue to the lecturer and update its status
         issue.assigned_to = lecturer
-        issue.status = 'in_progress'
+        issue.status = 'assigned'
         issue.save()
 
      #viewing Issue statistics 
@@ -361,6 +387,9 @@ class RegisterCountView(generics.ListAPIView):
             "resolved_issues":resolved_issues,
             "pending_issues":pending_issues
         })
+
+
+
         
 #Functionality of lecture dashboard
 class LecturerAssignedIssuesView(generics.ListAPIView):
@@ -369,7 +398,7 @@ class LecturerAssignedIssuesView(generics.ListAPIView):
 
     def get_queryset(self):
         return Issue.objects.filter(assigned_to=self.request.user).order_by('created_at')
-class LecturerIssueDetailView(generics.ListAPIView):
+class LecturerIssueDetailView(generics.RetrieveAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
@@ -381,25 +410,45 @@ class LecturerPendingIssuesView(generics.ListAPIView):
         permission_classes = [IsAuthenticated]
         
         def get_queryset(self):
-            # filter issues assigned to the logged-in lecturer with a pending status
-            return Issue.objects.filter(assigned_to=self.request.user, status='pending').order_by('created_at')
+            return Issue.objects.filter(assigned_to=self.request.user).order_by('-created_at')
     
 class LecturerResolvedIssuesView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Issue,object.filter(assigned_to=self.request.user,status='resolved').order_by('resolved_at')
-    
-def notify_lecturer(issue):
-    lecturer = issue.assigned_to
-    if lecturer and lecturer.email:
-        send_mail(
-            subject="New Issue Assigned",
-            message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[lecturer.email],
-            fail_silently=False,
-        )
+        return Issue.objects.filter(assigned_to=self.request.user, status='resolved').order_by('resolved_at')       
+    def notify_lecturer(issue):
+        lecturer = issue.assigned_to
+        if lecturer and lecturer.email:
+            send_mail(
+                subject="New Issue Assigned",
+                message=f"Dear {lecturer.first_name}, a new issue titled '{issue.title}' has been assigned to you.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[lecturer.email],
+                fail_silently=False,
+            )
 
+class UsersView(generics.ListAPIView):
+     serializer_class = UserSerializer
+     permission_classes = [IsAuthenticated]
+ 
+     def get_queryset(self):
+         return User.objects.all()
+     
+class DebugRequestView(APIView):
+    """
+    A simple view that echoes back request data for debugging purposes.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        return Response({
+            'headers': dict(request.headers),
+            'method': request.method,
+            'path': request.path,
+            'data': request.data,
+            'query_params': request.query_params,
+            'user': request.user.username
+        }, status=status.HTTP_200_OK)
 
