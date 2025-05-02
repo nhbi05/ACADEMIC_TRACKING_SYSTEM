@@ -215,6 +215,12 @@ export const authService = {
     } catch (error) {
       return null;
     }
+  },
+
+  fetchUsers: async () => {
+    await authService.checkTokenExpiration();
+    const response = await api.get('/users/');
+    return response.data;
   }
 };
 export const studentService = {

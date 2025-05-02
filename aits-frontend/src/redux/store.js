@@ -5,6 +5,7 @@ import { composeWithDevTools } from '@redux-devtools/extension'; // Updated: cha
 import authReducer from './reducers/authReducer';
 import  studentReducer  from './reducers/studentReducer';
 import  registrarReducer  from './reducers/registrarReducer';
+import lecturerReducer from './reducers/LecturerReducer';
 import { issuesReducer } from './reducers/issuesReducer';
 import  LecturerReducer from './reducers/LecturerReducer';
 
@@ -15,7 +16,9 @@ const rootReducer = combineReducers({
   student: studentReducer,
   registrar: registrarReducer,
   issues: issuesReducer,
-  lecturer: LecturerReducer,
+
+  lecturer: lecturerReducer,
+
   // Add other reducers here
 });
 

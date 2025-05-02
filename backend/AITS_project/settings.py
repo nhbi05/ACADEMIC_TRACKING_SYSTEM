@@ -91,36 +91,51 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+        'HOST': 'shinkansen.proxy.rlwy.net',
+        'PORT': '56092'
     }
 }
+
 
 
 """DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER':'postgres',
-        'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
-        'HOST':'postgres.railway.internal',
-        'PORT':'5432'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
-try:
-    import psycopg2
-    conn = psycopg2.connect(
-        dbname=DATABASES['default']['NAME'],
-        user=DATABASES['default']['USER'],
-        password=DATABASES['default']['PASSWORD'],
-        host=DATABASES['default']['HOST'],
-        port=DATABASES['default']['PORT']
-    )
-    print("✅ Database connection successful!")
-    conn.close()
-except Exception as e:
-    print("❌ Could not connect to the database. Error:", e)
-"""
+
+}"""
+
+
+
+#DATABASES = {
+    #'default': {
+       # 'ENGINE': 'django.db.backends.postgresql',
+       # 'NAME': 'railway',
+       # 'USER':'postgres',
+       # 'PASSWORD':'wPSswYHgVVdqERgcpLDaWhKSODPYrvxc',
+       # 'HOST':'postgres.railway.internal',
+       # 'PORT':'5432'
+   # }
+#}
+#try:
+    #import psycopg2
+    #conn = psycopg2.connect(
+    #    dbname=DATABASES['default']['NAME'],
+     #   user=DATABASES['default']['USER'],
+      #  password=DATABASES['default']['PASSWORD'],
+      #  host=DATABASES['default']['HOST'],
+        #port=DATABASES['default']['PORT']
+  #  )
+  #  print("✅ Database connection successful!")
+   # conn.close()
+#except Exception as e:
+ #   print("❌ Could not connect to the database. Error:", e)
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -162,7 +177,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+    #"http://localhost:3000",
     "https://aits-frontend-omega.vercel.app" # React frontend
 ]
 

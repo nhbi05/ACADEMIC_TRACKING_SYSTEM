@@ -61,7 +61,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}  # Ensure password is write-only
         }
 
-    # Validate the data before creating a user
+    # Validating the data before creating a user
     def validate(self, data):
         # Check if passwords match
         if data['password'] != data['password2']:
@@ -123,7 +123,7 @@ class IssueSerializer(serializers.ModelSerializer):
 
 
     class Meta:
-        model = Issue
+        model = Issue # Specify the model to serialize
         fields = [
             'id', 'issue_id','category', 'status', 'description', "title",
             'year_of_study', 'semester', 'submitted_by', 'lecturer_name', 

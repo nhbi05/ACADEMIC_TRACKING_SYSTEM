@@ -1,39 +1,47 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { Alert, AlertDescription } from '../ui/alert';
-import { fetchAllIssues, fetchRegistrarData } from '../../redux/actions/registrarActions';
+import { fetchAllIssues, fetchRegistrarData, assignIssue } from '../../redux/actions/registrarActions';
 import { logoutUser } from '../../redux/actions/authActions';
+import { authService } from '../../services/api';
 
 const RegistrarDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const { user } = useSelector(state => state.auth);
-  const registrarState = useSelector(state => state.registrar || {});
-  const issuesState = registrarState.issues || {};
-  
-  // Safely extract data with fallbacks
-  const issues = Array.isArray(issuesState.data) ? issuesState.data : [];
-  const issuesLoading = issuesState.loading !== false;  // Default to true unless explicitly false
-  const issuesError = issuesState.error || null;
-  
-  // Safely extract stats with fallbacks
-  const stats = registrarState.stats || {};
-  const totalIssues = stats.totalIssues || 0;
-  const pendingIssues = stats.pendingIssues || 0;
-  const resolvedIssues = stats.resolvedIssues || 0;
-  
+  const {
+    data: issues = [],
+    loading: issuesLoading = true,
+    error: issuesError = null
+  } = useSelector(state => state.registrar.issues);
+  const [users, setUsers] = useState(null);
+
+  useEffect(() => {
+    const users = authService.fetchUsers()
+      .then(users => setUsers(users))
+      .catch(error => {
+        console.error('Error fetching users:', error);
+      });
+  }, []);
+
+  console.log({ users })
+  const {
+    totalIssues = 0,
+    pendingIssues = 0,
+    resolvedIssues = 0
+  } = useSelector(state => state.registrar.stats);
   useEffect(() => {
     // Fetch issues with stats
     dispatch(fetchAllIssues())
       .catch(err => console.error('Error fetching issues:', err));
-    
+
     // Fetch registrar profile data
     dispatch(fetchRegistrarData())
       .catch(err => console.error('Error fetching registrar data:', err));
   }, [dispatch]);
-  
+
   const handleLogout = async () => {
     try {
       await dispatch(logoutUser());
@@ -42,13 +50,23 @@ const RegistrarDashboard = () => {
       console.error('Logout failed:', error);
     }
   };
-  
+
+  const handleAssigneeChange = async (issueId, assignedTo) => {
+    try {
+      await dispatch(assignIssue(issueId, assignedTo));
+      // navigate('/login');
+    } catch (error) {
+      console.error('Failed: to assign Issue', { issueId, assignedTo }, error);
+    }
+  }
+
   const navItems = [
     { name: 'Dashboard', icon: '🏠', path: '/registrar-dashboard' },
     { name: 'Manage Students', icon: '👥', path: '/manage-students' },
     { name: 'Manage Issues', icon: '📋', path: '/manage-issues' },
   ];
-  
+
+
   return (
     <div className="flex h-screen bg-green-50">
       {/* Sidebar Navigation */}
@@ -57,12 +75,12 @@ const RegistrarDashboard = () => {
           <h1 className="text-2xl font-bold text-green-700">AITS</h1>
           <p className="text-xs text-gray-600">Academic Issue Tracking System</p>
         </div>
-        
+
         <nav className="mt-6">
           <ul>
             {navItems.map((item, index) => (
               <li key={index}>
-                <button 
+                <button
                   onClick={() => navigate(item.path)}
                   className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-green-100 hover:text-green-700 transition-colors"
                 >
@@ -71,9 +89,9 @@ const RegistrarDashboard = () => {
                 </button>
               </li>
             ))}
-            
+
             <li>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="flex items-center w-full px-6 py-3 text-gray-700 hover:bg-red-100 hover:text-red-700 transition-colors"
               >
@@ -84,14 +102,14 @@ const RegistrarDashboard = () => {
           </ul>
         </nav>
       </div>
-      
+
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         {/* Header with profile info */}
         <header className="bg-white shadow-sm">
           <div className="px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-800">Registrar Dashboard</h2>
-            
+
             <div className="flex items-center">
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white">
@@ -117,7 +135,7 @@ const RegistrarDashboard = () => {
             </div>
           </div>
         </header>
-        
+
         {/* Main Dashboard Content */}
         <main className="p-6">
           {issuesError && (
@@ -125,7 +143,7 @@ const RegistrarDashboard = () => {
               <AlertDescription>{issuesError}</AlertDescription>
             </Alert>
           )}
-          
+
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
@@ -141,7 +159,7 @@ const RegistrarDashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-yellow-100 text-yellow-600 text-xl">
@@ -155,7 +173,7 @@ const RegistrarDashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <div className="p-3 rounded-full bg-green-100 text-green-600 text-xl">
@@ -170,7 +188,7 @@ const RegistrarDashboard = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Recent Issues Table */}
           <div className="bg-white rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -199,17 +217,18 @@ const RegistrarDashboard = () => {
                     <tbody>
                       {issues.slice(0, 5).map(issue => (
                         <tr key={issue.id} className="border-b hover:bg-gray-100">
-                          <td className="px-4 py-3">{`${issue.first_name || ''} ${issue.last_name || ''}`}</td>
-                          <td className="px-4 py-3">{issue.programme || 'N/A'}</td>
-                          <td className="px-4 py-3">{issue.registration_no || 'N/A'}</td>
-                          <td className="px-4 py-3">{issue.lecturer_name || 'Unassigned'}</td>
+                          <td className="px-4 py-3">{issue.first_name}</td>
+                          <td className="px-4 py-3">{issue.programme}</td>
+                          <td className="px-4 py-3">{issue.registration_no}</td>
+                          {/* <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td> */}
+                          <td className="px-4 py-3"><AssigneeSelect issue={issue} users={users || []} onChange={handleAssigneeChange} /></td>
                           <td className="px-4 py-3">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              issue.status === 'resolved' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {issue.status || 'pending'}
+                            <span className={`px-2 py-1 rounded-full text-xs ${issue.status === 'resolved'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                              {issue.status}
+
                             </span>
                           </td>
                         </tr>
@@ -233,5 +252,35 @@ const RegistrarDashboard = () => {
     </div>
   );
 };
+
+function AssigneeSelect({ users, issue, onChange }) {
+  const assignedTo = users.filter(u => u.id === issue.assigned_to)[0] || null
+  console.log({ assignedTo })
+  return <select
+    className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500"
+    // value={assignedTo?.username ?? "Unassigned"}
+    onChange={(e) => {
+      const value = e.target.value === "null" ? null : e.target.value
+      onChange(issue.id, value)
+    }}
+  >
+    <option
+      className="hover:bg-green-500 hover:text-white"
+      value="null"
+      selected={assignedTo === null}
+      >
+        Unassigned
+    </option>
+  {users.filter(u => u.role === "lecturer").map((user, i) => (
+    <option key={i}
+      className="hover:bg-green-500 hover:text-white"
+      value={user.id}
+      selected={assignedTo?.id === user.id}
+      >
+        {user.username} - {user.role}
+    </option>
+  ))}
+  </select>
+}
 
 export default RegistrarDashboard;
