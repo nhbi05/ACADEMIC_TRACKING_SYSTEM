@@ -7,6 +7,13 @@ import { fetchAssignedIssues, fetchResolvedIssues, resolveIssue } from '../../re
 const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
+  // Add missing state variables
+  const [activeTab, setActiveTab] = useState('assigned');
+  const [selectedIssue, setSelectedIssue] = useState(null);
+
+  // Get user from Redux state
+  const { user } = useSelector(state => state.auth || { user: null });
 
   // Destructure issues from the Redux state
   const { loading, issues, resolvedIssues, error } = useSelector(state => {
@@ -15,6 +22,9 @@ const LecturerDashboard = () => {
     }
   });
 
+  // Computed values for checking if issues exist
+  const hasAssignedIssues = issues && issues.length > 0;
+  const hasResolvedIssues = resolvedIssues && resolvedIssues.length > 0;
 
   useEffect(() => {
     console.log("Fetching lecturer issues...");
@@ -30,12 +40,29 @@ const LecturerDashboard = () => {
   const handleResolve = async (issueId) => {
     try {
       await dispatch(resolveIssue(issueId));
-      // console.log({loading, error})
+      // Refetch issues after resolving
+      dispatch(fetchAssignedIssues());
+      dispatch(fetchResolvedIssues());
+      return true;
     } catch (error) {
       console.error('Failed: to resolve Issue', { issueId, error });
+      return false;
     }
-  }
+  };
 
+  // Add missing modal functions
+  const openDetailsModal = (issue) => {
+    setSelectedIssue(issue);
+  };
+
+  const closeDetailsModal = () => {
+    setSelectedIssue(null);
+  };
+
+  const handleResolveIssue = async (issueId) => {
+    await handleResolve(issueId);
+    closeDetailsModal();
+  };
 
   const handleLogout = async () => {
     try {
@@ -119,7 +146,6 @@ const LecturerDashboard = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Assigned Issues</h3>
-
               <p className="text-2xl font-bold text-green-600">{issues.length}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
@@ -145,7 +171,6 @@ const LecturerDashboard = () => {
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Attachments</th>
-
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Resolve</th>
                       </tr>
@@ -271,7 +296,6 @@ const LecturerDashboard = () => {
                   onClick={() => {
                     const issueId = selectedIssue.id || selectedIssue.issue_id;
                     handleResolveIssue(issueId);
-                    closeDetailsModal();
                   }}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
@@ -287,24 +311,24 @@ const LecturerDashboard = () => {
 };
 
 function ResolveButton({ issue, onClick }) {
+  const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve");
 
-  const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve")
+  return (
+    <button
+      className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (issue.status === "resolved") return;
 
-
-  return <button
-    className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
-    onClick={(e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if (issue.status === "resolved") return;
-
-      setResolveText("✅")
-      if (!onClick(issue.id)) setResolveText("❌")
-    }}>
-    {resolveText}
-  </button>
+        setResolveText("✅");
+        const result = onClick(issue.id);
+        if (!result) setResolveText("❌");
+      }}
+    >
+      {resolveText}
+    </button>
+  );
 }
 
-
 export default LecturerDashboard;
-
