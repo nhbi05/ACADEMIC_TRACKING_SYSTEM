@@ -33,7 +33,7 @@ const RegistrarDashboard = () => {
     resolvedIssues = 0
   } = useSelector(state => state.registrar.stats);
   useEffect(() => {
-    // Fetch Issues with stats
+    // Fetch Issues With stats
     dispatch(fetchAllIssues())
       .catch(err => console.error('Error fetching issues:', err));
 
