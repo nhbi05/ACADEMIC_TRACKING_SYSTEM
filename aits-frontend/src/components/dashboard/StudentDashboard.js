@@ -60,7 +60,7 @@ const fetchStudentData = async () => {
 fetchStudentData();
 }, [getAuthToken, navigate]);
 
-// Fetch issues
+// Fetch Issues
 useEffect(() => {
 const fetchIssues = async () => {
   const accessToken = getAuthToken();
