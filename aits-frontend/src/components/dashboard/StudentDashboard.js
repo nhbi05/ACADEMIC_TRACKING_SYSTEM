@@ -47,7 +47,7 @@ const fetchStudentData = async () => {
     // Check If Error Is Due To Expired Token
     if (err.response && err.response.status === 401) {
       setError("Your session has expired. Please log in again.");
-      // Optional: redirect to login
+      // Optional: Redirect to login
       // navigate('/login');
     } else {
       setError("Failed to load your profile. Please try again.");
