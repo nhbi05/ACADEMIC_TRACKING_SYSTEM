@@ -37,7 +37,7 @@ const RegistrarDashboard = () => {
     dispatch(fetchAllIssues())
       .catch(err => console.error('Error fetching issues:', err));
 
-    // Fetch Registrar Profile data
+    // Fetch Registrar Profile Data
     dispatch(fetchRegistrarData())
       .catch(err => console.error('Error fetching registrar data:', err));
   }, [dispatch]);
