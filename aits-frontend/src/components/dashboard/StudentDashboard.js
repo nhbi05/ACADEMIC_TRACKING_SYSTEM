@@ -92,7 +92,7 @@ const fetchIssues = async () => {
 fetchIssues();
 }, [getAuthToken, error]);
 
-// Derived stats based on issues
+// Derived Stats based on issues
 const statsData = {
 totalIssues: issues?.length || 0,
 resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0,
