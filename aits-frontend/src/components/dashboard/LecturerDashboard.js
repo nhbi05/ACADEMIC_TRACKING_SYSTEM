@@ -19,7 +19,7 @@ const LecturerDashboard = () => {
   const lecturerState = useSelector(state => state.lecturer);
   console.log('Full lecturer state:', lecturerState);
   
-  // Destructure issues from the Redux state
+  // Destructure Issues from the Redux state
   const { loading, issues, resolvedIssues, error } = useSelector(state => {
     return state.lecturer || {
       loading: false, issues: [], resolvedIssues: [], error: null
