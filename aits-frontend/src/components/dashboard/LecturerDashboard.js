@@ -8,7 +8,7 @@ const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Add the Missing UseState variables
+  // Add the Missing UseState Variables
   const [activeTab, setActiveTab] = useState('assigned');
   const [selectedIssue, setSelectedIssue] = useState(null);
   
