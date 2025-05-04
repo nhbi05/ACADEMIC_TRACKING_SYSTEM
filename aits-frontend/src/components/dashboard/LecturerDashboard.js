@@ -330,7 +330,7 @@ function ResolveButton({ issue, onClick }) {
       e.preventDefault();
       if (issue.status === "resolved") return;
       setResolveText("✅");
-      // Use the Issue.id Or Issue.issue_id, Whichever Is available
+      // Use the Issue.id Or Issue.issue_id, Whichever Is Available
       const issueId = issue.id || issue.issue_id;
       if (!onClick(issueId)) setResolveText("❌");
     }}>
