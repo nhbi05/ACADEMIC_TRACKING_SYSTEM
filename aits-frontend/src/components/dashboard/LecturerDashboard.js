@@ -162,7 +162,7 @@ const LecturerDashboard = () => {
             </div>
           </div>
 
-          {/* Display the appropriate content based on active tab */}
+          {/* Display the Appropriate content based on active tab */}
           {activeTab === 'assigned' ? (
             <>
               {/* Assigned Issues Table */}
