@@ -108,7 +108,7 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
 
 # View for retrieving the lecturer profile
 class LecturerProfileView(generics.RetrieveUpdateAPIView):
-    serializer_class = LecturerProfileSerializer
+    serializer_class = LecturerProfiSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
