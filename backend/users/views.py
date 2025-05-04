@@ -169,7 +169,7 @@ class SubmitIssueView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ResolveIssueView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes  [IsAuthenticated]
     
     def post(self, request, *args, **kwargs):
         # validated_data = IssueSerializer(data=request.data, partial=True).is_valid(raise_exception=True)
