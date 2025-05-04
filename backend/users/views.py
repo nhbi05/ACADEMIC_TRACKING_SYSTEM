@@ -241,7 +241,7 @@ class AssignIssueView(APIView):
             lecturer = User.objects.get(id=lecturer_id, role='lecturer') if lecturer_id else None
             # FixMe:
             # request.user.assign_issue(issue, lecturer)
-            issue.assigned_to = lecturer
+            issue.assigned_to = lecture
             issue.save()
             #send email notification to lecturer
             if lecturer_id and lecturer.email:
