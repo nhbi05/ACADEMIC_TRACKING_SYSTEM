@@ -306,7 +306,7 @@ class StudentIssueView(generics.ListAPIView):
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self)
         return Issue.objects.filter(submitted_by=self.request.user).order_by('created_at')
 
 
