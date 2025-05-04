@@ -15,7 +15,7 @@ const [error, setError] = useState(null);
 
 // Get Token Helper - Standardized To Use localStorage Directly
 const getAuthToken = useCallback(() => {
-// Get Access Token Directly From localStorage
+// Get Access Token Directly From LocalStorage
 const accessToken = localStorage.getItem('access');
 if (accessToken) {
   return accessToken;
