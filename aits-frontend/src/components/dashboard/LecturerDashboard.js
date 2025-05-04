@@ -62,7 +62,7 @@ const LecturerDashboard = () => {
     setSelectedIssue(null);
   };
   
-  // Function to Open the details modal
+  // Function to Open the Details modal
   const openDetailsModal = (issue) => {
     console.log('Opening details for issue:', issue);
     setSelectedIssue(issue);
