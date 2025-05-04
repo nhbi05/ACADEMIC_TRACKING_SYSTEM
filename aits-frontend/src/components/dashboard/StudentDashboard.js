@@ -99,7 +99,7 @@ resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0
 pendingIssues: issues?.filter(issue => issue.status !== 'resolved').length || 0
 };
 
-// Loading and error states
+// Loading And error states
 const loading = profileLoading || issuesLoading;
 
 const handleLogout = () => {
