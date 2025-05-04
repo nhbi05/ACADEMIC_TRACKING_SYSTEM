@@ -246,7 +246,7 @@ class AssignIssueView(APIView):
             #send email notification to lecturer
             if lecturer_id and lecturer.email:
                 send_mail(
-                    subject= "New Issue Assigned"
+                    subject= "New Issue Assigned",
                     message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[lecturer.email],
