@@ -80,7 +80,7 @@ const LecturerDashboard = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
   
-  // Handle Empty issues array
+  // Handle Empty Issues array
   const hasAssignedIssues = issues && issues.length > 0;
   const hasResolvedIssues = resolvedIssues && resolvedIssues.length > 0;
 
