@@ -220,7 +220,7 @@ const RegistrarDashboard = () => {
                           <td className="px-4 py-3">{issue.first_name}</td>
                           <td className="px-4 py-3">{issue.programme}</td>
                           <td className="px-4 py-3">{issue.registration_no}</td>
-                          {/* <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td> */}
+                          {/* <td ClassName="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td> */}
                           <td className="px-4 py-3"><AssigneeSelect issue={issue} users={users || []} onChange={handleAssigneeChange} /></td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded-full text-xs ${issue.status === 'resolved'
