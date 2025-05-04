@@ -104,7 +104,7 @@ const loading = profileLoading || issuesLoading;
 
 const handleLogout = () => {
 if (window.confirm("Are you sure you want to log out?")) {
-  // Clear tokens from localStorage directly
+  // Clear Tokens from localStorage directly
   localStorage.removeItem('access');
   localStorage.removeItem('refresh');
   localStorage.removeItem('user');
