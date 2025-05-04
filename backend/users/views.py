@@ -231,7 +231,7 @@ class AssignIssueView(APIView):
             user_id = int(user_id)  # Convert to integer
         except (ValueError, TypeError):
             return Response(
-                {'error': 'User ID must be a valid int'},
+                {'error': 'User ID must be a valid integer'},
                 status=status.HTTP_400_BAD_REQUEST
             )
             
