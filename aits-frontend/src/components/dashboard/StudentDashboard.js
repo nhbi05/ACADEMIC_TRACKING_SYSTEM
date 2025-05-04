@@ -13,7 +13,7 @@ const [profileLoading, setProfileLoading] = useState(true);
 const [issuesLoading, setIssuesLoading] = useState(true);
 const [error, setError] = useState(null);
 
-// Get Token Helper - Standardized to use localStorage directly
+// Get Token Helper - Standardized To use localStorage directly
 const getAuthToken = useCallback(() => {
 // Get access token directly from localStorage
 const accessToken = localStorage.getItem('access');
