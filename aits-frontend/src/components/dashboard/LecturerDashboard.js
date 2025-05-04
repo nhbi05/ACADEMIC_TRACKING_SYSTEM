@@ -12,7 +12,7 @@ const LecturerDashboard = () => {
   const [activeTab, setActiveTab] = useState('assigned');
   const [selectedIssue, setSelectedIssue] = useState(null);
   
-  // Get User From Redux state
+  // Get User From Redux State
   const { user } = useSelector(state => state.auth || { user: null });
   
   // Log the entire lecturer state for debugging
