@@ -79,7 +79,7 @@ const fetchIssues = async () => {
     setIssues(response.data);
   } catch (err) {
     console.error("Error fetching issues:", err);
-    // Don't set error here to avoid duplicate error messages
+    // Don't Set error here to avoid duplicate error messages
     // if profile fetch already failed
     if (!error && err.response && err.response.status === 401) {
       setError("Your session has expired. Please log in again.");
