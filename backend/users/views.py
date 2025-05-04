@@ -92,7 +92,7 @@ class LoginView(APIView):
                                                 }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
-            except User.DoesNotExist
+            except User.DoesNotExist:
                 return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
