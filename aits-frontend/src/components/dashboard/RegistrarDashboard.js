@@ -105,7 +105,7 @@ const RegistrarDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Header With Irofile info */}
+        {/* Header With Profile info */}
         <header className="bg-white shadow-sm">
           <div className="px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-800">Registrar Dashboard</h2>
