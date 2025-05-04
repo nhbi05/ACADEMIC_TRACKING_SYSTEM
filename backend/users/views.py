@@ -98,7 +98,7 @@ class LoginView(APIView):
     
 class StudentProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = StudentProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IAuthenticated]
 
     def get_object(self):
 
