@@ -26,7 +26,7 @@ const LecturerDashboard = () => {
     }
   });
 
-  // Log the Extracted data for debugging
+  // Log the Extracted Data for debugging
   console.log('Issues from state:', issues);
   console.log('Resolved issues from state:', resolvedIssues);
 
