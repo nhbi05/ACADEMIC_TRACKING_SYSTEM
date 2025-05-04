@@ -135,7 +135,7 @@ class SubmitIssueView(APIView):
         # Automatically include student details in the request data
         request_data = request.data.copy()
         student_profile = request.user.student_profile
-        request_data['first_name'] = request.user.first_name
+        request_data['first_'] = request.user.first_name
         request_data['last_name'] = request.user.last_name
         request_data['registration_no'] = student_profile.registration_no # From student profile
         request_data['student_no'] = student_profile.student_no  # From student profile
