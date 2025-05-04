@@ -23,7 +23,7 @@ if (accessToken) {
 return null;
 }, []);
 
-// Fetch student profile data
+// Fetch Student profile data
 useEffect(() => {
 const fetchStudentData = async () => {
   const accessToken = getAuthToken();
