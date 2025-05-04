@@ -15,7 +15,7 @@ const LecturerDashboard = () => {
   // Get User From Redux State
   const { user } = useSelector(state => state.auth || { user: null });
   
-  // Log the Entire lecturer state for debugging
+  // Log the Entire Lecturer state for debugging
   const lecturerState = useSelector(state => state.lecturer);
   console.log('Full lecturer state:', lecturerState);
   
