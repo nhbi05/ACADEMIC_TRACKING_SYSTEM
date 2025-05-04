@@ -53,7 +53,7 @@ const LecturerDashboard = () => {
     }
   }
   
-  // Add the Missing functions
+  // Add the Missing Functions
   const handleResolveIssue = (issueId) => {
     return handleResolve(issueId);
   };
