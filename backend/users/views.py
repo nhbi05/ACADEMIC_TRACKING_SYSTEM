@@ -269,7 +269,7 @@ class AssignIssueView(APIView):
                     'name': f"{lecturer.first_name} {lecturer.last_name}",
                     'department': lecturer.lecturer_profile.department if hasattr(lecturer, 'lecturer_profile') else ''
                 }
-            }, status=status.HTTP_200_OK
+            }, status=status.HTTP_200_OK)
             
         except Issue.DoesNotExist:
             return Response(
