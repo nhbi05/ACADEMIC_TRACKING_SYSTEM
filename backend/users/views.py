@@ -72,7 +72,7 @@ class LoginView(APIView):
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
                 if authenticated_user is not None:
-                    # Optional role check
+                    # Optional role check 
                     if login_type and authenticated_user.role != login_type:
                         return Response({'error': 'Invalid role for this login type'}, 
                                        status=status.HTTP_403_FORBIDDEN)
@@ -92,7 +92,7 @@ class LoginView(APIView):
                                                 }
                     })
                 return Response({'error': 'Invalid password'}, status=status.HTTP_400_BAD_REQUEST)
-            except User.DoesNotExist:
+            except User.DoesNotExist
                 return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
