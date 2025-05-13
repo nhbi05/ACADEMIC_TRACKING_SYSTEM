@@ -193,7 +193,7 @@ const navItems = [
           </div>
         </header>
         
-        {/* MAIn DAshboard Content */}
+        {/* MAIN DAshboard Content */}
         <main className="p-6">
           {error && (
             <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
