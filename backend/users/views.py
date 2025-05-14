@@ -1,8 +1,7 @@
 from email import message
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
-from .models import Issue,User
-from .models import Issue,User, StudentProfile
+from .models import Issue,User, StudentProfile, LecturerProfile
 from rest_framework.response import Response
 from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
@@ -42,7 +41,7 @@ class RegisterView(APIView):
             elif user.role == 'lecturer':
                 message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a lecturer."
             elif user.role == 'registrar':
-                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a registrar."
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as the registrar."
             # Send email on registering into the system
             send_mail(
                 subject,
@@ -73,7 +72,7 @@ class LoginView(APIView):
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
                 if authenticated_user is not None:
-                    # Optional role check
+                    # Optional role check 
                     if login_type and authenticated_user.role != login_type:
                         return Response({'error': 'Invalid role for this login type'}, 
                                        status=status.HTTP_403_FORBIDDEN)

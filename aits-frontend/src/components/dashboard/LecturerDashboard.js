@@ -8,23 +8,27 @@ const LecturerDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Add missing state variables
+  // Add the Missing UseState Variables
   const [activeTab, setActiveTab] = useState('assigned');
   const [selectedIssue, setSelectedIssue] = useState(null);
-
-  // Get user from Redux state
+  
+  // Get User From Redux State
   const { user } = useSelector(state => state.auth || { user: null });
-
-  // Destructure issues from the Redux state
+  
+  // Log the Entire Lecturer State For Debugging
+  const lecturerState = useSelector(state => state.lecturer);
+  console.log('Full lecturer state:', lecturerState);
+  
+  // Destructure Issues From the Redux State
   const { loading, issues, resolvedIssues, error } = useSelector(state => {
     return state.lecturer || {
       loading: false, issues: [], resolvedIssues: [], error: null
     }
   });
 
-  // Computed values for checking if issues exist
-  const hasAssignedIssues = issues && issues.length > 0;
-  const hasResolvedIssues = resolvedIssues && resolvedIssues.length > 0;
+  // Log the Extracted Data For Debugging
+  console.log('Issues from state:', issues);
+  console.log('Resolved issues from state:', resolvedIssues);
 
   useEffect(() => {
     console.log("Fetching lecturer issues...");
@@ -39,6 +43,7 @@ const LecturerDashboard = () => {
 
   const handleResolve = async (issueId) => {
     try {
+      console.log('Attempting to resolve issue ID:', issueId);
       await dispatch(resolveIssue(issueId));
       // Refetch issues after resolving
       dispatch(fetchAssignedIssues());
@@ -75,6 +80,10 @@ const LecturerDashboard = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
+  
+  // Handle Empty Issues Array
+  const hasAssignedIssues = issues && issues.length > 0;
+  const hasResolvedIssues = resolvedIssues && resolvedIssues.length > 0;
 
   return (
     <div className="flex h-screen bg-green-50">
@@ -154,7 +163,7 @@ const LecturerDashboard = () => {
             </div>
           </div>
 
-          {/* Display the appropriate content based on active tab */}
+          {/* Display the Appropriate Content Based On Active Tab */}
           {activeTab === 'assigned' ? (
             <>
               {/* Assigned Issues Table */}

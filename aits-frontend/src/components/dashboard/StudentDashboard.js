@@ -13,9 +13,9 @@ const [profileLoading, setProfileLoading] = useState(true);
 const [issuesLoading, setIssuesLoading] = useState(true);
 const [error, setError] = useState(null);
 
-// Get token helper - standardized to use localStorage directly
+// Get Token Helper - Standardized To Use localStorage Directly
 const getAuthToken = useCallback(() => {
-// Get access token directly from localStorage
+// Get Access Token Directly From LocalStorage
 const accessToken = localStorage.getItem('access');
 if (accessToken) {
   return accessToken;
@@ -23,7 +23,7 @@ if (accessToken) {
 return null;
 }, []);
 
-// Fetch student profile data
+// Fetch Student Profile Data
 useEffect(() => {
 const fetchStudentData = async () => {
   const accessToken = getAuthToken();
@@ -44,11 +44,11 @@ const fetchStudentData = async () => {
   } catch (err) {
     console.error("Error fetching profile data:", err);
     
-    // Check if error is due to expired token
+    // Check If Error Is Due To Expired Token
     if (err.response && err.response.status === 401) {
       setError("Your session has expired. Please log in again.");
-      // Optional: redirect to login
-      // navigate('/login');
+      // Optional: Redirect To Login
+      // Navigate('/login');
     } else {
       setError("Failed to load your profile. Please try again.");
     }
@@ -60,7 +60,7 @@ const fetchStudentData = async () => {
 fetchStudentData();
 }, [getAuthToken, navigate]);
 
-// Fetch issues
+// Fetch Issues
 useEffect(() => {
 const fetchIssues = async () => {
   const accessToken = getAuthToken();
@@ -79,8 +79,8 @@ const fetchIssues = async () => {
     setIssues(response.data);
   } catch (err) {
     console.error("Error fetching issues:", err);
-    // Don't set error here to avoid duplicate error messages
-    // if profile fetch already failed
+    // Don't Set Error Here To Avoid Duplicate Error Messages
+    // If Profile Fetch Already Failed
     if (!error && err.response && err.response.status === 401) {
       setError("Your session has expired. Please log in again.");
     }
@@ -92,19 +92,19 @@ const fetchIssues = async () => {
 fetchIssues();
 }, [getAuthToken, error]);
 
-// Derived stats based on issues
+// Derived Stats Based On Issues
 const statsData = {
 totalIssues: issues?.length || 0,
 resolvedIssues: issues?.filter(issue => issue.status === 'resolved').length || 0,
 pendingIssues: issues?.filter(issue => issue.status !== 'resolved').length || 0
 };
 
-// Loading and error states
+// Loading And Error States
 const loading = profileLoading || issuesLoading;
 
 const handleLogout = () => {
 if (window.confirm("Are you sure you want to log out?")) {
-  // Clear tokens from localStorage directly
+  // Clear Tokens From LocalStorage Directly
   localStorage.removeItem('access');
   localStorage.removeItem('refresh');
   localStorage.removeItem('user');
@@ -158,7 +158,7 @@ const navItems = [
       
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Header with profile info */}
+        {/* Header With Profile Info */}
         <header className="bg-white shadow-sm">
           <div className="px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-800">Dashboard</h2>
@@ -193,7 +193,7 @@ const navItems = [
           </div>
         </header>
         
-        {/* Main Dashboard Content */}
+        {/* MAIN DASHBOARD CONTENT */}
         <main className="p-6">
           {error && (
             <div className="bg-red-50 text-red-700 p-4 rounded-md mb-6">
@@ -209,7 +209,7 @@ const navItems = [
             </div>
           )}
           
-          {/* Stats Cards */}
+          {/* STATS CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">

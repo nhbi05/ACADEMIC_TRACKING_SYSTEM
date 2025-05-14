@@ -33,11 +33,11 @@ const RegistrarDashboard = () => {
     resolvedIssues = 0
   } = useSelector(state => state.registrar.stats);
   useEffect(() => {
-    // Fetch issues with stats
+    // Fetch Issues With Stats
     dispatch(fetchAllIssues())
       .catch(err => console.error('Error fetching issues:', err));
 
-    // Fetch registrar profile data
+    // Fetch Registrar Profile Data
     dispatch(fetchRegistrarData())
       .catch(err => console.error('Error fetching registrar data:', err));
   }, [dispatch]);
@@ -105,7 +105,7 @@ const RegistrarDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Header with profile info */}
+        {/* Header With Profile Info */}
         <header className="bg-white shadow-sm">
           <div className="px-6 py-4 flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-800">Registrar Dashboard</h2>
@@ -220,7 +220,7 @@ const RegistrarDashboard = () => {
                           <td className="px-4 py-3">{issue.first_name}</td>
                           <td className="px-4 py-3">{issue.programme}</td>
                           <td className="px-4 py-3">{issue.registration_no}</td>
-                          {/* <td className="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td> */}
+                          {/* <td ClassName="px-4 py-3">{issue.assigned_to || 'Unassigned'}</td> */}
                           <td className="px-4 py-3"><AssigneeSelect issue={issue} users={users || []} onChange={handleAssigneeChange} /></td>
                           <td className="px-4 py-3">
                             <span className={`px-2 py-1 rounded-full text-xs ${issue.status === 'resolved'
