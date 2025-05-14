@@ -23,7 +23,7 @@ const Register = () => {
     programme: '',      
     registration_no: ""
   });
-
+ 
   const [passwordError, setPasswordError] = useState('');
   
   const navigate = useNavigate();
