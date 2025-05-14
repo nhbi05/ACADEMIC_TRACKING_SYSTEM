@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-"""DATABASES = {
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'railway',
@@ -99,7 +99,7 @@ WSGI_APPLICATION = 'AITS_project.wsgi.application'
         'PORT': '56092'
     }
 }
-"""
+
 
 """DATABASES = {
     'default': {
