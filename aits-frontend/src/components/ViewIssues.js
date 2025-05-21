@@ -37,7 +37,7 @@ const ViewIssues = () => {
  
 
   return (
-    // Changed the background to light green for the entire component
+    // CHanged the background to light green for the entire component
     <div className="min-h-screen bg-green-50 p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-semibold text-gray-800 mb-4">Academic Issues</h1>
