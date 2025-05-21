@@ -1,7 +1,8 @@
 from email import message
 from django.contrib.auth import authenticate
 from rest_framework.views import APIView
-from .models import Issue,User, StudentProfile, LecturerProfile
+from .models import Issue,User
+from .models import Issue,User, StudentProfile
 from rest_framework.response import Response
 from rest_framework import status,generics,filters
 from rest_framework.permissions import IsAuthenticated
@@ -13,18 +14,16 @@ from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import api_view, parser_classes
 
-from .models import Issue,User, StudentProfile
-from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer, UserSerializer
-
+#from ACADEMIC_TRACKING_SYSTEM.backend.AITS_project.settings import DEFAULT_FROM_EMAIL
+from .models import Issue,User,LecturerProfile
+from .serializers import RegisterSerializer, LoginSerializer, IssueSerializer,StudentProfileSerializer,LecturerProfileSerializer,RegistrarProfileSerializer,UserSerializer
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import send_mail
 from django.conf import settings
-
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
 
 User = get_user_model()
 class RegisterView(APIView):
@@ -41,8 +40,8 @@ class RegisterView(APIView):
             elif user.role == 'lecturer':
                 message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a lecturer."
             elif user.role == 'registrar':
-                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as the registrar."
-            # Send email on registering into the system
+                message = f"Hello {user.first_name},\n\nYou have successfully registered into the Academic Issue Tracking System as a registrar."
+            # Send email
             send_mail(
                 subject,
                 message,
@@ -54,7 +53,7 @@ class RegisterView(APIView):
                 {"message": "User created successfully", "user": serializer.data}, 
                 status=status.HTTP_201_CREATED
             )
-        print(serializer.errors) 
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
@@ -72,7 +71,7 @@ class LoginView(APIView):
                 authenticated_user = authenticate(request, username=user.username, password=password)
                 
                 if authenticated_user is not None:
-                    # Optional role check 
+                    # Optional role check
                     if login_type and authenticated_user.role != login_type:
                         return Response({'error': 'Invalid role for this login type'}, 
                                        status=status.HTTP_403_FORBIDDEN)
@@ -101,10 +100,7 @@ class StudentProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-
-        return get_object_or_404(StudentProfile, user=self.request.user)
-
-
+         return get_object_or_404(StudentProfile, user=self.request.user)
 
 # View for retrieving the lecturer profile
 class LecturerProfileView(generics.RetrieveUpdateAPIView):
@@ -156,7 +152,7 @@ class SubmitIssueView(APIView):
 
                 )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print(serializer.errors) 
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     @api_view(['POST'])
     @parser_classes([MultiPartParser, FormParser])
@@ -218,10 +214,10 @@ class AssignIssueView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-
-        lecturer_id = request.data.get('lecturer_id')
-        if not lecturer_id and lecturer_id is not None:
-
+        user_id = request.data.get('user_id')
+        
+        # Validate user_id exists and is a number
+        if not user_id:
             return Response(
                 {'error': 'Lecturer User ID is required'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -237,25 +233,10 @@ class AssignIssueView(APIView):
             
         try:
             issue = Issue.objects.get(id=issue_id)
-
-            lecturer = User.objects.get(id=lecturer_id, role='lecturer') if lecturer_id else None
-            # FixMe:
-            # request.user.assign_issue(issue, lecturer)
-            issue.assigned_to = lecturer
-            issue.save()
-            #send email notification to lecturer
-            if lecturer_id and lecturer.email:
-                send_mail(
-                    subject= "New Issue Assigned",
-                    message= f"Dear {lecturer.first_name}, you have been assigned a new issue from the registrar",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[lecturer.email],
-                    fail_silently=False,
-                    
-                )
-            return Response(
-                {'message': 'Issue assigned successfully'},
-                status=status.HTTP_200_OK
+            lecturer = User.objects.get(
+                id=user_id, 
+                role='lecturer',
+                lecturer_profile__isnull=False
             )
                 
             issue.assigned_to = lecturer
@@ -302,7 +283,7 @@ class LecturerSearchView(generics.ListAPIView):
         # Return the related LecturerProfile objects
         return LecturerProfile.objects.filter(user__in=matching_lecturers)
 
-class StudentIssueView(generics.ListAPIView): 
+class StudentIssueView(generics.ListAPIView):
     serializer_class=IssueSerializer
     permission_classes=[IsAuthenticated]
 
@@ -311,24 +292,22 @@ class StudentIssueView(generics.ListAPIView):
 
 
 
-class ResolvedIssuesView(generics.ListAPIView): 
+class ResolvedIssuesView(generics.ListAPIView):
     serializer_class = IssueSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Issue.objects.filter(Q(assigned_to=self.request.user) | Q(submitted_by=self.request.user), status='resolved')
 
-
-class UsersView(generics.ListAPIView): 
+class UsersView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return User.objects.all()
 
-
     def perform_create(self,serializer):
-        #O11 serializer.save(student=self.request.use 
+        #O11 serializer.save(student=self.request.use
         serializer.save()
 
 class IssueDetailView(generics.RetrieveAPIView):
@@ -472,4 +451,3 @@ class DebugRequestView(APIView):
             'query_params': request.query_params,
             'user': request.user.username
         }, status=status.HTTP_200_OK)
-

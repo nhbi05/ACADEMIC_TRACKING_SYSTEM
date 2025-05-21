@@ -45,27 +45,28 @@ const LecturerDashboard = () => {
     try {
       console.log('Attempting to resolve issue ID:', issueId);
       await dispatch(resolveIssue(issueId));
-      console.log('Issue resolved successfully');
-      return true; // Return true on success for the resolve button
+      // Refetch issues after resolving
+      dispatch(fetchAssignedIssues());
+      dispatch(fetchResolvedIssues());
+      return true;
     } catch (error) {
-      console.error('Failed to resolve Issue', { issueId, error });
-      return false; // Return false on error for the resolve button
+      console.error('Failed: to resolve Issue', { issueId, error });
+      return false;
     }
-  }
-  
-  // Add the Missing Functions
-  const handleResolveIssue = (issueId) => {
-    return handleResolve(issueId);
   };
-  
+
+  // Add missing modal functions
+  const openDetailsModal = (issue) => {
+    setSelectedIssue(issue);
+  };
+
   const closeDetailsModal = () => {
     setSelectedIssue(null);
   };
-  
-  // Function to Open the Details Modal
-  const openDetailsModal = (issue) => {
-    console.log('Opening details for issue:', issue);
-    setSelectedIssue(issue);
+
+  const handleResolveIssue = async (issueId) => {
+    await handleResolve(issueId);
+    closeDetailsModal();
   };
 
   const handleLogout = async () => {
@@ -154,7 +155,7 @@ const LecturerDashboard = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Assigned Issues</h3>
-              <p className="text-2xl font-bold text-green-600">{issues ? issues.length : 0}</p>
+              <p className="text-2xl font-bold text-green-600">{issues.length}</p>
             </div>
             <div className="bg-white shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-700">Resolved Issues</h3>
@@ -179,7 +180,6 @@ const LecturerDashboard = () => {
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Programme</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Category</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Attachments</th>
-
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Status</th>
                         <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">Resolve</th>
                       </tr>
@@ -305,7 +305,6 @@ const LecturerDashboard = () => {
                   onClick={() => {
                     const issueId = selectedIssue.id || selectedIssue.issue_id;
                     handleResolveIssue(issueId);
-                    closeDetailsModal();
                   }}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
@@ -323,19 +322,22 @@ const LecturerDashboard = () => {
 function ResolveButton({ issue, onClick }) {
   const [resolveText, setResolveText] = useState(issue.status === "resolved" ? "✅" : "Resolve");
 
-  return <button
-    className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
-    onClick={(e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if (issue.status === "resolved") return;
-      setResolveText("✅");
-      // Use the Issue.id Or Issue.issue_id, Whichever Is Available
-      const issueId = issue.id || issue.issue_id;
-      if (!onClick(issueId)) setResolveText("❌");
-    }}>
-    {resolveText}
-  </button>
+  return (
+    <button
+      className='bg-blue-400 text-white rounded px-2 py-1 hover:bg-blue-800 min-w-[64px]'
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (issue.status === "resolved") return;
+
+        setResolveText("✅");
+        const result = onClick(issue.id);
+        if (!result) setResolveText("❌");
+      }}
+    >
+      {resolveText}
+    </button>
+  );
 }
 
 export default LecturerDashboard;

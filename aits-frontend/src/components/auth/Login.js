@@ -29,7 +29,7 @@ const Login = () => {
     };
   }, [dispatch]);
 
-  // Redirect if authenticated
+  
   useEffect(() => {
     if (isAuthenticated) {
       const timer = setTimeout(() => {
